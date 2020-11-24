@@ -2,4 +2,4 @@ User-agent: *
 
 Disallow: /norobots/
 
-Sitemap: https://legiahuyy.github.io//published/sitemap.xml
+Sitemap: https://legiahuyy.github.io/blog/en/blog/en/sitemap.xml
