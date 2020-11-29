@@ -22,7 +22,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-  <title>Pwn | Another infosec blog
+  <title>Di cư từ Medium sang Github Page | Another infosec blog
   </title>
 
   <!--
@@ -99,8 +99,15 @@
 
 
 
-  <link rel="preload" href="/blog/en/assets/css/category-tag.css" as="style">
-  <link rel="stylesheet" href="/blog/en/assets/css/category-tag.css">
+  <link rel="preload" as="style" href="/blog/en/assets/css/post.css">
+  <link rel="stylesheet" href="/blog/en/assets/css/post.css">
+
+  
+
+    <link rel="preload" as="style" href="/blog/en/assets/css/lib/bootstrap-toc.min.css">
+    <link rel="stylesheet" href="/blog/en/assets/css/lib/bootstrap-toc.min.css" />
+
+  
 
 
 
@@ -125,7 +132,9 @@
 
 
 
-  <script src="/blog/en/assets/js/page.min.js" async></script>
+  <script src="/blog/en/assets/js/post.min.js" async></script>
+
+  
 
 
 
@@ -200,7 +209,7 @@
     
 
     <li class="nav-item d-flex justify-content-center
-      active">
+      ">
       <a href="/blog/en/tabs/tags/" class="nav-link d-flex justify-content-center align-items-center w-100">
         <i class="fa-fw fas fa-tags ml-xl-3 mr-xl-3 unloaded"></i>
         <span>TAGS</span>
@@ -292,22 +301,14 @@
         
         <span>
           <a href="/blog/en/">
-            Home
-          </a>
-        </span>
-        
-      
-        
-        <span>
-          <a href="/blog/en/">
-            Tags
+            Posts
           </a>
         </span>
         
       
 
       
-        <span>Pwn</span>
+        <span>Di cư từ Medium sang Github Page</span>
       
 
     </span><!-- endof #breadcrumb -->
@@ -315,7 +316,7 @@
     <i id="sidebar-trigger" class="fas fa-bars fa-fw"></i>
 
     <div id="topbar-title">
-    Tag
+    Post
     </div>
 
     <i id="search-trigger" class="fas fa-search fa-fw"></i>
@@ -352,22 +353,169 @@
 
 
 <div class="row">
-  <div class="col-12 col-lg-11 col-xl-8">
-    <div id="page" class="post pb-5 pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4 mb-md-4">
+
+  <div id="post-wrapper" class="col-12 col-lg-11 col-xl-8">
+
+    <div class="post pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4">
+
+      <h1 data-toc-skip>Di cư từ Medium sang Github Page</h1>
+
+      <div class="post-meta text-muted d-flex flex-column">
+        <!-- Published date and author -->
+        <div>
+          Posted
+          <!--
+  Date format snippet
+
+  v2.4.1
+  https://github.com/cotes2020/jekyll-theme-chirpy
+  © 2020 Cotes Chung
+  MIT License
+-->
+<span class="timeago "
+  
+    data-toggle="tooltip"
+    data-placement="bottom"
+    title="Wed, Aug 19, 2020, 11:51 PM +0700"
+  >
+
+  
+  
+
+  
+    Aug 19
+  
+
+  <i class="unloaded">2020-08-19T23:51:22+07:00</i>
+
+</span>
+          by
+          <span class="author">
+          
+            Huy
+          
+          </span>
+        </div>
+
+        <!-- lastmod -->
+
+        
+
+        <!-- page views -->
+        
+
+      </div> <!-- .post-meta -->
+
+      <div class="post-content">
+        
+        <!-- Using lozad. See: <https://github.com/ApoorvSaxena/lozad.js#usage> -->
+        
+          <h2 id="đôi-lời-nói-đầu">Đôi lời nói đầu</h2>
+
+<p>Hi! Sau vài tháng off liên tục, không có bài dịch mới cũng như chẳng có động thái gì trên mạng xã hội thì bây giờ mình đã có thể quay về hoạt động lại bình thường rồi.</p>
+
+<p>Còn về việc phải chuyển từ Medium sang Github Page thì cũng rất dễ hiểu:</p>
+
+<ol>
+  <li>Medium không hỗ trợ font tiếng Việt</li>
+  <li>Extension giúp đọc các bài tiếng Việt đã bị gỡ khỏi Chrome Store</li>
+  <li>Medium không hỗ trợ code snippet</li>
+</ol>
+
+<p>Ba lý do trên đã là quá đủ đối với những nhà phát triển người Việt (hoặc ít nhất là mình) phải rời bỏ M-platform rồi. Ngoài ra, sau khi dành gần một buổi chiều để tìm hiểu, config Github Page bằng Jekyll thì mình cũng học được khá nhiều thứ.</p>
+
+<p>Theo cảm nhận riêng thì viết blog bằng markdown tốt hơn hẳn so với việc sử dụng các on-the-fly editor của các platform khác không chỉ riêng Medium.</p>
+
+<h2 id="khoan-đã-medium-thực-sự-tệ-đến-thế-sao">Khoan đã, Medium thực sự tệ đến thế sao?</h2>
+
+<p>Đối với những ai muốn viết/đọc tiếng Việt thì đúng là như thế.</p>
+
+<p>Trừ vấn đề nêu trên, Medium vẫn là một blog platform vô cùng tốt với nhiều tính năng cũng như có một interface vô cùng thân thiện với bạn đọc. Về quyền riêng tư người dùng thì Medium luôn đặt lên hàng đầu nên ta không phải bàn về điều này. Trên Medium cũng có rất nhiều blog về công nghệ, lập trình rất bổ ích và thú vị của các chuyên gia nên nếu bạn là một người yêu thích việc đọc và không ngại tiếng Anh, đây chính là nơi hoàn toàn phù hợp cho điều đó.</p>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="https://itplus-academy.edu.vn/upload/c47d9c29fc44c2b7996a2613aec3c1f9/files/medium%202.PNG" alt="MEDIUM.COM - MỘT NƠI HAY HO MÀ CÁC LẬP TRÌNH VIÊN NÊN GHÉ THĂM" /></p>
+
+<p>Vì thế mình quyết định sẽ vẫn đăng một số bài viết bằng tiếng Anh trên Medium để có thể tiếp cận với những bạn đọc nước ngoài cũng như dành cho các bạn người Việt thích tiếng Anh có thể tìm hiểu và chia sẻ kiến thức với nhau.</p>
+
+<p>Những bài viết sắp tới có thể mình sẽ chỉ cho các bạn tạo và host một Github Page nên hãy tiếp tục theo dõi nhé.</p>
+
+        
+      </div>
+
+      <div class="post-tail-wrapper text-muted">
+
+        <!-- categories -->
+        
+
+        <!-- tags -->
+        
+        <div class="post-tags">
+          <i class="fa fa-tags fa-fw mr-1"></i>
+          
+          <a href="/blog/en/tags/thoughts/"
+            class="post-tag no-text-decoration" >thoughts</a>
+          
+          </div>
+        
+
+        <div class="post-tail-bottom
+          d-flex justify-content-between align-items-center mt-3 pt-5 pb-2">
+          
+          <div class="license-wrapper">
+            This post is licensed under
+            <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+            by the author.
+          </div>
+          
+
+          <!--
+ Post sharing snippet
+
+ v2.1
+ https://github.com/cotes2020/jekyll-theme-chirpy
+ © 2019 Cotes Chung
+ Published under the MIT License
+-->
+
+<div class="share-wrapper">
+  <span class="share-label text-muted mr-1">Share</span>
+  <span class="share-icons">
     
-      <div id="page-tag">
-  <h1 class="pl-lg-2">
-    <i class="fa fa-tag fa-fw text-muted"></i>
-    Pwn
-    <span class="lead text-muted pl-2">0</span>
-  </h1>
-  <ul class="post-content pl-0">
     
-  </ul>
+
+    
+      
+        <a href="https://twitter.com/intent/tweet?text=Di cư từ Medium sang Github Page - Another infosec blog&url=http://localhost:4000/blog/en/posts/Di-c%C6%B0-t%E1%BB%AB-Medium-sang-Github-Page/" data-toggle="tooltip" data-placement="top"
+          title="Twitter" target="_blank">
+          <i class="fa-fw fab fa-twitter"></i>
+        </a>
+    
+      
+        <a href="https://www.facebook.com/sharer/sharer.php?title=Di cư từ Medium sang Github Page - Another infosec blog&u=http://localhost:4000/blog/en/posts/Di-c%C6%B0-t%E1%BB%AB-Medium-sang-Github-Page/" data-toggle="tooltip" data-placement="top"
+          title="Facebook" target="_blank">
+          <i class="fa-fw fab fa-facebook-square"></i>
+        </a>
+    
+      
+        <a href="https://telegram.me/share?text=Di cư từ Medium sang Github Page - Another infosec blog&url=http://localhost:4000/blog/en/posts/Di-c%C6%B0-t%E1%BB%AB-Medium-sang-Github-Page/" data-toggle="tooltip" data-placement="top"
+          title="Telegram" target="_blank">
+          <i class="fa-fw fab fa-telegram"></i>
+        </a>
+    
+
+    <i class="fa-fw fas fa-link small" onclick="copyLink()"
+        data-toggle="tooltip" data-placement="top" title="Copy link"></i>
+
+  </span>
 </div>
-    
-    </div> <!-- #page -->
-  </div><!-- .col-12 -->
+
+        </div><!-- .post-tail-bottom -->
+
+      </div><!-- div.post-tail -->
+
+    </div> <!-- .post -->
+
+
+  </div> <!-- #post-wrapper -->
 
   <!--
   The Pannel on right side (Desktop views)
@@ -459,13 +607,366 @@
   </div> <!-- .access -->
 
   
+  <div id="toc-wrapper" class="pl-0 pr-4 mb-5">
+    <h3 data-toc-skip class="pl-3 pt-2 mb-2">Contents</h3>
+    <nav id="toc" data-toggle="toc"></nav>
+  </div>
+  
 
 </div> <!-- #panel-wrapper -->
 
 
+</div> <!-- .row -->
+
+<div class="row">
+  <div class="col-12 col-lg-11 col-xl-8">
+    <div id="post-extend-wrapper" class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4">
+
+    <!--
+ Recommend the other 3 posts according to the tags and categories of the current post,
+ if the number is not enough, use the other latest posts to supplement.
+
+ v2.0
+ https://github.com/cotes2020/jekyll-theme-chirpy
+ © 2019 Cotes Chung
+ Published under the MIT License
+-->
+
+<!-- The total size of related posts  -->
+
+
+<!-- An random integer that bigger than 0  -->
+
+
+<!-- Equals to TAG_SCORE / {max_categories_hierarchy}  -->
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+  
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+
+
+
+<!-- Fill with the other newlest posts  -->
+
+
+
+
+  
+    
+    
+      
+      
+    
+  
+    
+    
+  
+    
+    
+      
+      
+        
+        
+        
+      
+    
+  
+    
+    
+      
+      
+        
+        
+        
+          
+
+
+
+
+
+  <div id="related-posts" class="mt-5 mb-2 mb-sm-4">
+    <h3 class="pt-2 mt-1 mb-4 ml-1" data-toc-skip>Further Reading</h3>
+    <div class="card-deck mb-4">
+    
+      
+      
+      <div class="card">
+        <a href="/blog/en/posts/Door-note/">
+          <div class="card-body">
+            <!--
+  Date format snippet
+
+  v2.4.1
+  https://github.com/cotes2020/jekyll-theme-chirpy
+  © 2020 Cotes Chung
+  MIT License
+-->
+<span class="timeago small"
+  >
+
+  
+  
+
+  
+    Nov 24
+  
+
+  <i class="unloaded">2020-11-24T03:51:22+07:00</i>
+
+</span>
+            <h3 class="pt-0 mt-1 mb-3" data-toc-skip>A small door note</h3>
+            <div class="text-muted small">
+              <p>
+                
+
+
+
+
+
+                Welcome to my personal blog where I share to people my thoughts and experience about (mostly) technology, research articles and sometimes irrelevant stuff.
+
+Topics on this blog are mainly about cyb...
+              </p>
+            </div>
+          </div>
+        </a>
+      </div>
+    
+      
+      
+      <div class="card">
+        <a href="/blog/en/posts/Project-Z-iMessage-p3/">
+          <div class="card-body">
+            <!--
+  Date format snippet
+
+  v2.4.1
+  https://github.com/cotes2020/jekyll-theme-chirpy
+  © 2020 Cotes Chung
+  MIT License
+-->
+<span class="timeago small"
+  >
+
+  
+  
+
+  
+    Feb  2
+  
+
+  <i class="unloaded">2020-02-02T13:30:59+07:00</i>
+
+</span>
+            <h3 class="pt-0 mt-1 mb-3" data-toc-skip>Project Zero: Remote iPhone Exploitation [P3]</h3>
+            <div class="text-muted small">
+              <p>
+                
+
+
+
+
+
+                Bài này được mình dịch từ blog của team Google Project Zero.
+
+Đây là phần cuối trong series exploit iMessage trên iOS. Ở phần một ta đã giới thiệu sơ lược về lỗ hổng và phần hai đi sâu vào các phươ...
+              </p>
+            </div>
+          </div>
+        </a>
+      </div>
+    
+      
+      
+      <div class="card">
+        <a href="/blog/en/posts/Project-Z-iMessage-p2/">
+          <div class="card-body">
+            <!--
+  Date format snippet
+
+  v2.4.1
+  https://github.com/cotes2020/jekyll-theme-chirpy
+  © 2020 Cotes Chung
+  MIT License
+-->
+<span class="timeago small"
+  >
+
+  
+  
+
+  
+    Jan 16
+  
+
+  <i class="unloaded">2020-01-16T08:11:55+07:00</i>
+
+</span>
+            <h3 class="pt-0 mt-1 mb-3" data-toc-skip>Project Zero: Remote iPhone Exploitation [P2]</h3>
+            <div class="text-muted small">
+              <p>
+                
+
+
+
+
+
+                Bài viết này được mình dịch từ blog của team Google Project Zero.
+
+Đây là phần thứ hai của series khai thác lỗ hổng CVE-2019–8641 của app iMessage trên iOS 12.4. Nếu bạn chưa hiểu hoặc quên mất chu...
+              </p>
+            </div>
+          </div>
+        </a>
+      </div>
+    
+    </div> <!-- .card-deck -->
+  </div> <!-- #related-posts -->
+
+
+
+    <!--
+  Navigation buttons at the bottom of the post.
+
+  v2.1
+  https://github.com/cotes2020/jekyll-theme-chirpy
+  © 2020 Cotes Chung
+  MIT License
+-->
+
+<div class="post-navigation d-flex justify-content-between">
+  
+  <a href="/blog/en/posts/Project-Z-iMessage-p3/" class="btn btn-outline-primary">
+    <p>Project Zero: Remote iPhone Exploitation [P3]</p>
+  </a>
+  
+
+  
+  <a href="/blog/en/posts/Door-note/" class="btn btn-outline-primary">
+    <p>A small door note</p>
+  </a>
+  
+
 </div>
 
+    
 
+    </div> <!-- #post-extend-wrapper -->
+
+  </div> <!-- .col-* -->
+
+</div> <!-- .row -->
+
+<!-- image lazy load: https://github.com/ApoorvSaxena/lozad.js -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/lozad/dist/lozad.min.js"></script>
+
+<script type="text/javascript">
+  const imgs = document.querySelectorAll('#post-wrapper img');
+  const observer = lozad(imgs);
+  observer.observe();
+</script>
 
 
 

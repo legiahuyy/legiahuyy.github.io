@@ -22,7 +22,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-  <title>A small door note | Another infosec blog
+  <title>Project Zero: Remote iPhone Exploitation [P3] | Another infosec blog
   </title>
 
   <!--
@@ -308,7 +308,7 @@
       
 
       
-        <span>A small door note</span>
+        <span>Project Zero: Remote iPhone Exploitation [P3]</span>
       
 
     </span><!-- endof #breadcrumb -->
@@ -358,7 +358,7 @@
 
     <div class="post pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4">
 
-      <h1 data-toc-skip>A small door note</h1>
+      <h1 data-toc-skip>Project Zero: Remote iPhone Exploitation [P3]</h1>
 
       <div class="post-meta text-muted d-flex flex-column">
         <!-- Published date and author -->
@@ -376,17 +376,17 @@
   
     data-toggle="tooltip"
     data-placement="bottom"
-    title="Tue, Nov 24, 2020,  3:51 AM +0700"
+    title="Sun, Feb  2, 2020,  1:30 PM +0700"
   >
 
   
   
 
   
-    Nov 24
+    Feb  2
   
 
-  <i class="unloaded">2020-11-24T03:51:22+07:00</i>
+  <i class="unloaded">2020-02-02T13:30:59+07:00</i>
 
 </span>
           by
@@ -410,17 +410,106 @@
         
         <!-- Using lozad. See: <https://github.com/ApoorvSaxena/lozad.js#usage> -->
         
-          <p>Welcome to my personal blog where I share to people my thoughts and experience about (mostly) technology, research articles and sometimes irrelevant stuff.</p>
+          <p>Bài này được mình dịch từ blog của team <a href="https://googleprojectzero.blogspot.com/2020/01/remote-iphone-exploitation-part-3.html">Google Project Zero</a>.</p>
 
-<p>Topics on this blog are mainly about cyber research, school projects, club tasks or CTF write-ups. I will try to update the blog regularly, one or two posts a week depend on my real life workload.</p>
+<p>Đây là phần cuối trong series exploit iMessage trên iOS. Ở phần một ta đã giới thiệu sơ lược về lỗ hổng và phần hai đi sâu vào các phương pháp tấn công như heapspray, leak base address, …</p>
 
-<p>As some of you have already known that here is not my first blog. The reason I created this new one is to improve self-English and try keeping thing a little bit more professional. I decided that the writing style on this blog will contain concise, research-like materials so you may find it difficult to understand all of the posts, especially Vietnamese fellows. Please, keep in mind that I don’t want to use any fancy, magic words or try to confuse the readers. The context is still the same, but it will be interpreted in a more academic way.</p>
+<p>Tới phần ba này, như ta đã biết, ASLR đã được bypass, base address của shared cache đã nằm trong tay và controlled data có thể được xếp vào một địa chỉ chính xác. Điều còn lại ta cần làm là exploit lỗ hổng thêm một lần nữa để chiếm quyền điều khiển.</p>
 
-<p>I know a lot of people cannot handle the long, plain and boring wall-of-text or posts similar to that, <em>so do I</em>. In future posts, many more galleries will be added to make particular topics more interesting and less drowsy for readers.</p>
+<p><strong>Sơ lược</strong>: Mở đầu phần ba sẽ giới thiệu ngắn về việc sử dụng ObjC để khai thác các thiết bị không có xác thực con trỏ (Pointer Authentication - PAC), tiếp đó là đi sâu vào một cách khai thác có thể hoạt động kể cả khi PAC được kích hoạt. Cuối cùng sẽ là kỹ thuật xâu chuỗi lại các kiểu tấn công với Javascript kernel exploit.</p>
 
-<p>Another story which worth mentioning, now I completely abandoned Medium as Github and Jekyll are doing a great job making blog easier and more customizable. Then why we have to make it hard for ourselves, right? I agree that it is complicated at first but when you are used to it, you even cannot get out.</p>
+<h1 id="objective-c-remote-code-executer">Objective-C Remote Code Executer</h1>
 
-<p>This is the end of the welcome note. Have a good day!</p>
+<p>ObjC là một superset của C với các tính năng lập trình hướng đối tượng. ObjC cho chúng ta concept về đối tượng, các lớp với method và property cũng như tính kế thừa cho ngôn ngữ. Hầu hết các đối tượng trong ObjC đều kế thừa từ một lớp cơ sở là <code class="language-plaintext highlighter-rouge">NSObject</code>. Sau đây là một code snippet đơn giản của ObjC:</p>
+
+<div class="language-objc highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>  <span class="n">Bob</span><span class="o">*</span> <span class="n">bob</span> <span class="o">=</span> <span class="p">[[</span><span class="n">Bob</span> <span class="nf">alloc</span><span class="p">]</span> <span class="nf">init</span><span class="p">];</span>
+  <span class="p">[</span><span class="n">bob</span> <span class="nf">doSomething</span><span class="p">];</span>
+</pre></td></tr></tbody></table></code></div></div>
+
+<p>Đoạn snippet trên khởi tạo một instance của một lớp, sau đó gọi một method.</p>
+
+<p>ObjC quản lý rất chặt đối với thời hạn (lifetime) của các object. Vì thế, mọi object đều có một bộ đếm tham chiếu (refcount) tồn tại <a href="https://github.com/opensource-apple/objc4/blob/cd5e62a5597ea7a31dccef089317abb3a661c154/runtime/objc-private.h#L93">inline</a> hoặc trong một <a href="https://github.com/opensource-apple/objc4/blob/cd5e62a5597ea7a31dccef089317abb3a661c154/runtime/NSObject.mm#L201">global table</a>. Khi làm việc với một object, đoạn code phải thực thi hai lệnh gọi là <a href="https://developer.apple.com/documentation/objectivec/1418956-nsobject/1571946-retain?language=objc">obj_retain</a> và <a href="https://developer.apple.com/documentation/objectivec/1418956-nsobject/1571957-release?language=objc">objc_release</a> lên object. Hai hàm này phải được thêm thủ công bởi lập trình viên hoặc <a href="https://en.wikipedia.org/wiki/Automatic_Reference_Counting">tự động bằng compiler</a>.</p>
+
+<p>Trong nội bộ, một object của ObjC là một chunk memory (thường được khởi tạo bằng <code class="language-plaintext highlighter-rouge">alloc</code>) luôn bắt đầu với một <a href="https://github.com/opensource-apple/objc4/blob/cd5e62a5597ea7a31dccef089317abb3a661c154/runtime/objc-private.h#L59">giá trị “ISA”</a> và theo sau bởi các biến hoặc property. Giá trị ISA là một giá trị kiểu con trỏ có chứa thông tin sau:</p>
+
+<ul>
+  <li>Một con trỏ đến Lớp của object</li>
+  <li>Một inline refcount</li>
+  <li>Một vài flag bit</li>
+</ul>
+
+<p>Một <a href="https://github.com/opensource-apple/objc4/blob/cd5e62a5597ea7a31dccef089317abb3a661c154/runtime/objc-runtime-new.h#L1012">lớp ObjC</a> mô tả instance của nó và chính nó. Các lớp trong ObjC không chỉ là một khái niệm compile-time mà chúng cũng tồn tại ở runtime. Một lớp chứa các thông tin sau:</p>
+
+<ul>
+  <li>Chữ ISA (do nó là một ObjC Object), trỏ đến một metaclass tương ứng</li>
+  <li>Một con trỏ trỏ đến một lớp cha nếu có</li>
+  <li>Một method cache để tăng tốc method implementation lookups</li>
+  <li>Method table</li>
+  <li>Danh sách các instance variable (tên và offset)</li>
+</ul>
+
+<p>Một <a href="https://github.com/opensource-apple/objc4/blob/cd5e62a5597ea7a31dccef089317abb3a661c154/runtime/objc-runtime-new.h#L207">method</a> trong ObjC đơn giản là một tuple:</p>
+
+<p>(<a href="https://developer.apple.com/documentation/objectivec/sel?language=objc">Selector</a>, <a href="https://developer.apple.com/documentation/objectivec/objective-c_runtime/imp?language=objc">Implementation</a>)</p>
+
+<p>với Selector là một chuỗi C-String duy nhất chứa tên của method và Implementation là một con trỏ đến native function của method.</p>
+
+<p>Dưới đây là những gì sẽ xảy ra khi đoạn code khi nãy được compile và thực thi: Đầu tiên, ở compile-time, ba lệnh gọi method ObjC được dịch sang một đoạn pseudo-C (giả sử ARC đang được kích hoạt):</p>
+
+<pre><code class="language-pseudocode">Bob* bob = objc_msgSend(BobClass, "alloc");
+// Refcount is already 1 at this point, so no need for a objc_retain()
+bob = objc_msgSend(bob, "init");
+objc_msgSend(bob, "doSomething");
+...
+objc_release(bob);
+</code></pre>
+
+<p>Trong runtime, <a href="https://github.com/opensource-apple/objc4/blob/cd5e62a5597ea7a31dccef089317abb3a661c154/runtime/Messengers.subproj/objc-msg-arm64.s#L252">objc_msgSend</a> sẽ thực thi:</p>
+
+<ol>
+  <li>Truy cập vào vùng nhớ của con trỏ để thu giá trị ISA và extract Class pointer</li>
+  <li>Thực hiện việc <a href="https://github.com/opensource-apple/objc4/blob/cd5e62a5597ea7a31dccef089317abb3a661c154/runtime/objc-runtime-new.mm#L4657">tìm kiếm method implementation</a> trong method cache của Lớp.</li>
+  <li>Nếu bước 2 thất bại, tiếp tục tìm method trong method table</li>
+  <li>Nếu một method Implementation được tìm tháy, nó sẽ được gọi (đuôi - Tailed Call) với những tham số từ objc_msgSend. Nếu fail thì sẽ throw exception.</li>
+</ol>
+
+<p>Lưu ý rằng vì các selector là unique trong runtime, so sánh hai selector với nhau có thể được đơn giản bằng việc so sánh giá trị của hai con trỏ tương ứng,</p>
+
+<p>Mặt khác, <a href="https://github.com/opensource-apple/objc4/blob/cd5e62a5597ea7a31dccef089317abb3a661c154/runtime/NSObject.mm#L1505">objc_release</a> sẽ <a href="https://github.com/opensource-apple/objc4/blob/cd5e62a5597ea7a31dccef089317abb3a661c154/runtime/objc-object.h#L464">giảm refcount</a> của object. Nếu như refcount của object đã bằng không thì nó sẽ <a href="https://github.com/opensource-apple/objc4/blob/cd5e62a5597ea7a31dccef089317abb3a661c154/runtime/objc-object.h#L571">gọi</a> method <a href="https://developer.apple.com/documentation/objectivec/nsobject/1571947-dealloc">dealloc_method</a> (deconstructor của object) và sau đó giải phóng object memory chunk.</p>
+
+<p>Một số thông tin khác có thể tìm thấy ở <a href="http://www.phrack.org/issues/66/4.html#article">đây</a>, <a href="http://www.phrack.org/issues/69/9.html#article">đây</a> và trong <a href="https://github.com/opensource-apple/objc4">source</a>/<a href="https://ipsw.me/">binary</a> code.</p>
+
+<h2 id="native-code-execution-trên-các-thiết-bị-non-pac">Native Code Execution trên các Thiết bị non-PAC</h2>
+
+<p>Qua những kiến thức có được về ObjC trên kết hợp với những thứ có được ở phần hai của series, ta có thể implement một exploit đơn giản để trigger NCE trên các thiết bị non-PAC, nổi bật là iPhone X và những đời trước.</p>
+
+<p>Sau đây là một đoạn code nhỏ từ <code class="language-plaintext highlighter-rouge">[NSSharedKeyset indexForKey:]</code>. Đoạn code này sẽ lược qua các giá trị phù hợp do người tấn công chọn (với <code class="language-plaintext highlighter-rouge">_keys</code> là nullptr và <code class="language-plaintext highlighter-rouge">index </code>đã được kiểm soát) và xử lý chúng.</p>
+
+<pre><code class="language-objective-c">id candidate = self-&gt;_keys[index];
+  if (candidate != nil) {
+    if ([key isEqual:candidate]) {
+      return prevLength + index;
+    }
+  }
+</code></pre>
+<p>Nếu key là môt NSString, thì điều đầu tiên <code class="language-plaintext highlighter-rouge">[NSString isEqual:]</code> làm là sẽ gọi <code class="language-plaintext highlighter-rouge">[arg isNSString__]</code> lên key. NCE có thể được trigger như sau:</p>
+
+<ol>
+  <li>Thực thi heapspray như ở phần hai. Heapsray sẽ chưa một fake method cache và fake object pointer</li>
+  <li>Trigger lỗ hổng để đọc con trỏ trên sau đó pass nó qua <code class="language-plaintext highlighter-rouge">[key isEqual:]</code>. Việc này sẽ invoke <code class="language-plaintext highlighter-rouge">isNSString__</code> lên fake object mà ta đã tạo từ bước đầu tiên, sau đó trỏ về address của attacker.</li>
+  <li>Pivot stack và implement payload vào trong ROP</li>
+</ol>
+
+<p>Tại thời điểm này, người tấn công đã thành công trong việc exploit một thiết bị không hỗ trợ PAC. Tuy nhiên, khi PAC được kích hoạt, kiểu tấn công trên sẽ không còn phù hợp nữa.</p>
+
+<h2 id="ảnh-hưởng-của-pac-trong-userspace">Ảnh hưởng của PAC trong Userspace</h2>
+
+<p>Nhà nghiên cứu bảo mật Brandon Azad đã giải thích rất tốt về <a href="https://googleprojectzero.blogspot.com/2019/02/examining-pointer-authentication-on.html">cách hoạt động của PAC trong kernel</a>. PAC trong userspace cũng không quá khác biệt.  Phần sau đây sẽ tóm tắt cách hoạt động của PAC trong userspace. Để biết thêm chi tiết, <a href="https://github.com/apple/llvm-project/blob/apple/master/clang/docs/PointerAuthentication.rst">bấm vào đây</a>.</p>
+
+<p>Mỗi code pointer  (function pointer, method pointer, …) đều có một secret key được signed cũng như là một optional 64-bit “context”.  Signature trả về sẽ bị truncate xuống 24 bit sau đó được lưu trong phần trên của con trỏ, thường không được đụng đến. Trước khi truy cập vào code pointer, signature của nó sẽ được xác minh bằng cách recompute nó với cùng một key, context . Nếu chúng không trùng nhau, con trỏ sẽ trở nên rời rạc và dẫn đến access violation khi nó được truy cập. Ngược lại, nếu con trỏ trùng nhau, signature bit sẽ được xóa và con trỏ sẽ trở nên hợp lệ.</p>
+
 
         
       </div>
@@ -429,14 +518,27 @@
 
         <!-- categories -->
         
+        <div class="post-meta mb-3">
+          <i class="far fa-folder-open fa-fw mr-1"></i>
+          
+            <a href='/blog/en/categories/series/'>Series</a>,
+            <a href='/blog/en/categories/project-zero/'>Project Zero</a>
+        </div>
+        
 
         <!-- tags -->
         
         <div class="post-tags">
           <i class="fa fa-tags fa-fw mr-1"></i>
           
-          <a href="/blog/en/tags/thoughts/"
-            class="post-tag no-text-decoration" >thoughts</a>
+          <a href="/blog/en/tags/translate/"
+            class="post-tag no-text-decoration" >translate</a>
+          
+          <a href="/blog/en/tags/reverse-engineer/"
+            class="post-tag no-text-decoration" >reverse engineer</a>
+          
+          <a href="/blog/en/tags/0day/"
+            class="post-tag no-text-decoration" >0day</a>
           
           </div>
         
@@ -468,19 +570,19 @@
 
     
       
-        <a href="https://twitter.com/intent/tweet?text=A small door note - Another infosec blog&url=http://localhost:4000/blog/en/posts/Door-note/" data-toggle="tooltip" data-placement="top"
+        <a href="https://twitter.com/intent/tweet?text=Project Zero: Remote iPhone Exploitation [P3] - Another infosec blog&url=http://localhost:4000/blog/en/posts/Project-Z-iMessage-p3/" data-toggle="tooltip" data-placement="top"
           title="Twitter" target="_blank">
           <i class="fa-fw fab fa-twitter"></i>
         </a>
     
       
-        <a href="https://www.facebook.com/sharer/sharer.php?title=A small door note - Another infosec blog&u=http://localhost:4000/blog/en/posts/Door-note/" data-toggle="tooltip" data-placement="top"
+        <a href="https://www.facebook.com/sharer/sharer.php?title=Project Zero: Remote iPhone Exploitation [P3] - Another infosec blog&u=http://localhost:4000/blog/en/posts/Project-Z-iMessage-p3/" data-toggle="tooltip" data-placement="top"
           title="Facebook" target="_blank">
           <i class="fa-fw fab fa-facebook-square"></i>
         </a>
     
       
-        <a href="https://telegram.me/share?text=A small door note - Another infosec blog&url=http://localhost:4000/blog/en/posts/Door-note/" data-toggle="tooltip" data-placement="top"
+        <a href="https://telegram.me/share?text=Project Zero: Remote iPhone Exploitation [P3] - Another infosec blog&url=http://localhost:4000/blog/en/posts/Project-Z-iMessage-p3/" data-toggle="tooltip" data-placement="top"
           title="Telegram" target="_blank">
           <i class="fa-fw fab fa-telegram"></i>
         </a>
@@ -634,33 +736,33 @@
   
 
   
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+  
     
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-
   
 
   
@@ -737,37 +839,6 @@
 
 
 
-  
-    
-    
-  
-    
-    
-      
-      
-    
-  
-    
-    
-      
-      
-        
-        
-        
-      
-    
-  
-    
-    
-      
-      
-        
-        
-        
-          
-
-
-
 
 
   <div id="related-posts" class="mt-5 mb-2 mb-sm-4">
@@ -777,7 +848,7 @@
       
       
       <div class="card">
-        <a href="/blog/en/posts/Di-c%C6%B0-t%E1%BB%AB-Medium-sang-Github-Page/">
+        <a href="/blog/en/posts/Project-Z-iMessage-p1/">
           <div class="card-body">
             <!--
   Date format snippet
@@ -794,13 +865,13 @@
   
 
   
-    Aug 19
+    Jan  8
   
 
-  <i class="unloaded">2020-08-19T23:51:22+07:00</i>
+  <i class="unloaded">2020-01-08T03:15:52+07:00</i>
 
 </span>
-            <h3 class="pt-0 mt-1 mb-3" data-toc-skip>Di cư từ Medium sang Github Page</h3>
+            <h3 class="pt-0 mt-1 mb-3" data-toc-skip>Project Zero: Remote iPhone Exploitation [P1]</h3>
             <div class="text-muted small">
               <p>
                 
@@ -809,55 +880,9 @@
 
 
 
-                Đôi lời nói đầu
+                Bài viết này được mình dịch từ blog của team Google Project Zero.
 
-Hi! Sau vài tháng off liên tục, không có bài dịch mới cũng như chẳng có động thái gì trên mạng xã hội thì bây giờ mình đã có thể quay về hoạt động lại bình thường rồi.
-
-Còn về việc...
-              </p>
-            </div>
-          </div>
-        </a>
-      </div>
-    
-      
-      
-      <div class="card">
-        <a href="/blog/en/posts/Project-Z-iMessage-p3/">
-          <div class="card-body">
-            <!--
-  Date format snippet
-
-  v2.4.1
-  https://github.com/cotes2020/jekyll-theme-chirpy
-  © 2020 Cotes Chung
-  MIT License
--->
-<span class="timeago small"
-  >
-
-  
-  
-
-  
-    Feb  2
-  
-
-  <i class="unloaded">2020-02-02T13:30:59+07:00</i>
-
-</span>
-            <h3 class="pt-0 mt-1 mb-3" data-toc-skip>Project Zero: Remote iPhone Exploitation [P3]</h3>
-            <div class="text-muted small">
-              <p>
-                
-
-
-
-
-
-                Bài này được mình dịch từ blog của team Google Project Zero.
-
-Đây là phần cuối trong series exploit iMessage trên iOS. Ở phần một ta đã giới thiệu sơ lược về lỗ hổng và phần hai đi sâu vào các phươ...
+Lưu ý: Bài viết gốc của tác giả có rất nhiều những từ chuyên ngành dịch sang tiếng Việt nghe rất …oải và không trọn vẹn nghĩa nên ...
               </p>
             </div>
           </div>
@@ -908,6 +933,52 @@ Còn về việc...
         </a>
       </div>
     
+      
+      
+      <div class="card">
+        <a href="/blog/en/posts/K%E1%BB%B9-thu%E1%BA%ADt-Reverse-Engineer-Division-to-Multiplication/">
+          <div class="card-body">
+            <!--
+  Date format snippet
+
+  v2.4.1
+  https://github.com/cotes2020/jekyll-theme-chirpy
+  © 2020 Cotes Chung
+  MIT License
+-->
+<span class="timeago small"
+  >
+
+  
+  
+
+  
+    Dec  1, 2019
+  
+
+  <i class="unloaded">2019-12-01T02:03:22+07:00</i>
+
+</span>
+            <h3 class="pt-0 mt-1 mb-3" data-toc-skip>Kỹ thuật Dịch ngược: Nhân để chia</h3>
+            <div class="text-muted small">
+              <p>
+                
+
+
+
+
+
+                Trong bài viết này, mình sẽ giúp các bạn decompile một vài phương thức tối ưu của compiler.
+
+
+
+Khi dịch ngược một chương trình đã được tối ưu hóa thường tốn rất nhiều thời gian. Bằng cách tìm hiểu ...
+              </p>
+            </div>
+          </div>
+        </a>
+      </div>
+    
     </div> <!-- .card-deck -->
   </div> <!-- #related-posts -->
 
@@ -924,15 +995,15 @@ Còn về việc...
 
 <div class="post-navigation d-flex justify-content-between">
   
-  <a href="/blog/en/posts/Di-c%C6%B0-t%E1%BB%AB-Medium-sang-Github-Page/" class="btn btn-outline-primary">
-    <p>Di cư từ Medium sang Github Page</p>
+  <a href="/blog/en/posts/Project-Z-iMessage-p2/" class="btn btn-outline-primary">
+    <p>Project Zero: Remote iPhone Exploitation [P2]</p>
   </a>
   
 
   
-  <span class="btn btn-outline-primary disabled">
-    <p>-</p>
-  </span>
+  <a href="/blog/en/posts/Di-c%C6%B0-t%E1%BB%AB-Medium-sang-Github-Page/" class="btn btn-outline-primary">
+    <p>Di cư từ Medium sang Github Page</p>
+  </a>
   
 
 </div>

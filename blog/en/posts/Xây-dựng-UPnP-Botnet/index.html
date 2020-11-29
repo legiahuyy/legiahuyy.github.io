@@ -22,7 +22,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-  <title>A small door note | Another infosec blog
+  <title>Xây dựng UPnP Botnet | Another infosec blog
   </title>
 
   <!--
@@ -308,7 +308,7 @@
       
 
       
-        <span>A small door note</span>
+        <span>Xây dựng UPnP Botnet</span>
       
 
     </span><!-- endof #breadcrumb -->
@@ -358,7 +358,7 @@
 
     <div class="post pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4">
 
-      <h1 data-toc-skip>A small door note</h1>
+      <h1 data-toc-skip>Xây dựng UPnP Botnet</h1>
 
       <div class="post-meta text-muted d-flex flex-column">
         <!-- Published date and author -->
@@ -376,17 +376,17 @@
   
     data-toggle="tooltip"
     data-placement="bottom"
-    title="Tue, Nov 24, 2020,  3:51 AM +0700"
+    title="Fri, Nov 22, 2019,  8:55 AM +0700"
   >
 
   
   
 
   
-    Nov 24
+    Nov 22, 2019
   
 
-  <i class="unloaded">2020-11-24T03:51:22+07:00</i>
+  <i class="unloaded">2019-11-22T08:55:22+07:00</i>
 
 </span>
           by
@@ -410,17 +410,119 @@
         
         <!-- Using lozad. See: <https://github.com/ApoorvSaxena/lozad.js#usage> -->
         
-          <p>Welcome to my personal blog where I share to people my thoughts and experience about (mostly) technology, research articles and sometimes irrelevant stuff.</p>
+          <p>Cách tạo botnet 100% anonymity qua hàng loạt các thiết bị IoT bằng cách “sử dụng” mô hình giao thức UPnP.</p>
 
-<p>Topics on this blog are mainly about cyber research, school projects, club tasks or CTF write-ups. I will try to update the blog regularly, one or two posts a week depend on my real life workload.</p>
+<hr />
 
-<p>As some of you have already known that here is not my first blog. The reason I created this new one is to improve self-English and try keeping thing a little bit more professional. I decided that the writing style on this blog will contain concise, research-like materials so you may find it difficult to understand all of the posts, especially Vietnamese fellows. Please, keep in mind that I don’t want to use any fancy, magic words or try to confuse the readers. The context is still the same, but it will be interpreted in a more academic way.</p>
+<h1 id="inception-framework">Inception Framework</h1>
 
-<p>I know a lot of people cannot handle the long, plain and boring wall-of-text or posts similar to that, <em>so do I</em>. In future posts, many more galleries will be added to make particular topics more interesting and less drowsy for readers.</p>
+<p>Mới vừa rồi mình có đọc một <a href="https://legiahuyy.blogspot.com/2020/08/xay-dung-upnp-botnet.html#">bài báo của Symantec</a> hồi tháng 3/2018 về nhóm hacker có tên là Espionage đã sử dụng lỗ hổng bảo mật trong UPnP để ẩn mình. Đồng thời, Symantec cũng nói rằng là không cần phải inject malware vào router vẫn có thể khai thác được lỗ hổng này.</p>
 
-<p>Another story which worth mentioning, now I completely abandoned Medium as Github and Jekyll are doing a great job making blog easier and more customizable. Then why we have to make it hard for ourselves, right? I agree that it is complicated at first but when you are used to it, you even cannot get out.</p>
+<h1 id="upnp-là-gì">UPnP là gì?</h1>
 
-<p>This is the end of the welcome note. Have a good day!</p>
+<p>Trước khi đào sâu vào vấn đề thì mình sẽ giải thích cho các bạn hiểu sơ khái niệm UPnP là gì.</p>
+
+<p>UPnP là từ viết tắt của <a href="https://en.wikipedia.org/wiki/Universal_Plug_and_Play">Universal Plug and Play</a>, nó đơn giản là một mô hình protocol cho phép các thiết bị IoT tìm thấy nhau trong cùng một LAN và một số tính năng khác (như là chia sẻ dữ liệu, etc). UPnP là một mô hình protocol khá cũ rồi (phát triển và hoàn thiện từ 1990~2000) và phiên bản mới nhất hiện nay là UPnP Device Architecture 2.0 (2015).</p>
+
+<p>UPnP chia thành 6 layers, nhưng ở đây mình sẽ nói 3 cái chính:</p>
+
+<ul>
+  <li><strong>Discovery (Tìm kiếm)</strong>: Hay còn gọi là <a href="https://en.wikipedia.org/wiki/Simple_Service_Discovery_Protocol">SSDP</a> ( Simple Service Discovery Protocol), protocol này cho phép các thiết bị (có UPnP) tìm thấy nhau.</li>
+  <li><strong>Description (Mô tả)</strong>: Các thông tin về thiết bị được hiển thị dưới dạng XML bằng một remote URL, bằng cách này, thiết bị sẽ cung cấp cho mình tính tương thích và khả năng của nó.</li>
+  <li><strong>Control (Điều khiển)</strong>: Các <em>tín hiệu</em> điều khiển cũng sẽ được cung cấp dưới dạng XML thông qua SOAP protocol(kiểu kiểu như RPC nhưng không cần authentication).</li>
+</ul>
+
+<p>Mình sẽ cho các bạn thấy các layers trên tương tác với nhau như thế nào qua ảnh minh họa.</p>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="https://miro.medium.com/proxy/1*pqBH9eLxfIx8IX2qvZz_AQ.png" alt="Image for post" /></p>
+
+<div class="table-wrapper"><table>
+  <tbody>
+    <tr>
+      <td>Để biết chi tiết hơn: <a href="http://upnp.org/specs/arch/UPnP-arch-DeviceArchitecture-v1.1.pdf">UPnP Doc 1.1</a></td>
+      <td><a href="https://openconnectivity.org/upnp-specs/UPnP-arch-DeviceArchitecture-v2.0-20200417.pdf">2.0</a>.</td>
+    </tr>
+  </tbody>
+</table></div>
+
+<h1 id="sử-dụng-upnp">“Sử dụng” UPnP</h1>
+
+<p>Có rất nhiều cách để “sử dụng” các tính năng của UPnP, ở đây mình còn chưa nhắc tới <a href="https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword=upnp">mấy cái CVEs</a> của UPnP nhé! Mà hầu hết mấy cái CVEs đó toàn là do misconfiguration hoặc do xài ..đồ cổ (poor implementations). Bài này mình sẽ tấn công kiểu <strong>Open Forward</strong> (cái này sẽ nói sau).</p>
+
+<p>Bình thường thì UPnP sẽ hoạt động như thế này trong local:</p>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="https://miro.medium.com/proxy/1*nBv3IA5dgKJLiaAEJSu2eg.png" alt="Image for post" /></p>
+
+<p>SSDP sẽ mở port 1900/UDP đến IPv4 Local Scope multicast (ở đây là 239.255.255.250 hay ff0X::c), nó sẽ gửi một HTTPU (HTTP over UDP) packet <code class="language-plaintext highlighter-rouge">M-SEARCH</code>.</p>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="https://miro.medium.com/proxy/1*6tf7GvRIAMsKhOrf40k30g.png" alt="Image for post" /></p>
+
+<p>Bằng cái packet <code class="language-plaintext highlighter-rouge">M-SEARCH</code> này, nếu mình gửi nó đến một thiết bị UPnP có lỗ hổng (gọi là UPnP-V cho nhanh) thì nó sẽ reply lại mặc dù protocol là local-only! Do đó, mình có thể sử dụng router như một proxy.</p>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="https://miro.medium.com/proxy/1*-9SmUUqvuBc5OnGjC5vnMQ.png" alt="Image for post" /></p>
+
+<p>Lúc này mình sẽ nhận được response từ UPnP-V như sau:</p>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="https://miro.medium.com/proxy/1*52O8SF6mMaOvwQUBn2wRCA.png" alt="Image for post" /></p>
+
+<p>M-SEARCH response từ UPnP-V có chứa một dòng HTTP-Header là<code class="language-plaintext highlighter-rouge">Location</code> trỏ đến Device Description.</p>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="https://miro.medium.com/proxy/1*z2OhfPR1EWFs9uD4JzI-JA.png" alt="Image for post" /></p>
+
+<p>Để ý cái URL có chứa địa chỉ IP, từ đây mình có thể access được web server qua WAN khi truy cập vào cái địa chỉ public IP. Sau đó mình sẽ có được một cái doc ( SCPD — Service Control Protocol Document) như sau:</p>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="https://miro.medium.com/proxy/1*Jv0axVUpyx8LFoTUVdsntw.png" alt="Image for post" /></p>
+
+<p>Cái XML document này sẽ cho mình biết <em>một vài</em> <em>Actions set</em> &amp; <em>State Variables</em> mà một <em>Service</em> thực thi.</p>
+
+<p>Căn bản thì đây là nơi mà mình sẽ biết được các thông tin của UPnP-V. Ngoài ra cái UPnP XML còn cho mình <code class="language-plaintext highlighter-rouge">ControlURL</code> của mỗi service, hay gọi cách khác là SOAP endpoints dùng để <em>nói chuyện</em> với mấy cái service (kiểu như gửi một cái GET/POST để trigger action của service ấy).</p>
+
+<p>Cái service mà mình thấy thú vị nhất trong đây chính là cái <strong>WANIPConnection</strong> service.</p>
+
+<h2 id="wanipconnection-service">WANIPConnection Service</h2>
+
+<p>Trích từ <a href="http://upnp.org/specs/gw/UPnP-gw-WANIPConnection-v2-Service.pdf">UPnP standard</a>:</p>
+
+<blockquote>
+  <p>This service-type enables a UPnP control point to configure and control IP connections on the WAN interface of a UPnP compliant InternetGatewayDevice . Any type of WAN interface (e.g., DSL or cable) that can support an IP connection can use this service.
+[…]
+An instance of a WANIPConnection service is activated (refer to the state variable table) for each actual Internet connection instance on a WANConnectionDevice. WANIPConnection service provides IP-level connectivity with an ISP for networked clients on the LAN.</p>
+</blockquote>
+
+<p>Nói ngắn gọn thì cái service này là <strong>UPnP NAT Toolbox.</strong> Đọc là thấy có mùi rồi ;)</p>
+
+<p>Tìm tiếp trong cái document vừa rồi thì mình sẽ thấy một cái function có tên là <code class="language-plaintext highlighter-rouge">AddPortMapping()</code> . Cái function này dùng để yêu cầu router chuyển hướng TCP/IP traffic đến một specific host/port trong LAN.</p>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="https://miro.medium.com/proxy/1*Zzncn0FSVZHTRVVmR_qBVw.png" alt="Image for post" /></p>
+
+<p>Ok, tiếp theo mình sẽ cho các bạn xem cách ta “sử dụng” hàm này như thế nào.</p>
+
+<h2 id="the-open-forward-attack">The Open Forward Attack</h2>
+
+<p>Yep, kiểu tấn công này sẽ gọi UPnP SOAP functions từ WAN interface mà không cần authentication. Bằng function <code class="language-plaintext highlighter-rouge">AddPortMapping()</code> mình có thể:</p>
+
+<ol>
+  <li>Access một thiết bị sau NAT.</li>
+  <li>Access một thiết bị qua router.</li>
+</ol>
+
+<p>Ngoài ra, đã có người sử dụng cái trick (1) để access Windows SMB port rồi exploit lỗ hổng EternalBlue.</p>
+
+<p>Nhưng ở trong bài này mình sẽ chỉ nói về option (2):</p>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="https://miro.medium.com/proxy/1*8rCL34LVJs68QR5KbOoFsQ.png" alt="Image for post" /></p>
+
+<p>Kiểu tấn công này khá an toàn, “sạch sẽ”, chỉ cần “yêu cầu” thì router sẽ add cho mình một port mapping với đầy đủ các thông số. Sau đó, UPnP daemon sẽ “tặng” cho mình <code class="language-plaintext highlighter-rouge">iptables process</code> theo param mà mình đã chọn mà không thèm ..kiểm tra luôn! Do đó mình có thể chọn bất cứ public IP nào mà mình thích.</p>
+
+<p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="https://miro.medium.com/proxy/1*6-iIl7B4BdueHvfiFpXDxg.png" alt="Image for post" /></p>
+
+<p>Cứ tiếp tục lặp lại khoảng vài ba lần như thế là ổn.</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>Đây chỉ là một trong rất nhiều cách tấn công khác mà UPnP <em>cho phép “sử dụng”.</em></p>
+
+<p>Tuy nhiên, cách này vẫn để lại “dấu vết” nhưng hầu hết là logs sẽ được lưu lại trên database của ISP thôi nên chắc sẽ không sao :/ (maybe).</p>
 
         
       </div>
@@ -435,8 +537,8 @@
         <div class="post-tags">
           <i class="fa fa-tags fa-fw mr-1"></i>
           
-          <a href="/blog/en/tags/thoughts/"
-            class="post-tag no-text-decoration" >thoughts</a>
+          <a href="/blog/en/tags/network/"
+            class="post-tag no-text-decoration" >network</a>
           
           </div>
         
@@ -468,19 +570,19 @@
 
     
       
-        <a href="https://twitter.com/intent/tweet?text=A small door note - Another infosec blog&url=http://localhost:4000/blog/en/posts/Door-note/" data-toggle="tooltip" data-placement="top"
+        <a href="https://twitter.com/intent/tweet?text=Xây dựng UPnP Botnet - Another infosec blog&url=http://localhost:4000/blog/en/posts/X%C3%A2y-d%E1%BB%B1ng-UPnP-Botnet/" data-toggle="tooltip" data-placement="top"
           title="Twitter" target="_blank">
           <i class="fa-fw fab fa-twitter"></i>
         </a>
     
       
-        <a href="https://www.facebook.com/sharer/sharer.php?title=A small door note - Another infosec blog&u=http://localhost:4000/blog/en/posts/Door-note/" data-toggle="tooltip" data-placement="top"
+        <a href="https://www.facebook.com/sharer/sharer.php?title=Xây dựng UPnP Botnet - Another infosec blog&u=http://localhost:4000/blog/en/posts/X%C3%A2y-d%E1%BB%B1ng-UPnP-Botnet/" data-toggle="tooltip" data-placement="top"
           title="Facebook" target="_blank">
           <i class="fa-fw fab fa-facebook-square"></i>
         </a>
     
       
-        <a href="https://telegram.me/share?text=A small door note - Another infosec blog&url=http://localhost:4000/blog/en/posts/Door-note/" data-toggle="tooltip" data-placement="top"
+        <a href="https://telegram.me/share?text=Xây dựng UPnP Botnet - Another infosec blog&url=http://localhost:4000/blog/en/posts/X%C3%A2y-d%E1%BB%B1ng-UPnP-Botnet/" data-toggle="tooltip" data-placement="top"
           title="Telegram" target="_blank">
           <i class="fa-fw fab fa-telegram"></i>
         </a>
@@ -634,98 +736,98 @@
   
 
   
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+  
     
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-
 
 
 
@@ -737,15 +839,6 @@
 
 
 
-  
-    
-    
-  
-    
-    
-      
-      
-    
   
     
     
@@ -773,6 +866,96 @@
   <div id="related-posts" class="mt-5 mb-2 mb-sm-4">
     <h3 class="pt-2 mt-1 mb-4 ml-1" data-toc-skip>Further Reading</h3>
     <div class="card-deck mb-4">
+    
+      
+      
+      <div class="card">
+        <a href="/blog/en/posts/Nh%E1%BA%ADn-th%E1%BB%A9c-Free-SSL/">
+          <div class="card-body">
+            <!--
+  Date format snippet
+
+  v2.4.1
+  https://github.com/cotes2020/jekyll-theme-chirpy
+  © 2020 Cotes Chung
+  MIT License
+-->
+<span class="timeago small"
+  >
+
+  
+  
+
+  
+    Nov 22, 2019
+  
+
+  <i class="unloaded">2019-11-22T08:55:22+07:00</i>
+
+</span>
+            <h3 class="pt-0 mt-1 mb-3" data-toc-skip>Nhận thức về HTTPS/SSL miễn phí</h3>
+            <div class="text-muted small">
+              <p>
+                
+
+
+
+
+
+                Đa phần mọi người cho rằng những website với biểu tượng “khóa xanh” thì an toàn. Liệu có thực sự là như vậy?
+
+
+
+Đầu tiên mình sẽ giải thích về HTTPS/SSL/TLS một cách đơn giản nhất cho những người c...
+              </p>
+            </div>
+          </div>
+        </a>
+      </div>
+    
+      
+      
+      <div class="card">
+        <a href="/blog/en/posts/Door-note/">
+          <div class="card-body">
+            <!--
+  Date format snippet
+
+  v2.4.1
+  https://github.com/cotes2020/jekyll-theme-chirpy
+  © 2020 Cotes Chung
+  MIT License
+-->
+<span class="timeago small"
+  >
+
+  
+  
+
+  
+    Nov 24
+  
+
+  <i class="unloaded">2020-11-24T03:51:22+07:00</i>
+
+</span>
+            <h3 class="pt-0 mt-1 mb-3" data-toc-skip>A small door note</h3>
+            <div class="text-muted small">
+              <p>
+                
+
+
+
+
+
+                Welcome to my personal blog where I share to people my thoughts and experience about (mostly) technology, research articles and sometimes irrelevant stuff.
+
+Topics on this blog are mainly about cyb...
+              </p>
+            </div>
+          </div>
+        </a>
+      </div>
     
       
       
@@ -820,94 +1003,6 @@ Còn về việc...
         </a>
       </div>
     
-      
-      
-      <div class="card">
-        <a href="/blog/en/posts/Project-Z-iMessage-p3/">
-          <div class="card-body">
-            <!--
-  Date format snippet
-
-  v2.4.1
-  https://github.com/cotes2020/jekyll-theme-chirpy
-  © 2020 Cotes Chung
-  MIT License
--->
-<span class="timeago small"
-  >
-
-  
-  
-
-  
-    Feb  2
-  
-
-  <i class="unloaded">2020-02-02T13:30:59+07:00</i>
-
-</span>
-            <h3 class="pt-0 mt-1 mb-3" data-toc-skip>Project Zero: Remote iPhone Exploitation [P3]</h3>
-            <div class="text-muted small">
-              <p>
-                
-
-
-
-
-
-                Bài này được mình dịch từ blog của team Google Project Zero.
-
-Đây là phần cuối trong series exploit iMessage trên iOS. Ở phần một ta đã giới thiệu sơ lược về lỗ hổng và phần hai đi sâu vào các phươ...
-              </p>
-            </div>
-          </div>
-        </a>
-      </div>
-    
-      
-      
-      <div class="card">
-        <a href="/blog/en/posts/Project-Z-iMessage-p2/">
-          <div class="card-body">
-            <!--
-  Date format snippet
-
-  v2.4.1
-  https://github.com/cotes2020/jekyll-theme-chirpy
-  © 2020 Cotes Chung
-  MIT License
--->
-<span class="timeago small"
-  >
-
-  
-  
-
-  
-    Jan 16
-  
-
-  <i class="unloaded">2020-01-16T08:11:55+07:00</i>
-
-</span>
-            <h3 class="pt-0 mt-1 mb-3" data-toc-skip>Project Zero: Remote iPhone Exploitation [P2]</h3>
-            <div class="text-muted small">
-              <p>
-                
-
-
-
-
-
-                Bài viết này được mình dịch từ blog của team Google Project Zero.
-
-Đây là phần thứ hai của series khai thác lỗ hổng CVE-2019–8641 của app iMessage trên iOS 12.4. Nếu bạn chưa hiểu hoặc quên mất chu...
-              </p>
-            </div>
-          </div>
-        </a>
-      </div>
-    
     </div> <!-- .card-deck -->
   </div> <!-- #related-posts -->
 
@@ -924,15 +1019,15 @@ Còn về việc...
 
 <div class="post-navigation d-flex justify-content-between">
   
-  <a href="/blog/en/posts/Di-c%C6%B0-t%E1%BB%AB-Medium-sang-Github-Page/" class="btn btn-outline-primary">
-    <p>Di cư từ Medium sang Github Page</p>
-  </a>
-  
-
-  
   <span class="btn btn-outline-primary disabled">
     <p>-</p>
   </span>
+  
+
+  
+  <a href="/blog/en/posts/Nh%E1%BA%ADn-th%E1%BB%A9c-Free-SSL/" class="btn btn-outline-primary">
+    <p>Nhận thức về HTTPS/SSL miễn phí</p>
+  </a>
   
 
 </div>
