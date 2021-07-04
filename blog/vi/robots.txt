@@ -1,5 +1,0 @@
-User-agent: *
-
-Disallow: /norobots/
-
-Sitemap: https://legiahuyy.github.io/blog/vi/blog/vi/sitemap.xml
