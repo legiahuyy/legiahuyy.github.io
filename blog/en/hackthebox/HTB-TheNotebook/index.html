@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<!--
+    So Simple Jekyll Theme 3.2.0
+    Copyright 2013-2019 Michael Rose - mademistakes.com | @mmistakes
+    Free for personal and commercial use under the MIT license
+    https://github.com/mmistakes/so-simple-theme/blob/master/LICENSE
+-->
+<html lang="en-US" class="no-js">
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  
+
+  
+    <title>HackTheBox - The Notebook</title>
+    <meta name="description" content="Welcome back to our usual HackTheBox journey, for today medium rated target - The Notebook. In this blog post, we’ve managed to alter client-side JWT cookie,...">
+    <link rel="canonical" href="https://legiahuyy.github.io/blog/en/hackthebox/HTB-TheNotebook/">
+  
+
+  <script>
+    /* Cut the mustard */
+    if ( 'querySelector' in document && 'addEventListener' in window ) {
+      document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + 'js';
+    }
+  </script>
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/img/favicons/apple-touch-icon.png">
+  <link rel="stylesheet" href="/blog/en/assets/css/main.css">
+  <link rel="stylesheet" href="/blog/en/assets/css/skins/default.css">
+  
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,700,700i|Lora:400,400i,700,700i">
+  <link rel="alternate" type="application/atom+xml" title="Another infosec blog" href="/blog/en/atom.xml">
+<!-- start custom head snippets -->
+
+<!-- insert favicons. use http://realfavicongenerator.net/ -->
+<link rel="icon" type="image/png" sizes="32x32" href="/blog/en/assets/img/favicons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/blog/en/assets/img/favicons/favicon-16x16.png">
+
+<!-- end custom head snippets -->
+
+</head>
+
+
+  <body class="layout--post  hackthebox-the-notebook">
+    <nav class="skip-links">
+  <h2 class="screen-reader-text">Skip links</h2>
+  <ul>
+    <li><a href="#primary-nav" class="screen-reader-shortcut">Skip to primary navigation</a></li>
+    <li><a href="#main" class="screen-reader-shortcut">Skip to content</a></li>
+    <li><a href="#footer" class="screen-reader-shortcut">Skip to footer</a></li>
+  </ul>
+</nav>
+
+    
+  <div class="navigation-wrapper">
+    <a href="#menu-toggle" id="menu-toggle">Menu</a>
+    <nav id="primary-nav" class="site-nav animated drop">
+      <ul><li><a href="/blog/en/">Home</a></li><li><a href="/blog/en/posts/">Posts</a></li><li><a href="/blog/en/categories/">Categories</a></li><li><a href="/blog/en/tags/">Tags</a></li><li><a href="/blog/en/search/">Search</a></li><li><a href="https://legiahuyy.github.io/blog/en/">Pwnie</a></li></ul>
+    </nav>
+  </div><!-- /.navigation-wrapper -->
+
+
+    <header class="masthead">
+  <div class="wrap">
+    
+      <a href="/blog/en/" class="site-logo" rel="home" title="Another infosec blog">
+        <img src="/blog/en/assets/img/avatar.gif" class="site-logo-img animated fadeInDown" alt="Another infosec blog">
+      </a>
+    
+    
+    
+      
+        <div class="site-title animated fadeIn"><a href="/blog/en/">Another infosec blog</a></div>
+      
+      <p class="site-description animated fadeIn" itemprop="description">Where one's enthusiasm provides knowledge and comprehension for others.</p>
+    
+  </div>
+</header><!-- /.masthead -->
+
+
+    <main id="main" class="main-content" aria-label="Content">
+  <article class="h-entry">
+    
+
+    <div class="page-wrapper">
+      <header class="page-header">
+        
+        
+          <h1 id="page-title" class="page-title p-name">HackTheBox - The Notebook
+</h1>
+        
+      </header>
+
+      <div class="page-sidebar">
+        <div class="page-author h-card p-author"><div class="author-info"><div class="author-name">
+        <em>by</em> <span class="p-name">The Archivist</span>
+      </div><ul class="author-links"><li class="author-link">
+            <a class="u-url" rel="me" href="https://twitter.com/0x7c00"><i class="fab fa-twitter-square fa-lg" title="Twitter"></i></a>
+          </li></ul>
+
+<span class="read-time">4 min read</span>
+
+    <time class="page-date dt-published" datetime="2021-06-10T02:45:00+07:00"><a class="u-url" href="">June 10, 2021</a>
+</time>
+
+  </div>
+</div>
+
+        
+  <h3 class="page-taxonomies-title">Categories</h3>
+  
+  <ul class="page-taxonomies"><li class="page-taxonomy"><a class="p-category" href="/blog/en/categories/#hackthebox" title="Pages filed under hackthebox">hackthebox</a></li>
+  </ul>
+
+
+        
+  <h3 class="page-taxonomies-title">Tags</h3>
+  
+  <ul class="page-taxonomies"><li class="page-taxonomy"><a href="/blog/en/tags/#hackthebox" title="Pages tagged hackthebox" rel="tag">hackthebox</a></li><li class="page-taxonomy"><a href="/blog/en/tags/#network" title="Pages tagged network" rel="tag">network</a></li><li class="page-taxonomy"><a href="/blog/en/tags/#pwn" title="Pages tagged pwn" rel="tag">pwn</a></li>
+  </ul>
+
+
+      </div>
+
+      <div class="page-content">
+        <div class="e-content">
+          <p>Welcome back to our usual HackTheBox journey, for today medium rated target - The Notebook. In this blog post, we’ve managed to alter client-side JWT cookie, spawn our reverse shell then proceeded to achieve user’s SSH credentials and, subsequently, be able to privesc via a docker PoC.</p>
+
+<h2 id="enumeration">Enumeration</h2>
+
+<p>The very initial step is to do a network scan using everyone’s favorite utility - <em>nmap</em>.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>┌──<span class="o">(</span>kali㉿kali<span class="o">)</span>-[~/HackTheBox/Boxes/TheNotebook]
+└─<span class="nv">$ </span><span class="nb">sudo </span>nmap <span class="nt">-sV</span> <span class="nt">-sC</span> <span class="nt">-sS</span> 10.10.10.230 <span class="nt">-p-</span> <span class="nt">-oA</span> nmap/thenotebook
+Starting Nmap 7.91 <span class="o">(</span> https://nmap.org <span class="o">)</span> at 2021-06-05 05:07 EDT
+Nmap scan report <span class="k">for </span>10.10.10.230
+Host is up <span class="o">(</span>0.034s latency<span class="o">)</span><span class="nb">.</span>
+
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 7.6p1 Ubuntu 4ubuntu0.3 <span class="o">(</span>Ubuntu Linux<span class="p">;</span> protocol 2.0<span class="o">)</span>
+| ssh-hostkey: 
+|   2048 86:df:10:fd:27:a3:fb:d8:36:a7:ed:90:95:33:f5:bf <span class="o">(</span>RSA<span class="o">)</span>
+|   256 e7:81:d6:6c:df:ce:b7:30:03:91:5c:b5:13:42:06:44 <span class="o">(</span>ECDSA<span class="o">)</span>
+|_  256 c6:06:34:c7:fc:00:c4:62:06:c2:36:0e:ee:5e:bf:6b <span class="o">(</span>ED25519<span class="o">)</span>
+80/tcp open  http    nginx 1.14.0 <span class="o">(</span>Ubuntu<span class="o">)</span>
+|_http-server-header: nginx/1.14.0 <span class="o">(</span>Ubuntu<span class="o">)</span>
+|_http-title: The Notebook - Your Note Keeper
+Service Info: OS: Linux<span class="p">;</span> CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ <span class="nb">.</span>
+Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up<span class="o">)</span> scanned <span class="k">in </span>21.04 seconds
+
+</code></pre></div></div>
+
+<p>Nothing much to look at besides their Nginx server running on port <code class="language-plaintext highlighter-rouge">80</code>, let’s display it in our browser.</p>
+
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_16-13.png" alt="" /></p>
+
+<p>The webpage allows us to register an account and have some notes written.</p>
+
+<h2 id="exploitation">Exploitation</h2>
+
+<h3 id="jwt-misconfiguration">JWT misconfiguration</h3>
+
+<p>At first I thought it was either RFI/LFI or XSS yet I couldn’t find any JavaScript objects to exploit. Later that I noticed there was a JWT<sup id="fnref:1" role="doc-noteref"><a href="#fn:1" class="footnote" rel="footnote">1</a></sup> cookie encoded with our basic login information and we want to change the justice flag <code class="language-plaintext highlighter-rouge">admin_cap</code> to <code class="language-plaintext highlighter-rouge">True</code> in order to have a more privileged access.</p>
+
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_16-19.png" alt="jwt.io" /></p>
+
+<p>The token is to be signed and verified with a RSA-256 private key stored on the server local host; therefore we somehow need to find or crack their secret signature though it might take thousands of years to decipher. Luckily, it is not necessary to do any of that since we can trick the server into signing tokens using our own private key. This is feasible due to the server failed to check for the integrity of its token issuers/authorities.</p>
+
+<p>Now, we need to create a new empty passphrase RSA256 private key (<code class="language-plaintext highlighter-rouge">privKey.key</code>) then start a HTTP server on port <code class="language-plaintext highlighter-rouge">7070</code> to host it.</p>
+
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_16-37.png" alt="" /></p>
+
+<p>Change <code class="language-plaintext highlighter-rouge">kid</code> and <code class="language-plaintext highlighter-rouge">admin_cap</code> parameter correspondingly to our private key and <code class="language-plaintext highlighter-rouge">True</code>.</p>
+
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_16-41.png" alt="" /></p>
+
+<p>Here is our JWT cookie:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Imh0dHA6Ly8xMC4xMC4xNC4xMDo3MDcwL3ByaXZLZXkua2V5In0.eyJ1c2VybmFtZSI6ImxlZ2lhaHV5eSIsImVtYWlsIjoibGVnaWFodXl5QGVtYWlsLmNvbSIsImFkbWluX2NhcCI6dHJ1ZX0.EUtQ8LSlpMzKseLGJLVZhKrQoJSbD_BHYhAxuLjvZrKIBGjrzVqxjFnq2OuaBXCkkScsaPvKOBnp_f9LZ5hiRKOPP_N_5E5w2cv1FX_elhEjQe0Y7UWr9BdzWexzzObsaaM_wuF9PR3ydyAc86eg2iI6RXNuWPdv2PYrSsNYWgcF7_Y8QhSMX9nU4UjAQyutziAz-K-Q7eVhQvPubyDYB3cOIl_4Vzw5Jap4W0RvjzrPEQhELHiIO2tcwjqk9_6tZZdaLXYVmn616Ln2WFMXrW1-LaeAPfb5jHBJ1O9r4V35M3tIt7txlimqi116MBmXy4UZUMq0Z0XxLxtO9M070EuzvZwNJea-zZpOBRDMjzxmdDDG-2rOUXuUZDfX2cEGaOgXaudgCAEQZyXTQPGAbND5kf5DMuIKiWTXjokwYeqyOFXLNNmFFYWT1MY-ajEUOorG4WMhVDAZFBzGtJ_Wz75UxOeUl-jYqGyHL99BEwK_ysZtIeLnMoQ1DQcz9CRdcwZymZACk049RAp__SDzzM25tc8TlNzkyuUM0jV6xYTEJ1RqLJ_S0B2TgOLJ6kBYUjy7NdAj9d222mYkDCdxX9HM1rSJ5OdPPE11VqQFwdc-8kgsxjKvIQfXrkHyOHo8kQ8FwweGJR649ebIPsLJ__vmhJB8dNejsKaB4lRuaK0
+</code></pre></div></div>
+
+<p>Pass the poisoned cookie to Burp then forward it will let us access to Admin Panel and other notes on the server.</p>
+
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_16-42.png" alt="" /></p>
+
+<p>Most of the notes were gibberish and payloads from our XSS stage, although some of them mentioned about PHP files being executed unrestrictedly and a user named <code class="language-plaintext highlighter-rouge">noah</code> kept talking about backups.</p>
+
+<p>The Admin Panel allows us to upload anything we want; however, the upload folder (<code class="language-plaintext highlighter-rouge">/var/www/html</code>), and all the contents or objects therein, will be deleted and cleanup after approximately every 5 minutes. Because of that reason, we cannot use our elegant web-based p0wny<sup id="fnref:2" role="doc-noteref"><a href="#fn:2" class="footnote" rel="footnote">2</a></sup> shell for long and have to use the legacy netcat connection.</p>
+
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_16-48.png" alt="" /></p>
+
+<h3 id="the-legendary-called-backups">The legendary called ‘backups’</h3>
+
+<p>Running <a href="https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/linPEAS">LinPEAS</a>  as <code class="language-plaintext highlighter-rouge">www-data</code> also provides us with the location of the aforementioned backups.</p>
+
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_17-15.png" alt="" /></p>
+
+<p>Notable ones are <code class="language-plaintext highlighter-rouge">home.tar.gz</code>, <code class="language-plaintext highlighter-rouge">passwd.bak</code> and <code class="language-plaintext highlighter-rouge">shadow.bak</code> yet I find the latter two only contain some unusable hashes. Extracting the <code class="language-plaintext highlighter-rouge">home.tar.gz</code> archive is far more interesting as it has <code class="language-plaintext highlighter-rouge">noah</code>’s SSH credentials.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Tar extraction command</span>
+<span class="nv">$ </span><span class="nb">tar </span>xzvf ./var/backups/home.tar.gz <span class="nt">-C</span> ./tmp/key
+</code></pre></div></div>
+
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_21-59.png" alt="" /></p>
+
+<p>Download and use <code class="language-plaintext highlighter-rouge">id_rsa</code> from <code class="language-plaintext highlighter-rouge">noah</code>’s backups will let us ssh into the server and read his user flag.</p>
+
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_22-04.png" alt="" /></p>
+
+<h2 id="privilege-escalation">Privilege Escalation</h2>
+
+<p>Let have a glance at what <code class="language-plaintext highlighter-rouge">noah</code> can do.</p>
+
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_22-07.png" alt="" /></p>
+
+<p>We can execute <code class="language-plaintext highlighter-rouge">/usr/bin/docker exec -it webapp-dev01*</code> as superuser. You can see that I also ran a <code class="language-plaintext highlighter-rouge">sudo --version</code> since it is a practical point to check <code class="language-plaintext highlighter-rouge">sudo</code> version for low hanging fruit even in these medium boxes just to be certain.</p>
+
+<p>And while doing a Google search about docker, we came across CVE-2019-5736, which related to this box situation.</p>
+
+<p>Here is a brief information about the vulnerability.</p>
+
+<blockquote>
+  <p>runc through 1.0-rc6, as used in Docker before 18.09.2 and other products, allows attackers to overwrite the host runc binary (and consequently obtain host root access) by leveraging the ability to execute a command as root within one of these types of containers: (1) a new container with an attacker-controlled image, or (2) an existing container, to which the attacker previously had write access, that can be attached with docker exec. This occurs because of file-descriptor mishandling, related to /proc/self/exe.</p>
+
+  <p><a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-5736">Read more</a></p>
+</blockquote>
+
+<p>Fortunately, we have the PoC of this vulnerability available on GitHub as well.</p>
+
+<p><a href="https://github.com/Frichetten/CVE-2019-5736-PoC">https://github.com/Frichetten/CVE-2019-5736-PoC</a></p>
+
+<p><img src="https://raw.githubusercontent.com/Frichetten/CVE-2019-5736-PoC/master/screenshots/example1.gif" alt="" /></p>
+
+<p>Since today post is not about programming, we will not have any in-depth discussion of how these golang lines are functioning. Basically, the PoC instance running in previously mentioned vulnerable docker then escapes and enables us to execute anything as a root user.</p>
+
+<p>So then we just need to clone the repository and edit <code class="language-plaintext highlighter-rouge">main.go</code>’s payload to create a privileged shell back to our host machine.</p>
+
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_22-17.png" alt="" /></p>
+
+<p>In case you haven’t install golang, run the following lines:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># First, install the package</span>
+<span class="nv">$ </span><span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> golang
+
+<span class="c"># Then add the following to your .bashrc</span>
+<span class="nb">export </span><span class="nv">GOROOT</span><span class="o">=</span>/usr/lib/go
+<span class="nb">export </span><span class="nv">GOPATH</span><span class="o">=</span><span class="nv">$HOME</span>/go
+<span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$GOPATH</span>/bin:<span class="nv">$GOROOT</span>/bin:<span class="nv">$PATH</span>
+
+<span class="c"># Reload your .bashrc</span>
+<span class="nv">$ </span><span class="nb">source</span> .bashrc
+
+<span class="c"># Build our crafted PoC</span>
+<span class="nv">$ </span>go build main.go
+
+<span class="c"># output saved as $(pwd)/main</span>
+</code></pre></div></div>
+
+<p>then send our exploit to the target machine and execute these command:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Open a docker environment</span>
+<span class="nv">$ </span><span class="nb">sudo</span> /usr/bin/docker <span class="nb">exec</span> <span class="nt">-it</span> webapp-dev01 /bin/bash
+
+<span class="c"># Run the PoC in docker</span>
+<span class="nv">$ </span><span class="nb">chmod</span> +x ./main <span class="o">&amp;&amp;</span> ./main
+
+<span class="c"># Outside docker - noah session</span>
+<span class="nv">$ </span><span class="nb">sudo</span> /usr/bin/docker <span class="nb">exec</span> <span class="nt">-it</span> webapp-dev01 /bin/sh
+</code></pre></div></div>
+
+<p>and finally we achieve our <code class="language-plaintext highlighter-rouge">root.txt</code>.</p>
+
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_22-52.png" alt="" /></p>
+
+<h2 id="footnotes">Footnotes</h2>
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:1" role="doc-endnote">
+      <p>https://jwt.io/introduction <a href="#fnref:1" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:2" role="doc-endnote">
+      <p>https://github.com/flozz/p0wny-shell/blob/master/shell.php <a href="#fnref:2" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+  </ol>
+</div>
+
+        </div>
+
+        
+          <div class="page-share">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Flegiahuyy.github.io%2Fblog%2Fen%2Fhackthebox%2FHTB-TheNotebook%2F" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" class="btn btn--facebook btn--small"><i class="fab fa-fw fa-facebook" aria-hidden="true"></i> <span>Share</span></a>
+  <a href="https://twitter.com/intent/tweet?text=HackTheBox+-+The+Notebook%20https%3A%2F%2Flegiahuyy.github.io%2Fblog%2Fen%2Fhackthebox%2FHTB-TheNotebook%2F" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" class="btn btn--twitter btn--small"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i> <span>Tweet</span></a>
+  <a href="https://www.linkedin.com/shareArticle?mini=true&url=https%3A%2F%2Flegiahuyy.github.io%2Fblog%2Fen%2Fhackthebox%2FHTB-TheNotebook%2F" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" class="btn btn--linkedin btn--small"><i class="fab fa-fw fa-linkedin" aria-hidden="true"></i> <span>LinkedIn</span></a>
+  <a href="https://reddit.com/submit?title=HackTheBox+-+The+Notebook&url=https%3A%2F%2Flegiahuyy.github.io%2Fblog%2Fen%2Fhackthebox%2FHTB-TheNotebook%2F" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" class="btn btn--reddit btn--small"><i class="fab fa-fw fa-reddit" aria-hidden="true"></i> <span>Reddit</span></a>
+</div>
+
+        
+
+        
+
+        <nav class="page-pagination" role="navigation">
+  
+    <a class="page-previous" href="/blog/en/hackthebox/HTB-Armageddon/">
+      <h4 class="page-pagination-label">Previous</h4>
+      <span class="page-pagination-title">
+        <i class="fas fa-arrow-left"></i> HackTheBox - Armageddon
+
+      </span>
+    </a>
+  
+
+  
+    <a class="page-next" href="/blog/en/thoughts/Update-Note/">
+      <h4 class="page-pagination-label">Next</h4>
+      <span class="page-pagination-title">
+        Update.txt
+ <i class="fas fa-arrow-right"></i>
+      </span>
+    </a>
+  
+</nav>
+
+      </div>
+    </div>
+  </article>
+</main>
+
+
+    <footer id="footer" class="site-footer">
+  <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+<div class="social-icons"><a class="social-icon" href="https://twitter.com/0x7c00"><i class="fab fa-twitter-square fa-2x" title="Twitter"></i></a><a class="social-icon" href="/blog/en/atom.xml"><i class="fas fa-rss-square fa-2x" title="Feed"></i></a></div><div class="copyright">
+    
+      <p>This site is made with &lt;3 by <em>me, myself, and I</em>.</p>
+
+    
+  </div>
+</footer>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+  <script src="/blog/en/assets/js/main.min.js"></script>
+  <script src="https://use.fontawesome.com/releases/v5.0.12/js/all.js"></script>
+
+
+<!-- MathJax -->
+
+<script>
+// http://docs.mathjax.org/en/latest/upgrading/v2.html
+MathJax = {
+  tex: {
+      tags: "ams"    // eq numbering options: none, ams, all
+  },
+  options: {
+    renderActions: {
+      // for mathjax 3, handle <script "math/tex"> blocks inserted by kramdown
+      find: [10, function (doc) {
+        for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+          const display = !!node.type.match(/; *mode=display/);
+          const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+          const text = document.createTextNode('');
+          node.parentNode.replaceChild(text, node);
+          math.start = {node: text, delim: '', n: 0};
+          math.end = {node: text, delim: '', n: 0};
+          doc.math.push(math);
+        }
+      }, '']
+    }
+  }
+}
+</script>
+
+<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  </body>
+
+</html>
