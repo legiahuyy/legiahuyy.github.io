@@ -1,4 +1,232 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="https://legiahuyy.github.io/blog/en/atom.xml" rel="self" type="application/atom+xml" /><link href="https://legiahuyy.github.io/blog/en/" rel="alternate" type="text/html" /><updated>2021-07-04T19:13:03+07:00</updated><id>https://legiahuyy.github.io/blog/en/atom.xml</id><title type="html">Another infosec blog</title><subtitle>Where one's enthusiasm provides knowledge and comprehension for others.</subtitle><author><name>Archivist</name></author><entry><title type="html">Update.txt</title><link href="https://legiahuyy.github.io/blog/en/thoughts/Update-Note/" rel="alternate" type="text/html" title="Update.txt" /><published>2021-07-01T00:00:00+07:00</published><updated>2021-07-04T00:00:00+07:00</updated><id>https://legiahuyy.github.io/blog/en/thoughts/Update-Note</id><content type="html" xml:base="https://legiahuyy.github.io/blog/en/thoughts/Update-Note/">&lt;p&gt;Greetings everyone, it has been a few weeks since our last posts. You may (or may not) have already noticed, I changed the theme of our blog since this one looks more professional and less boring than the old Chirpy theme I had used. But the new theme switch is not the sole reason for this update.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="https://legiahuyy.github.io/blog/en/atom.xml" rel="self" type="application/atom+xml" /><link href="https://legiahuyy.github.io/blog/en/" rel="alternate" type="text/html" /><updated>2021-07-06T15:03:50+07:00</updated><id>https://legiahuyy.github.io/blog/en/atom.xml</id><title type="html">Another infosec blog</title><subtitle>Where one's enthusiasm provides knowledge and comprehension for others.</subtitle><author><name>Archivist</name></author><entry><title type="html">Practical Reverse Engineering Solutions: First Chapter</title><link href="https://legiahuyy.github.io/blog/en/practical-reverse-engineering/PRE-C1/" rel="alternate" type="text/html" title="Practical Reverse Engineering Solutions: First Chapter" /><published>2021-07-05T00:00:00+07:00</published><updated>2021-07-05T00:00:00+07:00</updated><id>https://legiahuyy.github.io/blog/en/practical-reverse-engineering/PRE-C1</id><content type="html" xml:base="https://legiahuyy.github.io/blog/en/practical-reverse-engineering/PRE-C1/">&lt;p&gt;As promised, this is the beginning of our solutions for the book Practical Reverse Engineer I had mentioned earlier. The utmost objective is to solve and provide concrete explanations for each topic.&lt;/p&gt;
+
+&lt;!--[READMORE]--&gt;
+
+&lt;p&gt;The target audiences are believed to:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Be familiar with basic mid-level programming language&lt;/li&gt;
+  &lt;li&gt;Have at least fundamental understanding about computer architecture (CPU, RAM, etc.)&lt;/li&gt;
+  &lt;li&gt;Be determined to learn and do exercises in the book&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;And please be noticed that all of these solutions here are explained in &lt;em&gt;my own&lt;/em&gt; comprehension and experience as there may have some miscalculations and inaccuracies therein; hence, readers are recommended to review and reproduce these solutions if possible.&lt;/p&gt;
+
+&lt;p&gt;Without further ado, I hope you enjoy the post.&lt;/p&gt;
+
+&lt;h2 id=&quot;basic-concepts&quot;&gt;Basic concepts&lt;/h2&gt;
+
+&lt;p&gt;Before going deeper, initial concepts about registers, data types and calling conventions are required. The book has already covered these definitions and concepts in a much more detailed version, it is nonetheless worth mentioning the vital parts in our own ways.&lt;/p&gt;
+
+&lt;p&gt;To make it easy for beginners, the explanations are provided in x86 flavor first and then in x64 and ARM.&lt;/p&gt;
+
+&lt;h3 id=&quot;general-purpose-registers&quot;&gt;General Purpose Registers&lt;/h3&gt;
+
+&lt;p&gt;In protected mode, in which virtual memory and paging are supported, the x86 architecture has eight 32-bit general-purpose-registers (GPRs): &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EAX, EBX, EDX, ECX, EDI, ESI, EBP, ESP&lt;/code&gt;. And some can be further divided into 8- and 16-bit registers as &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;AX, AL, SI, DI,...&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;The following table describes common GPRs and their general usages:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Register&lt;/th&gt;
+      &lt;th&gt;Purpose&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;ECX&lt;/td&gt;
+      &lt;td&gt;Loop counter&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;EDI&lt;/td&gt;
+      &lt;td&gt;String-destination operations&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;ESI&lt;/td&gt;
+      &lt;td&gt;String-source operations&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;EBP&lt;/td&gt;
+      &lt;td&gt;Base frame pointer&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;ESP&lt;/td&gt;
+      &lt;td&gt;Stack pointer&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;EAX, EBX, EDX&lt;/td&gt;
+      &lt;td&gt;Computing operations or storing data&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;data-types&quot;&gt;Data types&lt;/h3&gt;
+
+&lt;p&gt;As we know, the common data types such as &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;int&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;unsigned char&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;long&lt;/code&gt; and many more. And each of them has a specific size in the memory. The size of a data-type can be read by using the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sizeof&lt;/code&gt; operator (ex. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sizeof(int) results in 4&lt;/code&gt;). Registers also have their own data-types and sizes as well, below are some common ones:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Data-type&lt;/th&gt;
+      &lt;th&gt;Size&lt;/th&gt;
+      &lt;th&gt;Register&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Byte&lt;/td&gt;
+      &lt;td&gt;8 bits&lt;/td&gt;
+      &lt;td&gt;AL, CL, BL&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Word&lt;/td&gt;
+      &lt;td&gt;16 bits&lt;/td&gt;
+      &lt;td&gt;AX, BX, CX&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Double Word&lt;/td&gt;
+      &lt;td&gt;32 bits&lt;/td&gt;
+      &lt;td&gt;EAX, EBX, ECX&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Quad Word&lt;/td&gt;
+      &lt;td&gt;64 bits&lt;/td&gt;
+      &lt;td&gt;EDX:EAX&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;As we are speaking in x86, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Qword&lt;/code&gt; is not available on this architecture but it can combine two 32-bit registers, usually &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EDX:EAX&lt;/code&gt;, to contain a 64-bit value in some scenarios.&lt;/p&gt;
+
+&lt;h3 id=&quot;calling-conventions&quot;&gt;Calling conventions&lt;/h3&gt;
+
+&lt;p&gt;In C/C++, we have seen common calling conventions: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;__cdecl&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;__stdcall&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;__fastcall&lt;/code&gt;. These so-called conventions are multiple sets of rules dictating how function calls work at the machine level. For example, should parameters be passed through the stack or registers? And should they be passed in left-to-right or right-to-left order?&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt; &lt;/th&gt;
+      &lt;th&gt;CDECL&lt;/th&gt;
+      &lt;th&gt;STDCALL&lt;/th&gt;
+      &lt;th&gt;FASTCALL&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Parameters&lt;/td&gt;
+      &lt;td&gt;right-to-left&lt;/td&gt;
+      &lt;td&gt;right-to-left&lt;/td&gt;
+      &lt;td&gt;right-to-left&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Stack&lt;/td&gt;
+      &lt;td&gt;Caller must clean up the stack after call&lt;/td&gt;
+      &lt;td&gt;Callee must clean up the stack after call&lt;/td&gt;
+      &lt;td&gt;Besides the first two parameters, all are on stack.&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Return&lt;/td&gt;
+      &lt;td&gt;Stored in EAX&lt;/td&gt;
+      &lt;td&gt;Stored in EAX&lt;/td&gt;
+      &lt;td&gt;Stored in EAX&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2 id=&quot;exercise-1---page-11&quot;&gt;Exercise 1 - Page 11&lt;/h2&gt;
+
+&lt;p&gt;Below is our assignment.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;This function uses a combination SCAS and STOS to do its work. First, explain what is the type of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;[EBP+8]&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;[EBP+C]&lt;/code&gt; in line 1 and 8, respectively. Next explain what this snippet does.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;01: 8B 7D 08    mov edi, [ebp+8]
+02: 8B D7       mov edx, edi
+03: 33 C0       xor eax, eax
+04: 83 C9 FF    or ecx, 0FFFFFFFFh
+05: F2 AE       repne scasb
+06: 83 C1 02    add ecx, 2
+07: F7 D9       neg ecx
+08: 8A 45 0C    mov al, [ebp+0Ch]
+09: 8B AA       mov edi, edx
+10: F3 AA       rep stosb
+11: 8B C2       mov eax, edx
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;[ebp+8]&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;[ebp+0C]&lt;/code&gt; are probably the first and second parameters in the code snippet, respectively. This is assured because the function’s calling conventions put its parameters on the stack before the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;CALL&lt;/code&gt; instruction is executed.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-07-05-PRE-C1/stack.png&quot; alt=&quot;Function stack&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The types of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;[ebp+8]&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;[ebp+C]&lt;/code&gt; are most likely to be determined by the destination registers. In line 1, it is shown that the first parameter, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;[ebp+8]&lt;/code&gt;, is stored in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EDI&lt;/code&gt; which is commonly used in string operations yet in line 8, the 8-bit register &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;AL&lt;/code&gt; stores our second parameter&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;[ebp+C]&lt;/code&gt; as a single byte value:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;[ebp+8]&lt;/code&gt; is of type &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;char*&lt;/code&gt; or null-terminated string&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;[ebp+C]&lt;/code&gt; is of type &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;char&lt;/code&gt; or a single byte letter&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;snippet-walkthrough&quot;&gt;Snippet walkthrough&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;01: 8B 7D 08    mov edi, [ebp+8]&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Simply copy the first parameter into &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EDI&lt;/code&gt; from stack.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;02: 8B D7       mov edx, edi&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Make a copy of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EDI&lt;/code&gt; into &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EDX&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;03: 33 C0       xor eax, eax&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;This operation sets &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EAX&lt;/code&gt; to zero.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;04: 83 C9 FF    or ecx, 0FFFFFFFFh&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Sets &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ECX&lt;/code&gt; to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0xFFFFFFFF&lt;/code&gt; or, basically, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-1&lt;/code&gt; in decimal.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;05: F2 AE       repne scasb&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;REPNE SCASB&lt;/code&gt; instruction repeatedly scans and compares the byte of the accumulator (i.e. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EAX&lt;/code&gt;) against the present value pointed at by &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EDI&lt;/code&gt;. It also decreases the counter &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ECX&lt;/code&gt; and increases &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EDI&lt;/code&gt; by one each in comparison.&lt;/p&gt;
+
+&lt;p&gt;In simple terms, the mentioned instruction searches for the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NUL&lt;/code&gt; character in our string buffer. Please do remember that &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ECX&lt;/code&gt; contains the length of our string plus two (incl. the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NUL&lt;/code&gt; byte and an uninitialized/unknown element after it) in negative form. For instance, if our string was 100 characters in length, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ECX&lt;/code&gt; would be &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-102&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;06: 83 C1 02    add ecx, 2&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Add 2 to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ECX&lt;/code&gt; and thus equal to the length of our string in negative (incl. the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NUL&lt;/code&gt; character).&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;07: F7 D9       neg ecx&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Negates the value of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ECX&lt;/code&gt;, so it is two’s complement negation. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ECX = -(-100) = 100&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;08: 8A 45 0C    mov al, [ebp+0Ch]&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Copy the second parameter to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;AL&lt;/code&gt; register.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;09: 8B AA       mov edi, edx&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;As &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EDI&lt;/code&gt; was modified (increased in line 5), thereafter the register no longer points at the string buffer. Thus, this resets &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EDI&lt;/code&gt; with the copied version of itself, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EDX&lt;/code&gt;, in line 2 so that it can be used again in the following line.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;10: F3 AA       rep stosb&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;STOSB&lt;/code&gt; is mostly the same as &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SCASB&lt;/code&gt; except that it writes the value of the accumulator (i.e. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;AL&lt;/code&gt;), repeatedly &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ECX&lt;/code&gt; times, to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EDI&lt;/code&gt;. On that account, line 10 instruction replaces our entire buffer with the value of the second parameter.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;11: 8B C2       mov eax, edx&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EAX&lt;/code&gt; is now holding the address of our modified string buffer.&lt;/p&gt;
+
+&lt;h3 id=&quot;pseudo-c-code&quot;&gt;Pseudo-C code&lt;/h3&gt;
+
+&lt;p&gt;This step presents a decompile snippet following C-style function for the exercise.&lt;/p&gt;
+
+&lt;div class=&quot;language-c++ highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;exercise1_page11&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;param1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;param2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// get the length of param1&lt;/span&gt;
+  &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;len&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;strlen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;param1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// replace each character in the buffer with param2&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;memset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;param1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;param2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;param1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>The Archivist</name></author><category term="Practical-Reverse-Engineering" /><category term="reverse engineer" /><category term="Practical Reverse Engineering" /><category term="On-going" /><summary type="html">As promised, this is the beginning of our solutions for the book Practical Reverse Engineer I had mentioned earlier. The utmost objective is to solve and provide concrete explanations for each topic.</summary></entry><entry><title type="html">Update.txt</title><link href="https://legiahuyy.github.io/blog/en/thoughts/Update-Note/" rel="alternate" type="text/html" title="Update.txt" /><published>2021-07-01T00:00:00+07:00</published><updated>2021-07-04T00:00:00+07:00</updated><id>https://legiahuyy.github.io/blog/en/thoughts/Update-Note</id><content type="html" xml:base="https://legiahuyy.github.io/blog/en/thoughts/Update-Note/">&lt;p&gt;Greetings everyone, it has been a few weeks since our last posts. You may (or may not) have already noticed, I changed the theme of our blog as this one looks more professional and less boring than the old Chirpy theme I had used. But the new theme switch is not the sole reason for this update.&lt;/p&gt;
 
 &lt;!--[READMORE]--&gt;
 
@@ -6,7 +234,7 @@
 
 &lt;p&gt;In future releases, I am planning on doing some exercises in the &lt;em&gt;Practical Reverse Engineering&lt;/em&gt; book of &lt;a href=&quot;https://twitter.com/brucedang&quot;&gt;Bruce Dang&lt;/a&gt; in order to dig deeper into Windows kernel-level as well as understand its complex functionalities. It is undoubtedly time-consuming and interesting at the same time since I love reversing and being able to see my endeavors payoff.&lt;/p&gt;
 
-&lt;p&gt;That’s all I wanted to say for now. Thanks for reading and see you in other posts.&lt;/p&gt;</content><author><name>The Archivist</name></author><category term="Thoughts" /><category term="content" /><category term="miscs" /><summary type="html">Greetings everyone, it has been a few weeks since our last posts. You may (or may not) have already noticed, I changed the theme of our blog since this one looks more professional and less boring than the old Chirpy theme I had used. But the new theme switch is not the sole reason for this update.</summary></entry><entry><title type="html">HackTheBox - The Notebook</title><link href="https://legiahuyy.github.io/blog/en/hackthebox/HTB-TheNotebook/" rel="alternate" type="text/html" title="HackTheBox - The Notebook" /><published>2021-06-10T02:45:00+07:00</published><updated>2021-06-10T02:45:00+07:00</updated><id>https://legiahuyy.github.io/blog/en/hackthebox/HTB-TheNotebook</id><content type="html" xml:base="https://legiahuyy.github.io/blog/en/hackthebox/HTB-TheNotebook/">&lt;p&gt;Welcome back to our usual HackTheBox journey, for today medium rated target - The Notebook. In this blog post, we’ve managed to alter client-side JWT cookie, spawn our reverse shell then proceeded to achieve user’s SSH credentials and, subsequently, be able to privesc via a docker PoC.&lt;/p&gt;
+&lt;p&gt;That’s all I wanted to say for now. Thanks for reading and see you in other posts.&lt;/p&gt;</content><author><name>The Archivist</name></author><category term="Thoughts" /><category term="content" /><category term="miscs" /><summary type="html">Greetings everyone, it has been a few weeks since our last posts. You may (or may not) have already noticed, I changed the theme of our blog as this one looks more professional and less boring than the old Chirpy theme I had used. But the new theme switch is not the sole reason for this update.</summary></entry><entry><title type="html">HackTheBox - The Notebook</title><link href="https://legiahuyy.github.io/blog/en/hackthebox/HTB-TheNotebook/" rel="alternate" type="text/html" title="HackTheBox - The Notebook" /><published>2021-06-10T02:45:00+07:00</published><updated>2021-06-10T02:45:00+07:00</updated><id>https://legiahuyy.github.io/blog/en/hackthebox/HTB-TheNotebook</id><content type="html" xml:base="https://legiahuyy.github.io/blog/en/hackthebox/HTB-TheNotebook/">&lt;p&gt;Welcome back to our usual HackTheBox journey, for today medium rated target - The Notebook. In this blog post, we’ve managed to alter client-side JWT cookie, spawn our reverse shell then proceeded to achieve user’s SSH credentials and, subsequently, be able to privesc via a docker PoC.&lt;/p&gt;
 
 &lt;h2 id=&quot;enumeration&quot;&gt;Enumeration&lt;/h2&gt;
 

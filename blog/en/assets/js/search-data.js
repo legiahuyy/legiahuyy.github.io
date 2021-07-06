@@ -30,7 +30,12 @@ var store = [{
         "url": "https://legiahuyy.github.io/blog/en/hackthebox/HTB-TheNotebook/"
       },{
         "title": "Update.txt",
-        "excerpt":"Greetings everyone, it has been a few weeks since our last posts. You may (or may not) have already noticed, I changed the theme of our blog since this one looks more professional and less boring than the old Chirpy theme I had used. But the new theme switch is...","categories": ["Thoughts"],
+        "excerpt":"Greetings everyone, it has been a few weeks since our last posts. You may (or may not) have already noticed, I changed the theme of our blog as this one looks more professional and less boring than the old Chirpy theme I had used. But the new theme switch is...","categories": ["Thoughts"],
         "tags": ["content","miscs"],
         "url": "https://legiahuyy.github.io/blog/en/thoughts/Update-Note/"
+      },{
+        "title": "Practical Reverse Engineering Solutions: First Chapter",
+        "excerpt":"As promised, this is the beginning of our solutions for the book Practical Reverse Engineer I had mentioned earlier. The utmost objective is to solve and provide concrete explanations for each topic. The target audiences are believed to: Be familiar with basic mid-level programming language Have at least fundamental understanding...","categories": ["Practical-Reverse-Engineering"],
+        "tags": ["reverse engineer","Practical Reverse Engineering","On-going"],
+        "url": "https://legiahuyy.github.io/blog/en/practical-reverse-engineering/PRE-C1/"
       }]
