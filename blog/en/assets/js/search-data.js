@@ -34,8 +34,13 @@ var store = [{
         "tags": ["content","miscs"],
         "url": "https://legiahuyy.github.io/blog/en/thoughts/Update-Note/"
       },{
-        "title": "Practical Reverse Engineering Solutions: First Chapter",
+        "title": "PRE Solutions Series: First Chapter",
         "excerpt":"As promised, this is the beginning of our solutions for the book Practical Reverse Engineering I had mentioned earlier. The utmost objective is to solve and provide concrete explanations for each topic. The target audiences are believed to: Be familiar with basic mid-level programming language Have at least a fundamental...","categories": ["Practical-Reverse-Engineering"],
         "tags": ["reverse engineer","Practical Reverse Engineering","On-going"],
         "url": "https://legiahuyy.github.io/blog/en/practical-reverse-engineering/PRE-C1-E1/"
+      },{
+        "title": "HackTheBox - Cap",
+        "excerpt":"Hello everyone, while preparing chapters of the book Practical Reverse Engineering, I occasionally got bored and wanted to do something else to have my mind a reboot. That is the reason why we are here solving Cap - another HackTheBox easy machine. So yeah, hope you enjoy. Table of Contents...","categories": ["hackthebox"],
+        "tags": ["hackthebox","network","pwn","machine"],
+        "url": "https://legiahuyy.github.io/blog/en/hackthebox/HTB-Cap/"
       }]
