@@ -1,0 +1,234 @@
+
+
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <id>https://legiahuyy.github.io/blog/en/</id>
+  <title>Another infosec blog</title>
+  <subtitle>Where one's enthusiasm provides knowledge and comprehension for others.</subtitle>
+  <updated>2021-10-04T12:47:19+08:00</updated>
+  <author>
+    <name>The Archivist</name>
+    <uri>https://legiahuyy.github.io/blog/en/</uri>
+  </author>
+  <link rel="self" type="application/atom+xml" href="https://legiahuyy.github.io/blog/en/feed.xml"/>
+  <link rel="alternate" type="text/html" hreflang="en"
+    href="https://legiahuyy.github.io/blog/en/"/>
+  <generator uri="https://jekyllrb.com/" version="4.2.1">Jekyll</generator>
+  <rights> © 2021 The Archivist </rights>
+  <icon>/blog/en/assets/img/favicons/favicon.ico</icon>
+  <logo>/blog/en/assets/img/favicons/favicon-96x96.png</logo>
+
+
+  
+  <entry>
+    <title>HackTheBox - BountyHunter</title>
+    <link href="https://legiahuyy.github.io/blog/en/posts/HTB-BountyHunter/" rel="alternate" type="text/html" title="HackTheBox - BountyHunter" />
+    <published>2021-10-03T00:00:00+08:00</published>
+  
+    <updated>2021-10-03T00:00:00+08:00</updated>
+  
+    <id>https://legiahuyy.github.io/blog/en/posts/HTB-BountyHunter/</id>
+    <content src="https://legiahuyy.github.io/blog/en/posts/HTB-BountyHunter/" />
+    <author>
+      <name>The Archivist</name>
+    </author>
+
+  
+    
+    <category term="hackthebox" />
+    
+  
+
+  
+    <summary>
+      
+
+
+
+
+
+      Today, we will delve into BountyHunter as another HackTheBox machine in our sidetrack series.
+
+I hope you have a nice weekend and without further ado, let us jump right in!
+
+Enumeration
+
+Nmap output
+
+┌──(kali㉿kali)-[~/Desktop/HTB/Boxes/BountyHunter]
+└─$ cat nmap/BountyHunter.nmap 
+# Nmap 7.91 scan initiated Sat Oct  2 22:12:07 2021 as: nmap -sS -sV -sC -p- -v -oA nmap/BountyHunter 10.10.11.100
+...
+    </summary>
+  
+
+  </entry>
+
+  
+  <entry>
+    <title>HackTheBox - Cap</title>
+    <link href="https://legiahuyy.github.io/blog/en/posts/HTB-Cap/" rel="alternate" type="text/html" title="HackTheBox - Cap" />
+    <published>2021-10-01T00:00:00+08:00</published>
+  
+    <updated>2021-10-01T00:00:00+08:00</updated>
+  
+    <id>https://legiahuyy.github.io/blog/en/posts/HTB-Cap/</id>
+    <content src="https://legiahuyy.github.io/blog/en/posts/HTB-Cap/" />
+    <author>
+      <name>The Archivist</name>
+    </author>
+
+  
+    
+    <category term="hackthebox" />
+    
+  
+
+  
+    <summary>
+      
+
+
+
+
+
+      Hello everyone, while preparing chapters of the book Practical Reverse Engineering, I occasionally got bored and wanted to do something else to have my mind a reboot. That is the reason why we are here solving Cap - another HackTheBox easy machine.
+
+
+
+So yeah, hope you enjoy.
+
+Enumeration
+
+As usual, we wanted to start our enumeration step with nmap.
+
+┌──(kali㉿kali)-[~/Desktop/HTB/Boxes/Cap]
+└─$...
+    </summary>
+  
+
+  </entry>
+
+  
+  <entry>
+    <title>PRE Solutions Series: First Chapter</title>
+    <link href="https://legiahuyy.github.io/blog/en/posts/PRE-C1-E1/" rel="alternate" type="text/html" title="PRE Solutions Series: First Chapter" />
+    <published>2021-07-05T00:00:00+08:00</published>
+  
+    <updated>2021-07-05T00:00:00+08:00</updated>
+  
+    <id>https://legiahuyy.github.io/blog/en/posts/PRE-C1-E1/</id>
+    <content src="https://legiahuyy.github.io/blog/en/posts/PRE-C1-E1/" />
+    <author>
+      <name>The Archivist</name>
+    </author>
+
+  
+    
+    <category term="Practical-Reverse-Engineering" />
+    
+  
+
+  
+    <summary>
+      
+
+
+
+
+
+      As promised, this is the beginning of our solutions for the book Practical Reverse Engineering I had mentioned earlier. The utmost objective is to solve and provide concrete explanations for each topic.
+
+
+
+The target audiences are believed to:
+
+
+  Be familiar with basic mid-level programming language
+  Have at least a fundamental understanding of computer architecture (CPU, RAM, etc.)
+  Be dete...
+    </summary>
+  
+
+  </entry>
+
+  
+  <entry>
+    <title>Update.txt</title>
+    <link href="https://legiahuyy.github.io/blog/en/posts/Update-Note/" rel="alternate" type="text/html" title="Update.txt" />
+    <published>2021-07-01T00:00:00+08:00</published>
+  
+    <updated>2021-07-04T00:00:00+08:00</updated>
+  
+    <id>https://legiahuyy.github.io/blog/en/posts/Update-Note/</id>
+    <content src="https://legiahuyy.github.io/blog/en/posts/Update-Note/" />
+    <author>
+      <name>The Archivist</name>
+    </author>
+
+  
+    
+    <category term="Thoughts" />
+    
+  
+
+  
+    <summary>
+      
+
+
+
+
+
+      Greetings everyone, it has been a few weeks since our last posts. You may (or may not) have already noticed, I changed the theme of our blog as this one looks more professional and less boring than the old Chirpy theme I had used. But the new theme switch is not the sole reason for this update.
+
+
+
+We all know that learning advanced English is an arduous journey, so recently I have read my colle...
+    </summary>
+  
+
+  </entry>
+
+  
+  <entry>
+    <title>HackTheBox - The Notebook</title>
+    <link href="https://legiahuyy.github.io/blog/en/posts/HTB-TheNotebook/" rel="alternate" type="text/html" title="HackTheBox - The Notebook" />
+    <published>2021-06-10T03:45:00+08:00</published>
+  
+    <updated>2021-06-10T03:45:00+08:00</updated>
+  
+    <id>https://legiahuyy.github.io/blog/en/posts/HTB-TheNotebook/</id>
+    <content src="https://legiahuyy.github.io/blog/en/posts/HTB-TheNotebook/" />
+    <author>
+      <name>The Archivist</name>
+    </author>
+
+  
+    
+    <category term="hackthebox" />
+    
+  
+
+  
+    <summary>
+      
+
+
+
+
+
+      Welcome back to our usual HackTheBox journey, for today medium rated target - The Notebook. In this blog post, we’ve managed to alter client-side JWT cookie, spawn our reverse shell then proceeded to achieve user’s SSH credentials and, subsequently, be able to privesc via a docker PoC.
+
+Enumeration
+
+The very initial step is to do a network scan using everyone’s favorite utility - nmap.
+
+┌──(kal...
+    </summary>
+  
+
+  </entry>
+
+</feed>
+
+
