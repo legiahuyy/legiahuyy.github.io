@@ -4,7 +4,7 @@
   <id>https://legiahuyy.github.io/blog/en/</id>
   <title>Another infosec blog</title>
   <subtitle>Where one's enthusiasm provides knowledge and comprehension for others.</subtitle>
-  <updated>2021-10-04T12:47:19+08:00</updated>
+  <updated>2021-10-19T12:32:53+08:00</updated>
   <author>
     <name>The Archivist</name>
     <uri>https://legiahuyy.github.io/blog/en/</uri>
@@ -46,7 +46,7 @@
 
 
 
-      Today, we will delve into BountyHunter as another HackTheBox machine in our sidetrack series.
+      Today, we are delving into BountyHunter as another HackTheBox machine in our sidetrack series.
 
 I hope you have a nice weekend and without further ado, let us jump right in!
 
@@ -56,8 +56,7 @@ Nmap output
 
 ┌──(kali㉿kali)-[~/Desktop/HTB/Boxes/BountyHunter]
 └─$ cat nmap/BountyHunter.nmap 
-# Nmap 7.91 scan initiated Sat Oct  2 22:12:07 2021 as: nmap -sS -sV -sC -p- -v -oA nmap/BountyHunter 10.10.11.100
-...
+# Nmap 7.91 scan initiated Sat Oct  2 22:12:07 2021 as: nmap -sS -sV -sC -p- -v -oA nmap/BountyHunter 10.10.11.100...
     </summary>
   
 

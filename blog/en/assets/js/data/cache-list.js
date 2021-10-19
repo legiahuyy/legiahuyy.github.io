@@ -69,6 +69,8 @@ const include = [
   
     '/blog/en/posts/3/',
   
+    '/blog/en/posts/5/',
+  
 
   /* Trending tags */
   
