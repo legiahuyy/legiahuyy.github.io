@@ -42,10 +42,48 @@ const include = [
 
 
 
-  
+
+  <div id="access-lastmod" class="post">
+    <div class="panel-heading"></div>
+    <ul class="post-content pl-0 pb-1 ml-1 mt-2">
+      
+        
+        
+        
+      <li><a href="/blog/en/posts/pwns-1/">PWN Journey - Part 1</a></li>
+      
+        
+        
+        
+      <li><a href="/blog/en/posts/HTB-BountyHunter/">HackTheBox - BountyHunter</a></li>
+      
+        
+        
+        
+      <li><a href="/blog/en/posts/HTB-Cap/">HackTheBox - Cap</a></li>
+      
+        
+        
+        
+      <li><a href="/blog/en/posts/PRE-C1-E1/">PRE Solutions Series: First Chapter</a></li>
+      
+        
+        
+        
+      <li><a href="/blog/en/posts/Update-Note/">Update.txt</a></li>
+      
+    </ul>
+  </div> <!-- #access-lastmod -->
+
+
+
 
   
 
+  
+
+  
+    '/blog/en/posts/pwns-1/',
   
     '/blog/en/posts/HTB-BountyHunter/',
   
@@ -59,8 +97,6 @@ const include = [
   
     '/blog/en/posts/HTB-Armageddon/',
   
-    '/blog/en/posts/HTB-Sharp/',
-  
     '/blog/en/posts/0/',
   
     '/blog/en/posts/1/',
@@ -69,7 +105,7 @@ const include = [
   
     '/blog/en/posts/3/',
   
-    '/blog/en/posts/5/',
+    '/blog/en/posts/4/',
   
 
   /* Trending tags */
@@ -134,46 +170,6 @@ const include = [
     
     
     
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
   
     
     
@@ -229,49 +225,6 @@ const include = [
     
     
     
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
   
     
     
@@ -296,16 +249,40 @@ const include = [
     
     
     
-      
-        
-        
-
   
     
     
     
     
-      
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
     
   
     
@@ -336,6 +313,131 @@ const include = [
     
     
     
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
       
     
   
@@ -374,55 +476,46 @@ const include = [
         
         
 
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
+
+
+  <div id="access-tags">
+    <div class="panel-heading"></div>
+    <div class="d-flex flex-wrap mt-3 mb-1 mr-3">
+
     
       
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
+      <a class="post-tag" href="/blog/en/tags/pwn/">pwn</a>
     
       
-    
-  
-    
-    
-    
+      <a class="post-tag" href="/blog/en/tags/hackthebox/">hackthebox</a>
     
       
-        
-        
+      <a class="post-tag" href="/blog/en/tags/network/">network</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/reverse-engineer/">reverse engineer</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/kma/">kma</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/machine/">machine</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/content/">content</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/google-analytics/">google analytics</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/miscs/">miscs</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/on-going/">On-going</a>
+    
+
+    </div>
+  </div>
 
 
   
@@ -436,25 +529,25 @@ const include = [
     '/blog/en/tags/network/',
   
     
+    '/blog/en/tags/reverse+engineer/',
+  
+    
     '/blog/en/tags/kma/',
   
     
     '/blog/en/tags/machine/',
   
     
-    '/blog/en/tags/reverse+engineer/',
+    '/blog/en/tags/content/',
   
     
-    '/blog/en/tags/content/',
+    '/blog/en/tags/google+analytics/',
   
     
     '/blog/en/tags/miscs/',
   
     
     '/blog/en/tags/on-going/',
-  
-    
-    '/blog/en/tags/practical+reverse+engineering/',
   
 
   /*--- Icons ---*/'/blog/en/assets/img/favicons/favicon.ico',

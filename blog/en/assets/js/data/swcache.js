@@ -17,13 +17,13 @@ const resource = [
   '/blog/en/index.html',
   '/blog/en/404.html',
   
-    '/blog/en/about/',
-  
-    '/blog/en/archives/',
-  
     '/blog/en/categories/',
   
     '/blog/en/tags/',
+  
+    '/blog/en/archives/',
+  
+    '/blog/en/about/',
   
 
   /* --- Favicons --- */

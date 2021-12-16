@@ -4,7 +4,7 @@
   <id>https://legiahuyy.github.io/blog/en/</id>
   <title>Another infosec blog</title>
   <subtitle>Where one's enthusiasm provides knowledge and comprehension for others.</subtitle>
-  <updated>2021-10-19T12:32:53+08:00</updated>
+  <updated>2021-12-16T17:19:36+08:00</updated>
   <author>
     <name>The Archivist</name>
     <uri>https://legiahuyy.github.io/blog/en/</uri>
@@ -17,6 +17,42 @@
   <icon>/blog/en/assets/img/favicons/favicon.ico</icon>
   <logo>/blog/en/assets/img/favicons/favicon-96x96.png</logo>
 
+
+  
+  <entry>
+    <title>PWN Journey - Part 1</title>
+    <link href="https://legiahuyy.github.io/blog/en/posts/pwns-1/" rel="alternate" type="text/html" title="PWN Journey - Part 1" />
+    <published>2021-12-08T00:00:00+08:00</published>
+  
+    <updated>2021-12-16T00:00:00+08:00</updated>
+  
+    <id>https://legiahuyy.github.io/blog/en/posts/pwns-1/</id>
+    <content src="https://legiahuyy.github.io/blog/en/posts/pwns-1/" />
+    <author>
+      <name>The Archivist</name>
+    </author>
+
+  
+    
+    <category term="PWN Journey" />
+    
+  
+
+  
+    <summary>
+      
+
+
+
+
+
+      Foreword
+
+Greetings, this series of posts delves into a collection of pwnie solutions that I have been poking around for a while and finally have the time to publish it so that I could practice my writing and attempt to share some knowledge in such a way that could be helpful to others. Not to mention that I am also a rookie in this field, so take my words with a grain of salt and all critics/s...
+    </summary>
+  
+
+  </entry>
 
   
   <entry>
@@ -183,46 +219,6 @@ The target audiences are believed to:
 
 
 We all know that learning advanced English is an arduous journey, so recently I have read my colle...
-    </summary>
-  
-
-  </entry>
-
-  
-  <entry>
-    <title>HackTheBox - The Notebook</title>
-    <link href="https://legiahuyy.github.io/blog/en/posts/HTB-TheNotebook/" rel="alternate" type="text/html" title="HackTheBox - The Notebook" />
-    <published>2021-06-10T03:45:00+08:00</published>
-  
-    <updated>2021-06-10T03:45:00+08:00</updated>
-  
-    <id>https://legiahuyy.github.io/blog/en/posts/HTB-TheNotebook/</id>
-    <content src="https://legiahuyy.github.io/blog/en/posts/HTB-TheNotebook/" />
-    <author>
-      <name>The Archivist</name>
-    </author>
-
-  
-    
-    <category term="hackthebox" />
-    
-  
-
-  
-    <summary>
-      
-
-
-
-
-
-      Welcome back to our usual HackTheBox journey, for today medium rated target - The Notebook. In this blog post, we’ve managed to alter client-side JWT cookie, spawn our reverse shell then proceeded to achieve user’s SSH credentials and, subsequently, be able to privesc via a docker PoC.
-
-Enumeration
-
-The very initial step is to do a network scan using everyone’s favorite utility - nmap.
-
-┌──(kal...
     </summary>
   
 

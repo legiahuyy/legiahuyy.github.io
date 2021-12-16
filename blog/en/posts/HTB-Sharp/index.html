@@ -6,7 +6,7 @@
 
 
 
-<html lang="en" 
+<html lang="en"
   
 >
 
@@ -117,6 +117,138 @@
 </head>
 
 
+  
+    <!--
+  Switch the mode between dark and light.
+-->
+
+<script type="text/javascript">
+  class ModeToggle {
+    static get MODE_KEY() { return "mode"; }
+    static get DARK_MODE() { return "dark"; }
+    static get LIGHT_MODE() { return "light"; }
+    static get ID() { return "mode-toggle"; }
+
+    constructor() {
+      if (this.hasMode) {
+        if (this.isDarkMode) {
+          if (!this.isSysDarkPrefer) {
+            this.setDark();
+          }
+        } else {
+          if (this.isSysDarkPrefer) {
+            this.setLight();
+          }
+        }
+      }
+
+      let self = this;
+
+      /* always follow the system prefers */
+      this.sysDarkPrefers.addEventListener("change", () => {
+        if (self.hasMode) {
+          if (self.isDarkMode) {
+            if (!self.isSysDarkPrefer) {
+              self.setDark();
+            }
+
+          } else {
+            if (self.isSysDarkPrefer) {
+              self.setLight();
+            }
+          }
+
+          self.clearMode();
+        }
+
+        self.notify();
+
+      });
+
+    } /* constructor() */
+
+    get sysDarkPrefers() { return window.matchMedia("(prefers-color-scheme: dark)"); }
+
+    get isSysDarkPrefer() { return this.sysDarkPrefers.matches; }
+
+    get isDarkMode() { return this.mode === ModeToggle.DARK_MODE; }
+
+    get isLightMode() { return this.mode === ModeToggle.LIGHT_MODE; }
+
+    get hasMode() { return this.mode != null; }
+
+    get mode() { return sessionStorage.getItem(ModeToggle.MODE_KEY); }
+
+    /* get the current mode on screen */
+    get modeStatus() {
+      if (this.isDarkMode
+        || (!this.hasMode && this.isSysDarkPrefer)) {
+        return ModeToggle.DARK_MODE;
+      } else {
+        return ModeToggle.LIGHT_MODE;
+      }
+    }
+
+    setDark() {
+      $('html').attr(ModeToggle.MODE_KEY, ModeToggle.DARK_MODE);
+      sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.DARK_MODE);
+    }
+
+    setLight() {
+      $('html').attr(ModeToggle.MODE_KEY, ModeToggle.LIGHT_MODE);
+      sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.LIGHT_MODE);
+    }
+
+    clearMode() {
+      $('html').removeAttr(ModeToggle.MODE_KEY);
+      sessionStorage.removeItem(ModeToggle.MODE_KEY);
+    }
+
+    /* Notify another plugins that the theme mode has changed */
+    notify() {
+      window.postMessage({
+        direction: ModeToggle.ID,
+        message: this.modeStatus
+      }, "*");
+    }
+
+  } /* ModeToggle */
+
+  const toggle = new ModeToggle();
+
+  function flipMode() {
+    if (toggle.hasMode) {
+      if (toggle.isSysDarkPrefer) {
+        if (toggle.isLightMode) {
+          toggle.clearMode();
+        } else {
+          toggle.setLight();
+        }
+
+      } else {
+        if (toggle.isDarkMode) {
+          toggle.clearMode();
+        } else {
+          toggle.setDark();
+        }
+      }
+
+    } else {
+      if (toggle.isSysDarkPrefer) {
+        toggle.setLight();
+      } else {
+        toggle.setDark();
+      }
+    }
+
+    toggle.notify();
+
+  } /* flipMode() */
+
+</script>
+
+  
+
   <body data-spy="scroll" data-target="#toc">
 
     <!--
@@ -153,26 +285,8 @@
     <!-- the real tabs -->
     
     <li class="nav-item">
-      <a href="/blog/en/about/" class="nav-link">
-        <i class="fa-fw  ml-xl-3 mr-xl-3 unloaded"></i>
-        
-
-        <span>ABOUT</span>
-      </a>
-    </li> <!-- .nav-item -->
-    
-    <li class="nav-item">
-      <a href="/blog/en/archives/" class="nav-link">
-        <i class="fa-fw  ml-xl-3 mr-xl-3 unloaded"></i>
-        
-
-        <span>ARCHIVES</span>
-      </a>
-    </li> <!-- .nav-item -->
-    
-    <li class="nav-item">
       <a href="/blog/en/categories/" class="nav-link">
-        <i class="fa-fw  ml-xl-3 mr-xl-3 unloaded"></i>
+        <i class="fa-fw fas fa-stream ml-xl-3 mr-xl-3 unloaded"></i>
         
 
         <span>CATEGORIES</span>
@@ -181,10 +295,28 @@
     
     <li class="nav-item">
       <a href="/blog/en/tags/" class="nav-link">
-        <i class="fa-fw  ml-xl-3 mr-xl-3 unloaded"></i>
+        <i class="fa-fw fas fa-tag ml-xl-3 mr-xl-3 unloaded"></i>
         
 
         <span>TAGS</span>
+      </a>
+    </li> <!-- .nav-item -->
+    
+    <li class="nav-item">
+      <a href="/blog/en/archives/" class="nav-link">
+        <i class="fa-fw fas fa-archive ml-xl-3 mr-xl-3 unloaded"></i>
+        
+
+        <span>ARCHIVES</span>
+      </a>
+    </li> <!-- .nav-item -->
+    
+    <li class="nav-item">
+      <a href="/blog/en/about/" class="nav-link">
+        <i class="fa-fw fas fa-info-circle ml-xl-3 mr-xl-3 unloaded"></i>
+        
+
+        <span>ABOUT</span>
       </a>
     </li> <!-- .nav-item -->
     
@@ -194,11 +326,20 @@
   <div class="sidebar-bottom mt-auto d-flex flex-wrap justify-content-center align-items-center">
 
     
+      <button class="mode-toggle btn" aria-label="Switch Mode">
+        <i class="fas fa-adjust"></i>
+      </button>
+
+      
+        <span class="icon-border"></span>
+      
+    
+
+    
       
 
       
       <a href="https://github.com/legiahuyy" aria-label="github"
-        class="order-3"
         target="_blank" rel="noopener">
         <i class="fab fa-github"></i>
       </a>
@@ -209,7 +350,6 @@
 
       
       <a href="https://twitter.com/0x7c00" aria-label="twitter"
-        class="order-4"
         target="_blank" rel="noopener">
         <i class="fab fa-twitter"></i>
       </a>
@@ -221,7 +361,6 @@
       
       <a href="
           javascript:location.href = 'mailto:' + ['legiahuy420','gmail.com'].join('@')" aria-label="email"
-        class="order-5"
         >
         <i class="fas fa-envelope"></i>
       </a>
@@ -232,167 +371,11 @@
 
       
       <a href="/blog/en/feed.xml" aria-label="rss"
-        class="order-6"
         >
         <i class="fas fa-rss"></i>
       </a>
       
 
-    
-
-    
-      
-        <span class="icon-border order-2"></span>
-      
-
-      <span id="mode-toggle-wrapper" class="order-1">
-        <!--
-  Switch the mode between dark and light.
--->
-
-<i class="mode-toggle fas fa-adjust"></i>
-
-<script type="text/javascript">
-
-  class ModeToggle {
-    static get MODE_KEY() { return "mode"; }
-    static get DARK_MODE() { return "dark"; }
-    static get LIGHT_MODE() { return "light"; }
-
-    constructor() {
-      if (this.hasMode) {
-        if (this.isDarkMode) {
-          if (!this.isSysDarkPrefer) {
-            this.setDark();
-          }
-        } else {
-          if (this.isSysDarkPrefer) {
-            this.setLight();
-          }
-        }
-      }
-
-      var self = this;
-
-      /* always follow the system prefers */
-      this.sysDarkPrefers.addListener(function() {
-        if (self.hasMode) {
-          if (self.isDarkMode) {
-            if (!self.isSysDarkPrefer) {
-              self.setDark();
-            }
-
-          } else {
-            if (self.isSysDarkPrefer) {
-              self.setLight();
-            }
-          }
-
-          self.clearMode();
-        }
-
-        self.updateMermaid();
-      });
-
-    } /* constructor() */
-
-
-    setDark() {
-      $('html').attr(ModeToggle.MODE_KEY, ModeToggle.DARK_MODE);
-      sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.DARK_MODE);
-    }
-
-    setLight() {
-      $('html').attr(ModeToggle.MODE_KEY, ModeToggle.LIGHT_MODE);
-      sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.LIGHT_MODE);
-    }
-
-    clearMode() {
-      $('html').removeAttr(ModeToggle.MODE_KEY);
-      sessionStorage.removeItem(ModeToggle.MODE_KEY);
-    }
-
-    get sysDarkPrefers() { return window.matchMedia("(prefers-color-scheme: dark)"); }
-
-    get isSysDarkPrefer() { return this.sysDarkPrefers.matches; }
-
-    get isDarkMode() { return this.mode == ModeToggle.DARK_MODE; }
-
-    get isLightMode() { return this.mode == ModeToggle.LIGHT_MODE; }
-
-    get hasMode() { return this.mode != null; }
-
-    get mode() { return sessionStorage.getItem(ModeToggle.MODE_KEY); }
-
-    /* get the current mode on screen */
-    get modeStatus() {
-      if (this.isDarkMode
-        || (!this.hasMode && this.isSysDarkPrefer) ) {
-        return ModeToggle.DARK_MODE;
-      } else {
-        return ModeToggle.LIGHT_MODE;
-      }
-    }
-
-    updateMermaid() {
-      if (typeof mermaid !== "undefined") {
-        let expectedTheme = (this.modeStatus === ModeToggle.DARK_MODE? "dark" : "default");
-        let config = { theme: expectedTheme };
-
-        /* re-render the SVG › <https://github.com/mermaid-js/mermaid/issues/311#issuecomment-332557344> */
-        $(".mermaid").each(function() {
-          let svgCode = $(this).prev().children().html();
-          $(this).removeAttr("data-processed");
-          $(this).html(svgCode);
-        });
-
-        mermaid.initialize(config);
-        mermaid.init(undefined, ".mermaid");
-      }
-    }
-
-    flipMode() {
-      if (this.hasMode) {
-        if (this.isSysDarkPrefer) {
-          if (this.isLightMode) {
-            this.clearMode();
-          } else {
-            this.setLight();
-          }
-
-        } else {
-          if (this.isDarkMode) {
-            this.clearMode();
-          } else {
-            this.setDark();
-          }
-        }
-
-      } else {
-        if (this.isSysDarkPrefer) {
-          this.setLight();
-        } else {
-          this.setDark();
-        }
-      }
-
-      this.updateMermaid();
-
-    } /* flipMode() */
-
-  } /* ModeToggle */
-
-  let toggle = new ModeToggle();
-
-  $(".mode-toggle").click(function() {
-
-    toggle.flipMode();
-
-  });
-
-</script>
-
-      </span>
     
 
   </div> <!-- .sidebar-bottom -->
@@ -465,6 +448,17 @@
     <div id="main-wrapper">
       <div id="main">
 
+        
+
+
+
+<div class="row">
+
+  <!-- core -->
+  <div id="core-wrapper" class="col-12 col-lg-11 col-xl-8">
+    <div class="post pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4">
+    
+      
         <!--
   Refactor the HTML structure.
 -->
@@ -519,91 +513,7 @@
 
     
     
-    
 
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-
-    
-
-  
-    
-
-    
-    
-    
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-
-    
-
-  
-    
-
-    
     
     
 
@@ -648,142 +558,7 @@
 
     
     
-    
 
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-
-    
-
-  
-    
-
-    
-    
-    
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-
-    
-
-  
-    
-
-    
-    
-    
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-
-    
-
-  
-    
-
-    
     
     
 
@@ -828,91 +603,7 @@
 
     
     
-    
 
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-
-    
-
-  
-    
-
-    
-    
-    
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-
-    
-
-  
-    
-
-    
     
     
 
@@ -957,91 +648,7 @@
 
     
     
-    
 
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-
-    
-
-  
-    
-
-    
-    
-    
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-
-    
-
-  
-    
-
-    
     
     
 
@@ -1086,48 +693,7 @@
 
     
     
-    
 
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-
-    
-
-  
-    
-
-    
     
     
 
@@ -1172,15 +738,9 @@
 
     
     
-    
 
     
-      
-      
-
-      
-
-      
+    
 
     
       
@@ -1189,33 +749,6 @@
       
 
       
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-
-    
-
-  
-    
-
-    
-    
-    
 
     
       
@@ -1257,6 +790,8 @@
     
 
     
+    
+
     
     
 
@@ -1301,6 +836,8 @@
 
     
     
+
+    
     
 
     
@@ -1343,6 +880,503 @@
     
 
     
+    
+
+    
+    
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+
+    
+
+  
+    
+
+    
+    
+
+    
+    
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+
+    
+
+  
+    
+
+    
+    
+
+    
+    
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+
+    
+
+  
+    
+
+    
+    
+
+    
+    
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+
+    
+
+  
+    
+
+    
+    
+
+    
+    
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+
+    
+
+  
+    
+
+    
+    
+
+    
+    
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+
+    
+
+  
+    
+
+    
+    
+
+    
+    
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+
+    
+
+  
+    
+
+    
+    
+
+    
+    
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+
+    
+
+  
+    
+
+    
+    
+
+    
+    
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+
+    
+
+  
+    
+
+    
+    
+
+    
+    
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+
+    
+
+  
+    
+
+    
+    
+
+    
+    
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+
+    
+
+  
+    
+
+    
+    
+
     
     
 
@@ -1392,6 +1426,298 @@
 
 
 
+<!-- Create heading anchors -->
+
+
+
+
+
+  
+  
+
+  
+    
+    
+
+    
+      
+        
+        
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+
+    
+
+  
+
+  
+  
+
+  
+    
+    
+
+    
+      
+        
+        
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+
+    
+
+  
+
+  
+  
+
+  
+    
+    
+
+    
+      
+        
+        
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+
+    
+
+  
+
+  
+  
+
+  
+
+
+
 
 <!-- return -->
 
@@ -1399,71 +1725,78 @@
 
 
 
-<div class="row">
 
-  <div id="post-wrapper" class="col-12 col-lg-11 col-xl-8">
 
-    <div class="post pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4">
+<h1 data-toc-skip>HackTheBox - Sharp</h1>
 
-      <h1 data-toc-skip>HackTheBox - Sharp</h1>
+<div class="post-meta text-muted">
 
-      <div class="post-meta text-muted d-flex flex-column">
-        <!-- Published date and author -->
-        <div>
-          <span class="semi-bold">
-            The Archivist
-          </span>
-          
-          <!--
+  <!-- author -->
+  <div>
+    
+    
+
+    
+
+    
+    <em>
+      
+        <a href="https://twitter.com/0x7c00">The Archivist</a>
+      
+    </em>
+  </div>
+
+  <div class="d-flex">
+    <div>
+      <!-- published date -->
+      <span>
+        
+        <!--
   Date format snippet
-  See: /assets/js/_utils/timeage.js
+  See: ${JS_ROOT}/utils/timeago.js
 -->
 
 
 
 
 
+<em class="timeago"
+    date="2021-05-16 03:45:00 +0800"
+    
+      data-toggle="tooltip"
+      data-placement="bottom"
+      title="Sun, May 16, 2021,  3:45 AM +0800"
+    >May 16</em>
 
-  on
+      </span>
 
-<span class="timeago "
-  
-    data-toggle="tooltip"
-    data-placement="bottom"
-    title="Sun, May 16, 2021,  3:45 AM +0800"
-  >May 16<i class="unloaded">2021-05-16T03:45:00+08:00</i>
-</span>
-
-        </div>
-
-        <div>
-          <!-- lastmod -->
-          
-          <span>
-            Updated
-            <!--
+      <!-- lastmod date -->
+      
+      <span>
+        Updated
+        <!--
   Date format snippet
-  See: /assets/js/_utils/timeage.js
+  See: ${JS_ROOT}/utils/timeago.js
 -->
 
 
 
 
 
+<em class="timeago"
+    date="2021-05-28 13:34:00 +0700
+"
+    
+      data-toggle="tooltip"
+      data-placement="bottom"
+      title="Fri, May 28, 2021,  1:34 PM +0700"
+    >May 28</em>
 
-<span class="timeago lastmod"
-  
-    data-toggle="tooltip"
-    data-placement="bottom"
-    title="Fri, May 28, 2021,  1:34 PM +0700"
-  >May 28<i class="unloaded">2021-05-28T14:34:00+08:00</i>
-</span>
+      </span>
+      
 
-          </span>
-          
-
-          <!-- read time -->
-          <!--
+      <!-- read time -->
+      <!--
   Calculate the post's reading time, and display the word count in tooltip
  -->
 
@@ -1482,40 +1815,31 @@
 
 <!-- return element -->
 <span class="readtime" data-toggle="tooltip" data-placement="bottom"
-  title="2997 words">16 min
-     read</span>
+  title="2997 words">
+  <em>16 min</em> read</span>
 
 
-          <!-- page views -->
-          
+      <!-- page views -->
+      
+    </div>
 
-        </div>
+  </div> <!-- .d-flex -->
 
-      </div> <!-- .post-meta -->
+</div> <!-- .post-meta -->
 
-      <div class="post-content">
-
-        
-
-        <p>Hi, after a long time not posting anything on this blog because of my university workload. Let’s get back to our normal routine of pwning. Today, I will do a writeup of retired <a href="https://www.hackthebox.eu/">HackTheBox</a> (HTB) machine - Sharp, which is rated 4.8 pts.</p>
+<div class="post-content">
+  <p>Hi, after a long time not posting anything on this blog because of my university workload. Let’s get back to our normal routine of pwning. Today, I will do a writeup of retired <a href="https://www.hackthebox.eu/">HackTheBox</a> (HTB) machine - Sharp, which is rated 4.8 pts.</p>
 
 <p>For anyone who doesn’t know about HTB, it’s an infosec playground with a bunch of virtual machines which are vulnerable to exploit. HTB, in my point of view, is the most practical cyber security competition as many certificate authorities require completion of HTB-like target machines.</p>
 
-<h2 id="enumeration">Enumeration</h2>
+<h2 id="enumeration">Enumeration<a href="#enumeration"><i class="fas fa-hashtag"></i></a></h2></h2>
 
 <p>On the very first step, we want to do a nmap scan on the target (10.10.10.219).</p>
 
-<h3 id="nmap-output">Nmap output</h3>
+<h3 id="nmap-output">Nmap output<a href="#nmap-output"><i class="fas fa-hashtag"></i></a></h3></h3>
 
 <div class="language-bash highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Shell
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Shell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -1570,38 +1894,24 @@ Nmap <span class="k">done </span>at Thu May 13 05:44:27 2021 <span class="nt">--
 
 <p>Nmap results provide us with different ports and services currently running on the remote host. However, we probably should focus on its SMB service.</p>
 
-<h3 id="in-depth-enumeration-with-crackmapexec-cme">In-depth enumeration with CrackMapExec (CME)</h3>
+<h3 id="in-depth-enumeration-with-crackmapexec-cme">In-depth enumeration with CrackMapExec (CME)<a href="#in-depth-enumeration-with-crackmapexec-cme"><i class="fas fa-hashtag"></i></a></h3></h3>
 
 <p>Instead of the old-fashioned Metasploit’s auxiliaries/scanners, CrackMapExec (CME) can help us empower our exploitation to a new level. You can install the tool with a single line</p>
 
 <div class="language-shell highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Shell
-
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Shell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 </pre></td><td class="rouge-code"><pre><span class="nv">$ </span>apt-get <span class="nb">install </span>crackmapexec
 </pre></td></tr></tbody></table></code></div></div>
 
 <p>or you can have it by cloning into <a href="https://github.com/byt3bl33d3r">byt3bl33d3r</a>/<strong><a href="https://github.com/byt3bl33d3r/CrackMapExec">CrackMapExec</a></strong> but you will need <a href="https://python-poetry.org/docs/#installation">Poetry</a> to manage dependencies.</p>
 
-<h4 id="os-version">OS version</h4>
+<h4 id="os-version">OS version<a href="#os-version"><i class="fas fa-hashtag"></i></a></h4></h4>
 
 <p>Now, let’s check our target’s OS version using CME (Windows 10.0 Build 17763 x64).</p>
 
 <div class="language-shell highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Shell
-
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Shell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -1610,19 +1920,12 @@ Nmap <span class="k">done </span>at Thu May 13 05:44:27 2021 <span class="nt">--
 SMB         10.10.10.219    445    SHARP            <span class="o">[</span><span class="k">*</span><span class="o">]</span> Windows 10.0 Build 17763 x64 <span class="o">(</span>name:SHARP<span class="o">)</span> <span class="o">(</span>domain:Sharp<span class="o">)</span> <span class="o">(</span>signing:False<span class="o">)</span> <span class="o">(</span>SMBv1:False<span class="o">)</span>
 </pre></td></tr></tbody></table></code></div></div>
 
-<h4 id="shared-objects--access">Shared objects &amp; Access</h4>
+<h4 id="shared-objects--access">Shared objects &amp; Access<a href="#shared-objects--access"><i class="fas fa-hashtag"></i></a></h4></h4>
 
 <p>Next, I’d like to login using empty username and password, a null-session, to get some free share-objects on the machine.</p>
 
 <div class="language-bash highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Shell
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Shell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -1651,19 +1954,12 @@ SMB         10.10.10.219    445    SHARP            kanban          READ
 
 <p>The most notable one here is the <code class="language-plaintext highlighter-rouge">kanban</code> share-directory because we don’t know what that is, indeed. A quick search on Google provides us that Kanban is a project management framework between users so that we can figure out it might contain important credentials.</p>
 
-<h4 id="spider_plus-json">Spider_plus JSON</h4>
+<h4 id="spider_plus-json">Spider_plus JSON<a href="#spider_plus-json"><i class="fas fa-hashtag"></i></a></h4></h4>
 
 <p>Another thing you can do with CME is using its modules, in this case is <code class="language-plaintext highlighter-rouge">spider_plus</code> to crawl information from target host (directories, file names, sizes, …) and save it as JSON under <code class="language-plaintext highlighter-rouge">/tmp/cme_spider_plus</code>.</p>
 
 <div class="language-bash highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Shell
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Shell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -1692,19 +1988,12 @@ SPIDER_P... 10.10.10.219    445    SHARP            <span class="o">[</span><spa
 
 <p>These are all the items we can enumerate with a null-session.</p>
 
-<h2 id="kanban-share-files">Kanban share files</h2>
+<h2 id="kanban-share-files">Kanban share files<a href="#kanban-share-files"><i class="fas fa-hashtag"></i></a></h2></h2>
 
 <p>Using smbclient to connect to <code class="language-plaintext highlighter-rouge">kanban</code> directory on remote machine and download files back to our Linux.</p>
 
 <div class="language-bash highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Shell
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Shell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -1724,14 +2013,7 @@ smb: <span class="se">\&gt;</span> mget <span class="k">*</span>
 <p>After downloading, you can extract the <code class="language-plaintext highlighter-rouge">pkb.zip</code> using <code class="language-plaintext highlighter-rouge">unzip</code>.</p>
 
 <div class="language-bash highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Shell
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Shell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -1795,14 +2077,7 @@ Archive:  pkb.zip
 <p>Skim through the files and we have these users in <code class="language-plaintext highlighter-rouge">PortableKanban.pk3</code>.</p>
 
 <div class="language-json highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Json
-
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="JSON"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -1851,19 +2126,12 @@ Archive:  pkb.zip
   </span><span class="p">]</span><span class="w">
 </span></pre></td></tr></tbody></table></code></div></div>
 
-<h3 id="reveal-administrator-password-by-re-configurating-kanban-pk3-file">Reveal administrator password by re-configurating Kanban PK3 file</h3>
+<h3 id="reveal-administrator-password-by-re-configurating-kanban-pk3-file">Reveal administrator password by re-configurating Kanban PK3 file<a href="#reveal-administrator-password-by-re-configurating-kanban-pk3-file"><i class="fas fa-hashtag"></i></a></h3></h3>
 
 <p>Since the passwords are encrypted, we need to find other ways to get in. We can abuse their own <code class="language-plaintext highlighter-rouge">PortableKanban.exe</code> to decrypt passwords for us since they are stored offline but you’ve might already known that only privileged users can read the password in plain text. Let’s add ourselves in with <em>Admin</em> role by copy-paste <code class="language-plaintext highlighter-rouge">Administrator</code> section and change the name and id.</p>
 
 <div class="language-json highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Json
-
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="JSON"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -1936,13 +2204,13 @@ Archive:  pkb.zip
 
 <p><img data-proofer-ignore data-src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-14_14-13.png" alt="" /></p>
 
-<h3 id="alternative-method">Alternative method</h3>
+<h3 id="alternative-method">Alternative method<a href="#alternative-method"><i class="fas fa-hashtag"></i></a></h3></h3>
 
 <p>If you love doing thing <em>the-hard-way</em>, feel free to reverse the program and reproduce its decrypt method. Luckily, <code class="language-plaintext highlighter-rouge">PortableKanban.exe</code> and its components are compiled in C# which makes it easier for us.</p>
 
 <p><img data-proofer-ignore data-src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-14_11-55.png" alt="" /></p>
 
-<h4 id="finding-credentials-with-dnspy">Finding credentials with dnSpy</h4>
+<h4 id="finding-credentials-with-dnspy">Finding credentials with dnSpy<a href="#finding-credentials-with-dnspy"><i class="fas fa-hashtag"></i></a></h4></h4>
 
 <p>Load the target’s executables and DLLs  in dnSpy, we can have their decrypt method. The <code class="language-plaintext highlighter-rouge">Decrypt</code> function reads encrypted string as input, then uses <code class="language-plaintext highlighter-rouge">DESCryptoServiceProvider</code> with hardcoded key and IV to decrypt our string.</p>
 
@@ -1951,14 +2219,7 @@ Archive:  pkb.zip
 <p>On line 62 and 65, from two magic bytes called <code class="language-plaintext highlighter-rouge">_rgbKey</code> and <code class="language-plaintext highlighter-rouge">_rgbIV</code>:</p>
 
 <div class="language-c# highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    C#
-
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="C#"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -1979,19 +2240,12 @@ Archive:  pkb.zip
 
 <p><img data-proofer-ignore data-src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-14_14-32.png" alt="" /></p>
 
-<h3 id="credentials-spraying-with-cme">Credentials spraying with CME</h3>
+<h3 id="credentials-spraying-with-cme">Credentials spraying with CME<a href="#credentials-spraying-with-cme"><i class="fas fa-hashtag"></i></a></h3></h3>
 
 <p>In this step, we will correspondingly put our usernames and passwords in two separate text file and let CME do the verification job for us.</p>
 
 <div class="language-bash highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Shell
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Shell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -2020,7 +2274,7 @@ SMB         10.10.10.219    445    SHARP            <span class="o">[</span>+] S
 
 <p>Only <code class="language-plaintext highlighter-rouge">lars</code> can log in so we should excluded Administrator credentials for now.</p>
 
-<h3 id="credentials-acquired">Credentials acquired</h3>
+<h3 id="credentials-acquired">Credentials acquired<a href="#credentials-acquired"><i class="fas fa-hashtag"></i></a></h3></h3>
 
 <div class="table-wrapper"><table>
   <thead>
@@ -2044,19 +2298,12 @@ SMB         10.10.10.219    445    SHARP            <span class="o">[</span>+] S
   </tbody>
 </table></div>
 
-<h2 id="user-level-access">User-level access</h2>
+<h2 id="user-level-access">User-level access<a href="#user-level-access"><i class="fas fa-hashtag"></i></a></h2></h2>
 
 <p>After using <code class="language-plaintext highlighter-rouge">lars</code> credentials, we are able to crawl his shared-objects with <code class="language-plaintext highlighter-rouge">spider_plus</code> module as following:</p>
 
 <div class="language-bash highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Shell
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Shell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -2080,14 +2327,7 @@ SPIDER_P... 10.10.10.219    445    SHARP            <span class="o">[</span><spa
 <p>We made the <code class="language-plaintext highlighter-rouge">.json</code> more readable by filtering out the time and file size.</p>
 
 <div class="language-bash highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Shell
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Shell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -2149,14 +2389,7 @@ notes.txt
 <p>While searching <code class="language-plaintext highlighter-rouge">lars</code> files, only those in <code class="language-plaintext highlighter-rouge">\\dev</code> seem important.</p>
 
 <div class="language-bash highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Shell
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Shell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -2201,7 +2434,7 @@ Todo:
 
 <p><img data-proofer-ignore data-src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_10-12.png" alt="" /></p>
 
-<h3 id="credentials-acquired-1">Credentials acquired</h3>
+<h3 id="credentials-acquired-1">Credentials acquired<a href="#credentials-acquired-1"><i class="fas fa-hashtag"></i></a></h3></h3>
 
 <div class="table-wrapper"><table>
   <thead>
@@ -2230,7 +2463,7 @@ Todo:
   </tbody>
 </table></div>
 
-<h2 id="exploit-local-net-debug-service">Exploit local .NET debug service</h2>
+<h2 id="exploit-local-net-debug-service">Exploit local .NET debug service<a href="#exploit-local-net-debug-service"><i class="fas fa-hashtag"></i></a></h2></h2>
 
 <p>As <code class="language-plaintext highlighter-rouge">debug</code> profile contains nothing but some useless folders (<code class="language-plaintext highlighter-rouge">IPC$</code>, <code class="language-plaintext highlighter-rouge">dev</code> and similarities for lars), we have to figure out how to connect to the endpoint on port 8888. Back to the <code class="language-plaintext highlighter-rouge">notes.txt</code>, I thought there is something to do with the .NET service and came across these two repos. You can take a look yourselves.</p>
 
@@ -2248,9 +2481,9 @@ Todo:
 
 <p>We will use <em>ysoserial</em> to wrap our reverse-tcp PowerShell one-liner<sup id="fnref:1" role="doc-noteref"><a href="#fn:1" class="footnote" rel="footnote">1</a></sup> and call <em>ExploitRemotingService.exe</em> to pipe our wrapped payload into the mentioned vulnerable endpoint.</p>
 
-<h3 id="payload-crafting-and-network-configuration">Payload crafting and Network configuration</h3>
+<h3 id="payload-crafting-and-network-configuration">Payload crafting and Network configuration<a href="#payload-crafting-and-network-configuration"><i class="fas fa-hashtag"></i></a></h3></h3>
 
-<h4 id="useful-poc-repositories">Useful PoC<sup id="fnref:2" role="doc-noteref"><a href="#fn:2" class="footnote" rel="footnote">2</a></sup> repositories</h4>
+<h4 id="useful-poc-repositories">Useful PoC<sup id="fnref:2" role="doc-noteref"><a href="#fn:2" class="footnote" rel="footnote">2</a></sup> repositories<a href="#useful-poc-repositories"><i class="fas fa-hashtag"></i></a></h4></h4>
 
 <p>Because ExploitRemotingService doesn’t provide us any release versions so we have to download and build the project manually with Visual Studio on our Windows VM<sup id="fnref:3" role="doc-noteref"><a href="#fn:3" class="footnote" rel="footnote">3</a></sup>.</p>
 
@@ -2267,14 +2500,7 @@ Todo:
 <p>Below is our crafting steps with <code class="language-plaintext highlighter-rouge">ysoserial</code> and <code class="language-plaintext highlighter-rouge">ExploitRemotingService</code>:</p>
 
 <div class="language-powershell highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Powershell
-
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Powershell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -2303,21 +2529,14 @@ Todo:
 </span><span class="n">C:\Users\User\Desktop\ExploitRemotingService-master\ExploitRemotingService\bin\Release</span><span class="err">&gt;</span><span class="nx">ExploitRemotingService.exe</span><span class="w"> </span><span class="nt">-s</span><span class="w"> </span><span class="nt">--user</span><span class="o">=</span><span class="n">debug</span><span class="w"> </span><span class="nt">--pass</span><span class="o">=</span><span class="s2">"SharpApplicationDebugUserPassword123!"</span><span class="w"> </span><span class="n">tcp://10.10.10.219:8888/SecretSharpDebugApplicationEndpoint</span><span class="w"> </span><span class="nx">raw</span><span class="w"> </span><span class="err">&lt;</span><span class="nx">wrapped</span><span class="w"> </span><span class="nx">payload</span><span class="err">&gt;</span><span class="w">
 </span></pre></td></tr></tbody></table></code></div></div>
 
-<h4 id="network-re-routing-on-windows-and-linux">Network re-routing on Windows and Linux</h4>
+<h4 id="network-re-routing-on-windows-and-linux">Network re-routing on Windows and Linux<a href="#network-re-routing-on-windows-and-linux"><i class="fas fa-hashtag"></i></a></h4></h4>
 
 <p>Before we can send our payload to target host, remember that currently our Linux machine is the only one can connect to HTB VPN, not our Windows. In order to establish a connection between Windows and HTB VPN, we have to do some routing.</p>
 
 <p>The following section helps us turn Kali into a router and act as the gateway.</p>
 
 <div class="language-bash highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Shell
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Shell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -2366,7 +2585,7 @@ C:<span class="se">\W</span>indows<span class="se">\s</span>ystem32&gt;route add
 <span class="nv">$ </span>iptables <span class="nt">-t</span> nat <span class="nt">-A</span> POSTROUTING <span class="nt">-s</span> 192.168.157.0/24 <span class="nt">-o</span> tun0 <span class="nt">-j</span> MASQUERADE 
 </pre></td></tr></tbody></table></code></div></div>
 
-<h3 id="powershell-reverse-connection">PowerShell Reverse Connection</h3>
+<h3 id="powershell-reverse-connection">PowerShell Reverse Connection<a href="#powershell-reverse-connection"><i class="fas fa-hashtag"></i></a></h3></h3>
 
 <p>Finally, our Windows is able to send/receive packets from HTB machine through Kali.</p>
 
@@ -2375,14 +2594,7 @@ C:<span class="se">\W</span>indows<span class="se">\s</span>ystem32&gt;route add
 <p>Now we can send our payload to target remote host and wait for our reverse shell.</p>
 
 <div class="language-shell highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Shell
-
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Shell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 </pre></td><td class="rouge-code"><pre><span class="c">### ExploitRemotingService.exe</span>
@@ -2396,14 +2608,7 @@ C:<span class="se">\U</span>sers<span class="se">\U</span>ser<span class="se">\D
 <p>Browsing through <code class="language-plaintext highlighter-rouge">lars</code> directories, there is a <code class="language-plaintext highlighter-rouge">wcf</code> folder in Documents. This has also been mentioned in <code class="language-plaintext highlighter-rouge">notes.txt</code> about migrating the project from dotNET to WCF, so it might be the answer. Anyway, the machine’s user flag is located in <code class="language-plaintext highlighter-rouge">C:\Users\lars\Desktop\user.txt</code>.</p>
 
 <div class="language-powershell highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Powershell
-
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Powershell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -2438,7 +2643,7 @@ C:<span class="se">\U</span>sers<span class="se">\U</span>ser<span class="se">\D
 
 <p><img data-proofer-ignore data-src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_14-09.png" alt="" /></p>
 
-<h3 id="another-secret-endpoint-and-flag">Another secret endpoint and …flag!</h3>
+<h3 id="another-secret-endpoint-and-flag">Another secret endpoint and …flag!<a href="#another-secret-endpoint-and-flag"><i class="fas fa-hashtag"></i></a></h3></h3>
 
 <p>It turns out <code class="language-plaintext highlighter-rouge">wcf.zip</code> is also a C# project with source code inside, we can put it in Visual Studio and view the source. There is another secret endpoint that is currently running on port 8889 of the remote host.</p>
 
@@ -2451,14 +2656,7 @@ C:<span class="se">\U</span>sers<span class="se">\U</span>ser<span class="se">\D
 <p>We can’t connect to our target because of invalid credentials. This program was meant to run as internal users of the remote host (like <code class="language-plaintext highlighter-rouge">lars</code> or <code class="language-plaintext highlighter-rouge">debug</code>). To impersonate <code class="language-plaintext highlighter-rouge">lars</code>, we will run our command-prompt with his net-username as following:</p>
 
 <div class="language-shell highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Shell
-
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Shell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 </pre></td><td class="rouge-code"><pre><span class="c"># Also type lars password when prompted</span>
@@ -2474,14 +2672,7 @@ C:<span class="se">\W</span>indows<span class="se">\s</span>ystem32&gt;runas /us
 <p>Successfully executed as <code class="language-plaintext highlighter-rouge">lars</code>. Now we will use the project’s built-in function <code class="language-plaintext highlighter-rouge">InvokePowerShell</code> to escalate our privilege.</p>
 
 <div class="language-c# highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    C#
-
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="C#"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -2521,14 +2712,7 @@ C:<span class="se">\W</span>indows<span class="se">\s</span>ystem32&gt;runas /us
 <p><code class="language-plaintext highlighter-rouge">Client.cs</code> is to be changed as below:</p>
 
 <div class="language-c# highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    C#
-
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="C#"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -2562,14 +2746,7 @@ C:<span class="se">\W</span>indows<span class="se">\s</span>ystem32&gt;runas /us
 <p>And the flag is located in <code class="language-plaintext highlighter-rouge">C:\Users\Administrator\Desktop\root.txt</code></p>
 
 <div class="language-powershell highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Powershell
-
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Powershell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -2648,7 +2825,7 @@ C:<span class="se">\W</span>indows<span class="se">\s</span>ystem32&gt;runas /us
 </span><span class="n">PS</span><span class="w"> </span><span class="nx">C:\Users\Administrator\Desktop</span><span class="err">&gt;</span><span class="w"> 
 </span></pre></td></tr></tbody></table></code></div></div>
 
-<h2 id="footnotes">Footnotes</h2>
+<h2 id="footnotes">Footnotes<a href="#footnotes"><i class="fas fa-hashtag"></i></a></h2></h2>
 
 <div class="footnotes" role="doc-endnotes">
   <ol>
@@ -2664,52 +2841,54 @@ C:<span class="se">\W</span>indows<span class="se">\s</span>ystem32&gt;runas /us
   </ol>
 </div>
 
+</div>
 
-      </div>
+<div class="post-tail-wrapper text-muted">
 
-      <div class="post-tail-wrapper text-muted">
+  <!-- categories -->
+  
+  <div class="post-meta mb-3">
+    <i class="far fa-folder-open fa-fw mr-1"></i>
+    
+      <a href='/blog/en/categories/hackthebox/'>hackthebox</a>
+  </div>
+  
 
-        <!-- categories -->
+  <!-- tags -->
+  
+  <div class="post-tags">
+    <i class="fa fa-tags fa-fw mr-1"></i>
+      
+      <a href="/blog/en/tags/hackthebox/"
+          class="post-tag no-text-decoration" >hackthebox</a>
+      
+      <a href="/blog/en/tags/network/"
+          class="post-tag no-text-decoration" >network</a>
+      
+      <a href="/blog/en/tags/pwn/"
+          class="post-tag no-text-decoration" >pwn</a>
+      
+  </div>
+  
+
+  <div class="post-tail-bottom
+    d-flex justify-content-between align-items-center mt-3 pt-5 pb-2">
+    <div class="license-wrapper">
+
+      
+
         
 
-        <div class="post-meta mb-3">
-          <i class="far fa-folder-open fa-fw mr-1"></i>
-          
-            <a href='/blog/en/categories/hackthebox/'>hackthebox</a>
-        </div>
-        
+        This post is licensed under 
+        <a href="https://creativecommons.org/licenses/by/4.0/">
+          CC BY 4.0
+        </a>
+         by the author.
 
-        <!-- tags -->
-        
-        <div class="post-tags">
-          <i class="fa fa-tags fa-fw mr-1"></i>
-          
-          <a href="/blog/en/tags/hackthebox/"
-            class="post-tag no-text-decoration" >hackthebox</a>
-          
-          <a href="/blog/en/tags/network/"
-            class="post-tag no-text-decoration" >network</a>
-          
-          <a href="/blog/en/tags/pwn/"
-            class="post-tag no-text-decoration" >pwn</a>
-          
-          </div>
-        
+      
+    </div>
 
-        <div class="post-tail-bottom
-          d-flex justify-content-between align-items-center mt-3 pt-5 pb-2">
-          <div class="license-wrapper">
-          
-            
-            This post is licensed under 
-            <a href="https://creativecommons.org/licenses/by/4.0/">
-              CC BY 4.0
-            </a>
-             by the author.
-          
-          </div>
-
-          <!--
+    <!--
  Post sharing snippet
 -->
 
@@ -2749,498 +2928,509 @@ C:<span class="se">\W</span>indows<span class="se">\s</span>ystem32&gt;runas /us
 </div>
 
 
-        </div><!-- .post-tail-bottom -->
+  </div><!-- .post-tail-bottom -->
 
-      </div><!-- div.post-tail -->
+</div><!-- div.post-tail-wrapper -->
 
-    </div> <!-- .post -->
-
-
-  </div> <!-- #post-wrapper -->
-
-  
-
-  
-
-  <!--
-  The Pannel on right side (Desktop views)
--->
-
-
-
-
-
-<div id="panel-wrapper" class="col-xl-3 pl-2 text-muted topbar-down">
-
-  <div class="access">
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-    <div id="access-lastmod" class="post">
-      <span>Recent Update</span>
-      <ul class="post-content pl-0 pb-1 ml-1 mt-2">
 
       
-        
-        
-        
-        <li><a href="/blog/en/posts/HTB-BountyHunter/">HackTheBox - BountyHunter</a></li>
-      
-        
-        
-        
-        <li><a href="/blog/en/posts/HTB-Cap/">HackTheBox - Cap</a></li>
-      
-        
-        
-        
-        <li><a href="/blog/en/posts/PRE-C1-E1/">PRE Solutions Series: First Chapter</a></li>
-      
-        
-        
-        
-        <li><a href="/blog/en/posts/Update-Note/">Update.txt</a></li>
-      
-        
-        
-        
-        <li><a href="/blog/en/posts/HTB-Armageddon/">HackTheBox - Armageddon</a></li>
-      
-
-      </ul>
-    </div> <!-- #access-lastmod -->
-
-  
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
     
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-
-
-  
-    <div id="access-tags">
-      <span>Trending Tags</span>
-      <div class="d-flex flex-wrap mt-3 mb-1 mr-3">
-
-      
-        
-        <a class="post-tag" href="/blog/en/tags/pwn/">pwn</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/hackthebox/">hackthebox</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/network/">network</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/kma/">kma</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/machine/">machine</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/reverse-engineer/">reverse engineer</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/content/">content</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/miscs/">miscs</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/on-going/">On-going</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/practical-reverse-engineering/">Practical Reverse Engineering</a>
-      
-
-      </div>
     </div>
-  
-  </div> <!-- .access -->
+  </div> <!-- #core-wrapper -->
+
+  <!-- pannel -->
+  <div id="panel-wrapper" class="col-xl-3 pl-2 text-muted topbar-down">
+
+    <div class="access">
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div id="access-lastmod" class="post">
+    <div class="panel-heading">Recent Update</div>
+    <ul class="post-content pl-0 pb-1 ml-1 mt-2">
+      
+        
+        
+        
+      <li><a href="/blog/en/posts/pwns-1/">PWN Journey - Part 1</a></li>
+      
+        
+        
+        
+      <li><a href="/blog/en/posts/HTB-BountyHunter/">HackTheBox - BountyHunter</a></li>
+      
+        
+        
+        
+      <li><a href="/blog/en/posts/HTB-Cap/">HackTheBox - Cap</a></li>
+      
+        
+        
+        
+      <li><a href="/blog/en/posts/PRE-C1-E1/">PRE Solutions Series: First Chapter</a></li>
+      
+        
+        
+        
+      <li><a href="/blog/en/posts/Update-Note/">Update.txt</a></li>
+      
+    </ul>
+  </div> <!-- #access-lastmod -->
+
+
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   
-    <!-- BS-toc.js will be loaded at medium priority -->
-    <script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@1.0.1/dist/bootstrap-toc.min.js"></script>
-    <div id="toc-wrapper" class="pl-0 pr-4 mb-5">
-      <span class="pl-3 pt-2 mb-2">Contents</span>
-      <nav id="toc" data-toggle="toc"></nav>
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+
+
+  <div id="access-tags">
+    <div class="panel-heading">Trending Tags</div>
+    <div class="d-flex flex-wrap mt-3 mb-1 mr-3">
+
+    
+      
+      <a class="post-tag" href="/blog/en/tags/pwn/">pwn</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/hackthebox/">hackthebox</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/network/">network</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/reverse-engineer/">reverse engineer</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/kma/">kma</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/machine/">machine</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/content/">content</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/google-analytics/">google analytics</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/miscs/">miscs</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/on-going/">On-going</a>
+    
+
     </div>
-  
-
-</div> <!-- #panel-wrapper -->
+  </div>
 
 
-</div> <!-- .row -->
+    </div>
+
+    
+      
+      
+
+
+
+<!-- BS-toc.js will be loaded at medium priority -->
+<script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@1.0.1/dist/bootstrap-toc.min.js"></script>
+
+<div id="toc-wrapper" class="pl-0 pr-4 mb-5">
+  <div class="panel-heading pl-3 pt-2 mb-2">Contents</div>
+  <nav id="toc" data-toggle="toc"></nav>
+</div>
+
+
+    
+  </div>
+
+</div>
+
+<!-- tail -->
 
 <div class="row">
   <div class="col-12 col-lg-11 col-xl-8">
-    <div id="post-extend-wrapper" class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4">
-
-    <!--
+    <div id="tail-wrapper" class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4">
+      
+        
+        <!--
  Recommend the other 3 posts according to the tags and categories of the current post,
  if the number is not enough, use the other latest posts to supplement.
 -->
@@ -3341,7 +3531,33 @@ C:<span class="se">\W</span>indows<span class="se">\s</span>ystem32&gt;runas /us
   
 
   
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+  
     
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
   
 
   
@@ -3406,17 +3622,16 @@ C:<span class="se">\W</span>indows<span class="se">\s</span>ystem32&gt;runas /us
           <div class="card-body">
             <!--
   Date format snippet
-  See: /assets/js/_utils/timeage.js
+  See: ${JS_ROOT}/utils/timeago.js
 -->
 
 
 
 
 
-
-<span class="timeago small"
-  >May 28<i class="unloaded">2021-05-28T03:45:00+08:00</i>
-</span>
+<em class="timeago small"
+    date="2021-05-28 03:45:00 +0800"
+    >May 28</em>
 
             <h3 class="pt-0 mt-1 mb-3" data-toc-skip>HackTheBox - Armageddon</h3>
             <div class="text-muted small">
@@ -3459,17 +3674,16 @@ We start by enumerating open ports and services on the target machine using nmap
           <div class="card-body">
             <!--
   Date format snippet
-  See: /assets/js/_utils/timeage.js
+  See: ${JS_ROOT}/utils/timeago.js
 -->
 
 
 
 
 
-
-<span class="timeago small"
-  >Jun 10<i class="unloaded">2021-06-10T03:45:00+08:00</i>
-</span>
+<em class="timeago small"
+    date="2021-06-10 03:45:00 +0800"
+    >Jun 10</em>
 
             <h3 class="pt-0 mt-1 mb-3" data-toc-skip>HackTheBox - The Notebook</h3>
             <div class="text-muted small">
@@ -3494,17 +3708,16 @@ We start by enumerating open ports and services on the target machine using nmap
           <div class="card-body">
             <!--
   Date format snippet
-  See: /assets/js/_utils/timeage.js
+  See: ${JS_ROOT}/utils/timeago.js
 -->
 
 
 
 
 
-
-<span class="timeago small"
-  >Oct  1<i class="unloaded">2021-10-01T00:00:00+08:00</i>
-</span>
+<em class="timeago small"
+    date="2021-10-01 00:00:00 +0800"
+    >Oct  1</em>
 
             <h3 class="pt-0 mt-1 mb-3" data-toc-skip>HackTheBox - Cap</h3>
             <div class="text-muted small">
@@ -3526,8 +3739,9 @@ We start by enumerating open ports and services on the target machine using nmap
   </div> <!-- #related-posts -->
 
 
-
-    <!--
+      
+        
+        <!--
   Navigation buttons at the bottom of the post.
 -->
 
@@ -3548,13 +3762,17 @@ We start by enumerating open ports and services on the target machine using nmap
 
 </div>
 
+      
+        
+        <!--
+  The Disqus lazy loading.
+-->
 
-    
 
-    </div> <!-- #post-extend-wrapper -->
 
-  </div> <!-- .col-* -->
-
+      
+    </div>
+  </div>
 </div> <!-- .row -->
 
 
@@ -3564,7 +3782,7 @@ We start by enumerating open ports and services on the target machine using nmap
 -->
 
 <footer class="d-flex w-100 justify-content-center">
-  <div class="d-flex justify-content-between align-items-center">
+  <div class="d-flex justify-content-between align-items-center text-muted">
     <div class="footer-left">
       <p class="mb-0">
         © 2021
@@ -3599,8 +3817,6 @@ We start by enumerating open ports and services on the target machine using nmap
 <div id="search-result-wrapper" class="d-flex justify-content-center unloaded">
   <div class="col-12 col-sm-11 post-content">
     <div id="search-hints">
-      <h4 class="text-muted mb-4">Trending Tags</h4>
-
       
 
 
@@ -3651,46 +3867,6 @@ We start by enumerating open ports and services on the target machine using nmap
     
     
     
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
     
   
     
@@ -3757,49 +3933,6 @@ We start by enumerating open ports and services on the target machine using nmap
     
     
     
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
   
     
     
@@ -3824,16 +3957,40 @@ We start by enumerating open ports and services on the target machine using nmap
     
     
     
-      
-        
-        
-
   
     
     
     
     
-      
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
     
   
     
@@ -3864,6 +4021,131 @@ We start by enumerating open ports and services on the target machine using nmap
     
     
     
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
       
     
   
@@ -3902,89 +4184,47 @@ We start by enumerating open ports and services on the target machine using nmap
         
         
 
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-      
-        
-        
 
 
+  <div id="access-tags">
+    <div class="panel-heading">Trending Tags</div>
+    <div class="d-flex flex-wrap mt-3 mb-1 mr-3">
 
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/pwn/">pwn</a>
+      <a class="post-tag" href="/blog/en/tags/pwn/">pwn</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/hackthebox/">hackthebox</a>
+      <a class="post-tag" href="/blog/en/tags/hackthebox/">hackthebox</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/network/">network</a>
+      <a class="post-tag" href="/blog/en/tags/network/">network</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/kma/">kma</a>
+      <a class="post-tag" href="/blog/en/tags/reverse-engineer/">reverse engineer</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/machine/">machine</a>
+      <a class="post-tag" href="/blog/en/tags/kma/">kma</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/reverse-engineer/">reverse engineer</a>
+      <a class="post-tag" href="/blog/en/tags/machine/">machine</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/content/">content</a>
+      <a class="post-tag" href="/blog/en/tags/content/">content</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/miscs/">miscs</a>
+      <a class="post-tag" href="/blog/en/tags/google-analytics/">google analytics</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/on-going/">On going</a>
+      <a class="post-tag" href="/blog/en/tags/miscs/">miscs</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/practical-reverse-engineering/">Practical Reverse Engineering</a>
-      
+      <a class="post-tag" href="/blog/en/tags/on-going/">On-going</a>
+    
+
+    </div>
+  </div>
+
 
     </div>
     <div id="search-results" class="d-flex flex-wrap justify-content-center text-muted mt-3"></div>
@@ -4018,7 +4258,7 @@ SimpleJekyllSearch({
   searchInput: document.getElementById('search-input'),
   resultsContainer: document.getElementById('search-results'),
   json: '/blog/en/assets/js/data/search.json',
-  searchResultTemplate: '<div class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-lg-4 pr-lg-4 pl-xl-0 pr-xl-0">  <a href="https://legiahuyy.github.io{url}">{title}</a>  <div class="post-meta d-flex flex-column flex-sm-row text-muted mt-1 mb-1">    {categories}    {tags}  </div>  <p>{snippet}</p></div>',
+  searchResultTemplate: '<div class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-lg-4 pr-lg-4 pl-xl-0 pr-xl-0">  <a href="{url}">{title}</a>  <div class="post-meta d-flex flex-column flex-sm-row text-muted mt-1 mb-1">    {categories}    {tags}  </div>  <p>{snippet}</p></div>',
   noResultsText: '<p class="mt-5">Oops! No result founds.</p>',
   templateMiddleware: function(prop, value, template) {
     if (prop === 'categories') {

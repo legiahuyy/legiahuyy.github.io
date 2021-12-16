@@ -6,7 +6,7 @@
 
 
 
-<html lang="en" 
+<html lang="en"
   
 >
 
@@ -117,6 +117,138 @@
 </head>
 
 
+  
+    <!--
+  Switch the mode between dark and light.
+-->
+
+<script type="text/javascript">
+  class ModeToggle {
+    static get MODE_KEY() { return "mode"; }
+    static get DARK_MODE() { return "dark"; }
+    static get LIGHT_MODE() { return "light"; }
+    static get ID() { return "mode-toggle"; }
+
+    constructor() {
+      if (this.hasMode) {
+        if (this.isDarkMode) {
+          if (!this.isSysDarkPrefer) {
+            this.setDark();
+          }
+        } else {
+          if (this.isSysDarkPrefer) {
+            this.setLight();
+          }
+        }
+      }
+
+      let self = this;
+
+      /* always follow the system prefers */
+      this.sysDarkPrefers.addEventListener("change", () => {
+        if (self.hasMode) {
+          if (self.isDarkMode) {
+            if (!self.isSysDarkPrefer) {
+              self.setDark();
+            }
+
+          } else {
+            if (self.isSysDarkPrefer) {
+              self.setLight();
+            }
+          }
+
+          self.clearMode();
+        }
+
+        self.notify();
+
+      });
+
+    } /* constructor() */
+
+    get sysDarkPrefers() { return window.matchMedia("(prefers-color-scheme: dark)"); }
+
+    get isSysDarkPrefer() { return this.sysDarkPrefers.matches; }
+
+    get isDarkMode() { return this.mode === ModeToggle.DARK_MODE; }
+
+    get isLightMode() { return this.mode === ModeToggle.LIGHT_MODE; }
+
+    get hasMode() { return this.mode != null; }
+
+    get mode() { return sessionStorage.getItem(ModeToggle.MODE_KEY); }
+
+    /* get the current mode on screen */
+    get modeStatus() {
+      if (this.isDarkMode
+        || (!this.hasMode && this.isSysDarkPrefer)) {
+        return ModeToggle.DARK_MODE;
+      } else {
+        return ModeToggle.LIGHT_MODE;
+      }
+    }
+
+    setDark() {
+      $('html').attr(ModeToggle.MODE_KEY, ModeToggle.DARK_MODE);
+      sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.DARK_MODE);
+    }
+
+    setLight() {
+      $('html').attr(ModeToggle.MODE_KEY, ModeToggle.LIGHT_MODE);
+      sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.LIGHT_MODE);
+    }
+
+    clearMode() {
+      $('html').removeAttr(ModeToggle.MODE_KEY);
+      sessionStorage.removeItem(ModeToggle.MODE_KEY);
+    }
+
+    /* Notify another plugins that the theme mode has changed */
+    notify() {
+      window.postMessage({
+        direction: ModeToggle.ID,
+        message: this.modeStatus
+      }, "*");
+    }
+
+  } /* ModeToggle */
+
+  const toggle = new ModeToggle();
+
+  function flipMode() {
+    if (toggle.hasMode) {
+      if (toggle.isSysDarkPrefer) {
+        if (toggle.isLightMode) {
+          toggle.clearMode();
+        } else {
+          toggle.setLight();
+        }
+
+      } else {
+        if (toggle.isDarkMode) {
+          toggle.clearMode();
+        } else {
+          toggle.setDark();
+        }
+      }
+
+    } else {
+      if (toggle.isSysDarkPrefer) {
+        toggle.setLight();
+      } else {
+        toggle.setDark();
+      }
+    }
+
+    toggle.notify();
+
+  } /* flipMode() */
+
+</script>
+
+  
+
   <body data-spy="scroll" data-target="#toc">
 
     <!--
@@ -153,26 +285,8 @@
     <!-- the real tabs -->
     
     <li class="nav-item">
-      <a href="/blog/en/about/" class="nav-link">
-        <i class="fa-fw  ml-xl-3 mr-xl-3 unloaded"></i>
-        
-
-        <span>ABOUT</span>
-      </a>
-    </li> <!-- .nav-item -->
-    
-    <li class="nav-item">
-      <a href="/blog/en/archives/" class="nav-link">
-        <i class="fa-fw  ml-xl-3 mr-xl-3 unloaded"></i>
-        
-
-        <span>ARCHIVES</span>
-      </a>
-    </li> <!-- .nav-item -->
-    
-    <li class="nav-item">
       <a href="/blog/en/categories/" class="nav-link">
-        <i class="fa-fw  ml-xl-3 mr-xl-3 unloaded"></i>
+        <i class="fa-fw fas fa-stream ml-xl-3 mr-xl-3 unloaded"></i>
         
 
         <span>CATEGORIES</span>
@@ -181,10 +295,28 @@
     
     <li class="nav-item">
       <a href="/blog/en/tags/" class="nav-link">
-        <i class="fa-fw  ml-xl-3 mr-xl-3 unloaded"></i>
+        <i class="fa-fw fas fa-tag ml-xl-3 mr-xl-3 unloaded"></i>
         
 
         <span>TAGS</span>
+      </a>
+    </li> <!-- .nav-item -->
+    
+    <li class="nav-item">
+      <a href="/blog/en/archives/" class="nav-link">
+        <i class="fa-fw fas fa-archive ml-xl-3 mr-xl-3 unloaded"></i>
+        
+
+        <span>ARCHIVES</span>
+      </a>
+    </li> <!-- .nav-item -->
+    
+    <li class="nav-item">
+      <a href="/blog/en/about/" class="nav-link">
+        <i class="fa-fw fas fa-info-circle ml-xl-3 mr-xl-3 unloaded"></i>
+        
+
+        <span>ABOUT</span>
       </a>
     </li> <!-- .nav-item -->
     
@@ -194,11 +326,20 @@
   <div class="sidebar-bottom mt-auto d-flex flex-wrap justify-content-center align-items-center">
 
     
+      <button class="mode-toggle btn" aria-label="Switch Mode">
+        <i class="fas fa-adjust"></i>
+      </button>
+
+      
+        <span class="icon-border"></span>
+      
+    
+
+    
       
 
       
       <a href="https://github.com/legiahuyy" aria-label="github"
-        class="order-3"
         target="_blank" rel="noopener">
         <i class="fab fa-github"></i>
       </a>
@@ -209,7 +350,6 @@
 
       
       <a href="https://twitter.com/0x7c00" aria-label="twitter"
-        class="order-4"
         target="_blank" rel="noopener">
         <i class="fab fa-twitter"></i>
       </a>
@@ -221,7 +361,6 @@
       
       <a href="
           javascript:location.href = 'mailto:' + ['legiahuy420','gmail.com'].join('@')" aria-label="email"
-        class="order-5"
         >
         <i class="fas fa-envelope"></i>
       </a>
@@ -232,167 +371,11 @@
 
       
       <a href="/blog/en/feed.xml" aria-label="rss"
-        class="order-6"
         >
         <i class="fas fa-rss"></i>
       </a>
       
 
-    
-
-    
-      
-        <span class="icon-border order-2"></span>
-      
-
-      <span id="mode-toggle-wrapper" class="order-1">
-        <!--
-  Switch the mode between dark and light.
--->
-
-<i class="mode-toggle fas fa-adjust"></i>
-
-<script type="text/javascript">
-
-  class ModeToggle {
-    static get MODE_KEY() { return "mode"; }
-    static get DARK_MODE() { return "dark"; }
-    static get LIGHT_MODE() { return "light"; }
-
-    constructor() {
-      if (this.hasMode) {
-        if (this.isDarkMode) {
-          if (!this.isSysDarkPrefer) {
-            this.setDark();
-          }
-        } else {
-          if (this.isSysDarkPrefer) {
-            this.setLight();
-          }
-        }
-      }
-
-      var self = this;
-
-      /* always follow the system prefers */
-      this.sysDarkPrefers.addListener(function() {
-        if (self.hasMode) {
-          if (self.isDarkMode) {
-            if (!self.isSysDarkPrefer) {
-              self.setDark();
-            }
-
-          } else {
-            if (self.isSysDarkPrefer) {
-              self.setLight();
-            }
-          }
-
-          self.clearMode();
-        }
-
-        self.updateMermaid();
-      });
-
-    } /* constructor() */
-
-
-    setDark() {
-      $('html').attr(ModeToggle.MODE_KEY, ModeToggle.DARK_MODE);
-      sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.DARK_MODE);
-    }
-
-    setLight() {
-      $('html').attr(ModeToggle.MODE_KEY, ModeToggle.LIGHT_MODE);
-      sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.LIGHT_MODE);
-    }
-
-    clearMode() {
-      $('html').removeAttr(ModeToggle.MODE_KEY);
-      sessionStorage.removeItem(ModeToggle.MODE_KEY);
-    }
-
-    get sysDarkPrefers() { return window.matchMedia("(prefers-color-scheme: dark)"); }
-
-    get isSysDarkPrefer() { return this.sysDarkPrefers.matches; }
-
-    get isDarkMode() { return this.mode == ModeToggle.DARK_MODE; }
-
-    get isLightMode() { return this.mode == ModeToggle.LIGHT_MODE; }
-
-    get hasMode() { return this.mode != null; }
-
-    get mode() { return sessionStorage.getItem(ModeToggle.MODE_KEY); }
-
-    /* get the current mode on screen */
-    get modeStatus() {
-      if (this.isDarkMode
-        || (!this.hasMode && this.isSysDarkPrefer) ) {
-        return ModeToggle.DARK_MODE;
-      } else {
-        return ModeToggle.LIGHT_MODE;
-      }
-    }
-
-    updateMermaid() {
-      if (typeof mermaid !== "undefined") {
-        let expectedTheme = (this.modeStatus === ModeToggle.DARK_MODE? "dark" : "default");
-        let config = { theme: expectedTheme };
-
-        /* re-render the SVG › <https://github.com/mermaid-js/mermaid/issues/311#issuecomment-332557344> */
-        $(".mermaid").each(function() {
-          let svgCode = $(this).prev().children().html();
-          $(this).removeAttr("data-processed");
-          $(this).html(svgCode);
-        });
-
-        mermaid.initialize(config);
-        mermaid.init(undefined, ".mermaid");
-      }
-    }
-
-    flipMode() {
-      if (this.hasMode) {
-        if (this.isSysDarkPrefer) {
-          if (this.isLightMode) {
-            this.clearMode();
-          } else {
-            this.setLight();
-          }
-
-        } else {
-          if (this.isDarkMode) {
-            this.clearMode();
-          } else {
-            this.setDark();
-          }
-        }
-
-      } else {
-        if (this.isSysDarkPrefer) {
-          this.setLight();
-        } else {
-          this.setDark();
-        }
-      }
-
-      this.updateMermaid();
-
-    } /* flipMode() */
-
-  } /* ModeToggle */
-
-  let toggle = new ModeToggle();
-
-  $(".mode-toggle").click(function() {
-
-    toggle.flipMode();
-
-  });
-
-</script>
-
-      </span>
     
 
   </div> <!-- .sidebar-bottom -->
@@ -465,6 +448,17 @@
     <div id="main-wrapper">
       <div id="main">
 
+        
+
+
+
+<div class="row">
+
+  <!-- core -->
+  <div id="core-wrapper" class="col-12 col-lg-11 col-xl-8">
+    <div class="post pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4">
+    
+      
         <!--
   Refactor the HTML structure.
 -->
@@ -519,91 +513,7 @@
 
     
     
-    
 
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-
-    
-
-  
-    
-
-    
-    
-    
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-
-    
-
-  
-    
-
-    
     
     
 
@@ -648,91 +558,7 @@
 
     
     
-    
 
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-
-    
-
-  
-    
-
-    
-    
-    
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-
-    
-
-  
-    
-
-    
     
     
 
@@ -777,48 +603,7 @@
 
     
     
-    
 
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-
-    
-
-  
-    
-
-    
     
     
 
@@ -863,48 +648,7 @@
 
     
     
-    
 
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-
-    
-
-  
-    
-
-    
     
     
 
@@ -949,48 +693,7 @@
 
     
     
-    
 
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-      
-      
-
-      
-
-      
-
-    
-
-    
-
-  
-    
-
-    
     
     
 
@@ -1034,6 +737,323 @@
     
 
     
+    
+
+    
+    
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+
+    
+
+  
+    
+
+    
+    
+
+    
+    
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+
+    
+
+  
+    
+
+    
+    
+
+    
+    
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+
+    
+
+  
+    
+
+    
+    
+
+    
+    
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+
+    
+
+  
+    
+
+    
+    
+
+    
+    
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+
+    
+
+  
+    
+
+    
+    
+
+    
+    
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+
+    
+
+  
+    
+
+    
+    
+
+    
+    
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+      
+      
+
+      
+
+      
+
+    
+
+    
+
+  
+    
+
+    
+    
+
     
     
 
@@ -1083,6 +1103,122 @@
 
 
 
+<!-- Create heading anchors -->
+
+
+
+
+
+  
+  
+
+  
+    
+    
+
+    
+      
+        
+        
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+
+    
+
+  
+
+  
+  
+
+  
+    
+    
+
+    
+      
+        
+        
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+      
+
+      
+      
+
+      
+      
+
+      
+
+    
+
+    
+
+  
+
+  
+  
+
+  
+
+  
+  
+
+  
+
+
+
 
 <!-- return -->
 
@@ -1090,49 +1226,56 @@
 
 
 
-<div class="row">
 
-  <div id="post-wrapper" class="col-12 col-lg-11 col-xl-8">
 
-    <div class="post pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4">
+<h1 data-toc-skip>HackTheBox - The Notebook</h1>
 
-      <h1 data-toc-skip>HackTheBox - The Notebook</h1>
+<div class="post-meta text-muted">
 
-      <div class="post-meta text-muted d-flex flex-column">
-        <!-- Published date and author -->
-        <div>
-          <span class="semi-bold">
-            The Archivist
-          </span>
-          
-          <!--
+  <!-- author -->
+  <div>
+    
+    
+
+    
+
+    
+    <em>
+      
+        <a href="https://twitter.com/0x7c00">The Archivist</a>
+      
+    </em>
+  </div>
+
+  <div class="d-flex">
+    <div>
+      <!-- published date -->
+      <span>
+        
+        <!--
   Date format snippet
-  See: /assets/js/_utils/timeage.js
+  See: ${JS_ROOT}/utils/timeago.js
 -->
 
 
 
 
 
+<em class="timeago"
+    date="2021-06-10 03:45:00 +0800"
+    
+      data-toggle="tooltip"
+      data-placement="bottom"
+      title="Thu, Jun 10, 2021,  3:45 AM +0800"
+    >Jun 10</em>
 
-  on
+      </span>
 
-<span class="timeago "
-  
-    data-toggle="tooltip"
-    data-placement="bottom"
-    title="Thu, Jun 10, 2021,  3:45 AM +0800"
-  >Jun 10<i class="unloaded">2021-06-10T03:45:00+08:00</i>
-</span>
+      <!-- lastmod date -->
+      
 
-        </div>
-
-        <div>
-          <!-- lastmod -->
-          
-
-          <!-- read time -->
-          <!--
+      <!-- read time -->
+      <!--
   Calculate the post's reading time, and display the word count in tooltip
  -->
 
@@ -1151,36 +1294,27 @@
 
 <!-- return element -->
 <span class="readtime" data-toggle="tooltip" data-placement="bottom"
-  title="967 words">5 min
-     read</span>
+  title="967 words">
+  <em>5 min</em> read</span>
 
 
-          <!-- page views -->
-          
+      <!-- page views -->
+      
+    </div>
 
-        </div>
+  </div> <!-- .d-flex -->
 
-      </div> <!-- .post-meta -->
+</div> <!-- .post-meta -->
 
-      <div class="post-content">
+<div class="post-content">
+  <p>Welcome back to our usual HackTheBox journey, for today medium rated target - The Notebook. In this blog post, we’ve managed to alter client-side JWT cookie, spawn our reverse shell then proceeded to achieve user’s SSH credentials and, subsequently, be able to privesc via a docker PoC.</p>
 
-        
-
-        <p>Welcome back to our usual HackTheBox journey, for today medium rated target - The Notebook. In this blog post, we’ve managed to alter client-side JWT cookie, spawn our reverse shell then proceeded to achieve user’s SSH credentials and, subsequently, be able to privesc via a docker PoC.</p>
-
-<h2 id="enumeration">Enumeration</h2>
+<h2 id="enumeration">Enumeration<a href="#enumeration"><i class="fas fa-hashtag"></i></a></h2></h2>
 
 <p>The very initial step is to do a network scan using everyone’s favorite utility - <em>nmap</em>.</p>
 
 <div class="language-shell highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Shell
-
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Shell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -1229,9 +1363,9 @@ Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up
 
 <p>The webpage allows us to register an account and have some notes written.</p>
 
-<h2 id="exploitation">Exploitation</h2>
+<h2 id="exploitation">Exploitation<a href="#exploitation"><i class="fas fa-hashtag"></i></a></h2></h2>
 
-<h3 id="jwt-misconfiguration">JWT misconfiguration</h3>
+<h3 id="jwt-misconfiguration">JWT misconfiguration<a href="#jwt-misconfiguration"><i class="fas fa-hashtag"></i></a></h3></h3>
 
 <p>At first I thought it was either RFI/LFI or XSS yet I couldn’t find any JavaScript objects to exploit. Later that I noticed there was a JWT<sup id="fnref:1" role="doc-noteref"><a href="#fn:1" class="footnote" rel="footnote">1</a></sup> cookie encoded with our basic login information and we want to change the justice flag <code class="language-plaintext highlighter-rouge">admin_cap</code> to <code class="language-plaintext highlighter-rouge">True</code> in order to have a more privileged access.</p>
 
@@ -1250,14 +1384,7 @@ Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up
 <p>Here is our JWT cookie:</p>
 
 <div class="language-plaintext highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Text
-  
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Plaintext"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 </pre></td><td class="rouge-code"><pre>eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Imh0dHA6Ly8xMC4xMC4xNC4xMDo3MDcwL3ByaXZLZXkua2V5In0.eyJ1c2VybmFtZSI6ImxlZ2lhaHV5eSIsImVtYWlsIjoibGVnaWFodXl5QGVtYWlsLmNvbSIsImFkbWluX2NhcCI6dHJ1ZX0.EUtQ8LSlpMzKseLGJLVZhKrQoJSbD_BHYhAxuLjvZrKIBGjrzVqxjFnq2OuaBXCkkScsaPvKOBnp_f9LZ5hiRKOPP_N_5E5w2cv1FX_elhEjQe0Y7UWr9BdzWexzzObsaaM_wuF9PR3ydyAc86eg2iI6RXNuWPdv2PYrSsNYWgcF7_Y8QhSMX9nU4UjAQyutziAz-K-Q7eVhQvPubyDYB3cOIl_4Vzw5Jap4W0RvjzrPEQhELHiIO2tcwjqk9_6tZZdaLXYVmn616Ln2WFMXrW1-LaeAPfb5jHBJ1O9r4V35M3tIt7txlimqi116MBmXy4UZUMq0Z0XxLxtO9M070EuzvZwNJea-zZpOBRDMjzxmdDDG-2rOUXuUZDfX2cEGaOgXaudgCAEQZyXTQPGAbND5kf5DMuIKiWTXjokwYeqyOFXLNNmFFYWT1MY-ajEUOorG4WMhVDAZFBzGtJ_Wz75UxOeUl-jYqGyHL99BEwK_ysZtIeLnMoQ1DQcz9CRdcwZymZACk049RAp__SDzzM25tc8TlNzkyuUM0jV6xYTEJ1RqLJ_S0B2TgOLJ6kBYUjy7NdAj9d222mYkDCdxX9HM1rSJ5OdPPE11VqQFwdc-8kgsxjKvIQfXrkHyOHo8kQ8FwweGJR649ebIPsLJ__vmhJB8dNejsKaB4lRuaK0
 </pre></td></tr></tbody></table></code></div></div>
@@ -1272,7 +1399,7 @@ Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up
 
 <p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_16-48.png" alt="" /></p>
 
-<h3 id="the-legendary-called-backups">The legendary called ‘backups’</h3>
+<h3 id="the-legendary-called-backups">The legendary called ‘backups’<a href="#the-legendary-called-backups"><i class="fas fa-hashtag"></i></a></h3></h3>
 
 <p>Running <a href="https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/linPEAS">LinPEAS</a>  as <code class="language-plaintext highlighter-rouge">www-data</code> also provides us with the location of the aforementioned backups.</p>
 
@@ -1281,14 +1408,7 @@ Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up
 <p>Notable ones are <code class="language-plaintext highlighter-rouge">home.tar.gz</code>, <code class="language-plaintext highlighter-rouge">passwd.bak</code> and <code class="language-plaintext highlighter-rouge">shadow.bak</code> yet I find the latter two only contain some unusable hashes. Extracting the <code class="language-plaintext highlighter-rouge">home.tar.gz</code> archive is far more interesting as it has <code class="language-plaintext highlighter-rouge">noah</code>’s SSH credentials.</p>
 
 <div class="language-shell highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Shell
-
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Shell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 </pre></td><td class="rouge-code"><pre><span class="c"># Tar extraction command</span>
@@ -1301,7 +1421,7 @@ Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up
 
 <p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_22-04.png" alt="" /></p>
 
-<h2 id="privilege-escalation">Privilege Escalation</h2>
+<h2 id="privilege-escalation">Privilege Escalation<a href="#privilege-escalation"><i class="fas fa-hashtag"></i></a></h2></h2>
 
 <p>Let have a glance at what <code class="language-plaintext highlighter-rouge">noah</code> can do.</p>
 
@@ -1334,14 +1454,7 @@ Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up
 <p>In case you haven’t install golang, run the following lines:</p>
 
 <div class="language-shell highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Shell
-
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Shell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -1377,14 +1490,7 @@ Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up
 <p>then send our exploit to the target machine and execute these command:</p>
 
 <div class="language-shell highlighter-rouge"><div class="code-header">
-        <span text-data="
-
-
-
-
-    Shell
-
-"><i class="fa-fw fas fa-code small"></i></span>
+        <span label-text="Shell"><i class="fas fa-code small"></i></span>
       <button aria-label="copy" title-succeed="Copied!"><i class="far fa-clipboard"></i></button></div><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
 3
@@ -1407,7 +1513,7 @@ Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up
 
 <p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_22-52.png" alt="" /></p>
 
-<h2 id="footnotes">Footnotes</h2>
+<h2 id="footnotes">Footnotes<a href="#footnotes"><i class="fas fa-hashtag"></i></a></h2></h2>
 
 <div class="footnotes" role="doc-endnotes">
   <ol>
@@ -1420,52 +1526,54 @@ Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up
   </ol>
 </div>
 
+</div>
 
-      </div>
+<div class="post-tail-wrapper text-muted">
 
-      <div class="post-tail-wrapper text-muted">
+  <!-- categories -->
+  
+  <div class="post-meta mb-3">
+    <i class="far fa-folder-open fa-fw mr-1"></i>
+    
+      <a href='/blog/en/categories/hackthebox/'>hackthebox</a>
+  </div>
+  
 
-        <!-- categories -->
+  <!-- tags -->
+  
+  <div class="post-tags">
+    <i class="fa fa-tags fa-fw mr-1"></i>
+      
+      <a href="/blog/en/tags/hackthebox/"
+          class="post-tag no-text-decoration" >hackthebox</a>
+      
+      <a href="/blog/en/tags/network/"
+          class="post-tag no-text-decoration" >network</a>
+      
+      <a href="/blog/en/tags/pwn/"
+          class="post-tag no-text-decoration" >pwn</a>
+      
+  </div>
+  
+
+  <div class="post-tail-bottom
+    d-flex justify-content-between align-items-center mt-3 pt-5 pb-2">
+    <div class="license-wrapper">
+
+      
+
         
 
-        <div class="post-meta mb-3">
-          <i class="far fa-folder-open fa-fw mr-1"></i>
-          
-            <a href='/blog/en/categories/hackthebox/'>hackthebox</a>
-        </div>
-        
+        This post is licensed under 
+        <a href="https://creativecommons.org/licenses/by/4.0/">
+          CC BY 4.0
+        </a>
+         by the author.
 
-        <!-- tags -->
-        
-        <div class="post-tags">
-          <i class="fa fa-tags fa-fw mr-1"></i>
-          
-          <a href="/blog/en/tags/hackthebox/"
-            class="post-tag no-text-decoration" >hackthebox</a>
-          
-          <a href="/blog/en/tags/network/"
-            class="post-tag no-text-decoration" >network</a>
-          
-          <a href="/blog/en/tags/pwn/"
-            class="post-tag no-text-decoration" >pwn</a>
-          
-          </div>
-        
+      
+    </div>
 
-        <div class="post-tail-bottom
-          d-flex justify-content-between align-items-center mt-3 pt-5 pb-2">
-          <div class="license-wrapper">
-          
-            
-            This post is licensed under 
-            <a href="https://creativecommons.org/licenses/by/4.0/">
-              CC BY 4.0
-            </a>
-             by the author.
-          
-          </div>
-
-          <!--
+    <!--
  Post sharing snippet
 -->
 
@@ -1505,498 +1613,509 @@ Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up
 </div>
 
 
-        </div><!-- .post-tail-bottom -->
+  </div><!-- .post-tail-bottom -->
 
-      </div><!-- div.post-tail -->
+</div><!-- div.post-tail-wrapper -->
 
-    </div> <!-- .post -->
-
-
-  </div> <!-- #post-wrapper -->
-
-  
-
-  
-
-  <!--
-  The Pannel on right side (Desktop views)
--->
-
-
-
-
-
-<div id="panel-wrapper" class="col-xl-3 pl-2 text-muted topbar-down">
-
-  <div class="access">
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-    <div id="access-lastmod" class="post">
-      <span>Recent Update</span>
-      <ul class="post-content pl-0 pb-1 ml-1 mt-2">
 
       
-        
-        
-        
-        <li><a href="/blog/en/posts/HTB-BountyHunter/">HackTheBox - BountyHunter</a></li>
-      
-        
-        
-        
-        <li><a href="/blog/en/posts/HTB-Cap/">HackTheBox - Cap</a></li>
-      
-        
-        
-        
-        <li><a href="/blog/en/posts/PRE-C1-E1/">PRE Solutions Series: First Chapter</a></li>
-      
-        
-        
-        
-        <li><a href="/blog/en/posts/Update-Note/">Update.txt</a></li>
-      
-        
-        
-        
-        <li><a href="/blog/en/posts/HTB-Armageddon/">HackTheBox - Armageddon</a></li>
-      
-
-      </ul>
-    </div> <!-- #access-lastmod -->
-
-  
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
     
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-
-
-  
-    <div id="access-tags">
-      <span>Trending Tags</span>
-      <div class="d-flex flex-wrap mt-3 mb-1 mr-3">
-
-      
-        
-        <a class="post-tag" href="/blog/en/tags/pwn/">pwn</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/hackthebox/">hackthebox</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/network/">network</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/kma/">kma</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/machine/">machine</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/reverse-engineer/">reverse engineer</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/content/">content</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/miscs/">miscs</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/on-going/">On-going</a>
-      
-        
-        <a class="post-tag" href="/blog/en/tags/practical-reverse-engineering/">Practical Reverse Engineering</a>
-      
-
-      </div>
     </div>
-  
-  </div> <!-- .access -->
+  </div> <!-- #core-wrapper -->
+
+  <!-- pannel -->
+  <div id="panel-wrapper" class="col-xl-3 pl-2 text-muted topbar-down">
+
+    <div class="access">
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div id="access-lastmod" class="post">
+    <div class="panel-heading">Recent Update</div>
+    <ul class="post-content pl-0 pb-1 ml-1 mt-2">
+      
+        
+        
+        
+      <li><a href="/blog/en/posts/pwns-1/">PWN Journey - Part 1</a></li>
+      
+        
+        
+        
+      <li><a href="/blog/en/posts/HTB-BountyHunter/">HackTheBox - BountyHunter</a></li>
+      
+        
+        
+        
+      <li><a href="/blog/en/posts/HTB-Cap/">HackTheBox - Cap</a></li>
+      
+        
+        
+        
+      <li><a href="/blog/en/posts/PRE-C1-E1/">PRE Solutions Series: First Chapter</a></li>
+      
+        
+        
+        
+      <li><a href="/blog/en/posts/Update-Note/">Update.txt</a></li>
+      
+    </ul>
+  </div> <!-- #access-lastmod -->
+
+
+
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   
-    <!-- BS-toc.js will be loaded at medium priority -->
-    <script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@1.0.1/dist/bootstrap-toc.min.js"></script>
-    <div id="toc-wrapper" class="pl-0 pr-4 mb-5">
-      <span class="pl-3 pt-2 mb-2">Contents</span>
-      <nav id="toc" data-toggle="toc"></nav>
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+
+
+  <div id="access-tags">
+    <div class="panel-heading">Trending Tags</div>
+    <div class="d-flex flex-wrap mt-3 mb-1 mr-3">
+
+    
+      
+      <a class="post-tag" href="/blog/en/tags/pwn/">pwn</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/hackthebox/">hackthebox</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/network/">network</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/reverse-engineer/">reverse engineer</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/kma/">kma</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/machine/">machine</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/content/">content</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/google-analytics/">google analytics</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/miscs/">miscs</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/on-going/">On-going</a>
+    
+
     </div>
-  
-
-</div> <!-- #panel-wrapper -->
+  </div>
 
 
-</div> <!-- .row -->
+    </div>
+
+    
+      
+      
+
+
+
+<!-- BS-toc.js will be loaded at medium priority -->
+<script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@1.0.1/dist/bootstrap-toc.min.js"></script>
+
+<div id="toc-wrapper" class="pl-0 pr-4 mb-5">
+  <div class="panel-heading pl-3 pt-2 mb-2">Contents</div>
+  <nav id="toc" data-toggle="toc"></nav>
+</div>
+
+
+    
+  </div>
+
+</div>
+
+<!-- tail -->
 
 <div class="row">
   <div class="col-12 col-lg-11 col-xl-8">
-    <div id="post-extend-wrapper" class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4">
-
-    <!--
+    <div id="tail-wrapper" class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4">
+      
+        
+        <!--
  Recommend the other 3 posts according to the tags and categories of the current post,
  if the number is not enough, use the other latest posts to supplement.
 -->
@@ -2071,7 +2190,33 @@ Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up
   
 
   
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+  
     
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
   
 
   
@@ -2162,17 +2307,16 @@ Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up
           <div class="card-body">
             <!--
   Date format snippet
-  See: /assets/js/_utils/timeage.js
+  See: ${JS_ROOT}/utils/timeago.js
 -->
 
 
 
 
 
-
-<span class="timeago small"
-  >May 16<i class="unloaded">2021-05-16T03:45:00+08:00</i>
-</span>
+<em class="timeago small"
+    date="2021-05-16 03:45:00 +0800"
+    >May 16</em>
 
             <h3 class="pt-0 mt-1 mb-3" data-toc-skip>HackTheBox - Sharp</h3>
             <div class="text-muted small">
@@ -2197,17 +2341,16 @@ Nmap <span class="k">done</span>: 1 IP address <span class="o">(</span>1 host up
           <div class="card-body">
             <!--
   Date format snippet
-  See: /assets/js/_utils/timeage.js
+  See: ${JS_ROOT}/utils/timeago.js
 -->
 
 
 
 
 
-
-<span class="timeago small"
-  >May 28<i class="unloaded">2021-05-28T03:45:00+08:00</i>
-</span>
+<em class="timeago small"
+    date="2021-05-28 03:45:00 +0800"
+    >May 28</em>
 
             <h3 class="pt-0 mt-1 mb-3" data-toc-skip>HackTheBox - Armageddon</h3>
             <div class="text-muted small">
@@ -2240,17 +2383,16 @@ We start by enumerating open ports and services on the target machine using nmap
           <div class="card-body">
             <!--
   Date format snippet
-  See: /assets/js/_utils/timeage.js
+  See: ${JS_ROOT}/utils/timeago.js
 -->
 
 
 
 
 
-
-<span class="timeago small"
-  >Oct  1<i class="unloaded">2021-10-01T00:00:00+08:00</i>
-</span>
+<em class="timeago small"
+    date="2021-10-01 00:00:00 +0800"
+    >Oct  1</em>
 
             <h3 class="pt-0 mt-1 mb-3" data-toc-skip>HackTheBox - Cap</h3>
             <div class="text-muted small">
@@ -2272,8 +2414,9 @@ We start by enumerating open ports and services on the target machine using nmap
   </div> <!-- #related-posts -->
 
 
-
-    <!--
+      
+        
+        <!--
   Navigation buttons at the bottom of the post.
 -->
 
@@ -2294,13 +2437,17 @@ We start by enumerating open ports and services on the target machine using nmap
 
 </div>
 
+      
+        
+        <!--
+  The Disqus lazy loading.
+-->
 
-    
 
-    </div> <!-- #post-extend-wrapper -->
 
-  </div> <!-- .col-* -->
-
+      
+    </div>
+  </div>
 </div> <!-- .row -->
 
 
@@ -2310,7 +2457,7 @@ We start by enumerating open ports and services on the target machine using nmap
 -->
 
 <footer class="d-flex w-100 justify-content-center">
-  <div class="d-flex justify-content-between align-items-center">
+  <div class="d-flex justify-content-between align-items-center text-muted">
     <div class="footer-left">
       <p class="mb-0">
         © 2021
@@ -2345,8 +2492,6 @@ We start by enumerating open ports and services on the target machine using nmap
 <div id="search-result-wrapper" class="d-flex justify-content-center unloaded">
   <div class="col-12 col-sm-11 post-content">
     <div id="search-hints">
-      <h4 class="text-muted mb-4">Trending Tags</h4>
-
       
 
 
@@ -2397,46 +2542,6 @@ We start by enumerating open ports and services on the target machine using nmap
     
     
     
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
     
   
     
@@ -2503,49 +2608,6 @@ We start by enumerating open ports and services on the target machine using nmap
     
     
     
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
   
     
     
@@ -2570,16 +2632,40 @@ We start by enumerating open ports and services on the target machine using nmap
     
     
     
-      
-        
-        
-
   
     
     
     
     
-      
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
     
   
     
@@ -2610,6 +2696,131 @@ We start by enumerating open ports and services on the target machine using nmap
     
     
     
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
       
     
   
@@ -2648,89 +2859,47 @@ We start by enumerating open ports and services on the target machine using nmap
         
         
 
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-      
-        
-        
 
 
+  <div id="access-tags">
+    <div class="panel-heading">Trending Tags</div>
+    <div class="d-flex flex-wrap mt-3 mb-1 mr-3">
 
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/pwn/">pwn</a>
+      <a class="post-tag" href="/blog/en/tags/pwn/">pwn</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/hackthebox/">hackthebox</a>
+      <a class="post-tag" href="/blog/en/tags/hackthebox/">hackthebox</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/network/">network</a>
+      <a class="post-tag" href="/blog/en/tags/network/">network</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/kma/">kma</a>
+      <a class="post-tag" href="/blog/en/tags/reverse-engineer/">reverse engineer</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/machine/">machine</a>
+      <a class="post-tag" href="/blog/en/tags/kma/">kma</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/reverse-engineer/">reverse engineer</a>
+      <a class="post-tag" href="/blog/en/tags/machine/">machine</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/content/">content</a>
+      <a class="post-tag" href="/blog/en/tags/content/">content</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/miscs/">miscs</a>
+      <a class="post-tag" href="/blog/en/tags/google-analytics/">google analytics</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/on-going/">On going</a>
+      <a class="post-tag" href="/blog/en/tags/miscs/">miscs</a>
+    
       
-        
-        <a class="post-tag" href="/blog/en/tags/practical-reverse-engineering/">Practical Reverse Engineering</a>
-      
+      <a class="post-tag" href="/blog/en/tags/on-going/">On-going</a>
+    
+
+    </div>
+  </div>
+
 
     </div>
     <div id="search-results" class="d-flex flex-wrap justify-content-center text-muted mt-3"></div>
@@ -2764,7 +2933,7 @@ SimpleJekyllSearch({
   searchInput: document.getElementById('search-input'),
   resultsContainer: document.getElementById('search-results'),
   json: '/blog/en/assets/js/data/search.json',
-  searchResultTemplate: '<div class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-lg-4 pr-lg-4 pl-xl-0 pr-xl-0">  <a href="https://legiahuyy.github.io{url}">{title}</a>  <div class="post-meta d-flex flex-column flex-sm-row text-muted mt-1 mb-1">    {categories}    {tags}  </div>  <p>{snippet}</p></div>',
+  searchResultTemplate: '<div class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-lg-4 pr-lg-4 pl-xl-0 pr-xl-0">  <a href="{url}">{title}</a>  <div class="post-meta d-flex flex-column flex-sm-row text-muted mt-1 mb-1">    {categories}    {tags}  </div>  <p>{snippet}</p></div>',
   noResultsText: '<p class="mt-5">Oops! No result founds.</p>',
   templateMiddleware: function(prop, value, template) {
     if (prop === 'categories') {
