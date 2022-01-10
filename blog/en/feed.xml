@@ -1,33 +1,77 @@
 
 
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <id>https://legiahuyy.github.io/blog/en/</id>
+  <id>http://localhost:4000/blog/en/</id>
   <title>Another infosec blog</title>
   <subtitle>Where one's enthusiasm provides knowledge and comprehension for others.</subtitle>
-  <updated>2021-12-17T09:02:45+08:00</updated>
+  <updated>2022-01-10T11:17:40+08:00</updated>
   <author>
     <name>The Archivist</name>
-    <uri>https://legiahuyy.github.io/blog/en/</uri>
+    <uri>http://localhost:4000/blog/en/</uri>
   </author>
-  <link rel="self" type="application/atom+xml" href="https://legiahuyy.github.io/blog/en/feed.xml"/>
+  <link rel="self" type="application/atom+xml" href="http://localhost:4000/blog/en/feed.xml"/>
   <link rel="alternate" type="text/html" hreflang="en"
-    href="https://legiahuyy.github.io/blog/en/"/>
+    href="http://localhost:4000/blog/en/"/>
   <generator uri="https://jekyllrb.com/" version="4.2.1">Jekyll</generator>
-  <rights> © 2021 The Archivist </rights>
+  <rights> © 2022 The Archivist </rights>
   <icon>/blog/en/assets/img/favicons/favicon.ico</icon>
   <logo>/blog/en/assets/img/favicons/favicon-96x96.png</logo>
 
 
   
   <entry>
-    <title>PWN Journey - Part 1</title>
-    <link href="https://legiahuyy.github.io/blog/en/posts/pwns-1/" rel="alternate" type="text/html" title="PWN Journey - Part 1" />
+    <title>PWN Journey: Part 2</title>
+    <link href="http://localhost:4000/blog/en/posts/pwns-2/" rel="alternate" type="text/html" title="PWN Journey: Part 2" />
+    <published>2021-12-20T00:00:00+08:00</published>
+  
+    <updated>2021-12-20T00:00:00+08:00</updated>
+  
+    <id>http://localhost:4000/blog/en/posts/pwns-2/</id>
+    <content src="http://localhost:4000/blog/en/posts/pwns-2/" />
+    <author>
+      <name>The Archivist</name>
+    </author>
+
+  
+    
+    <category term="PWN Journey" />
+    
+  
+
+  
+    <summary>
+      
+
+
+
+
+
+      In this post, we will solve two pwn challenges from WhiteHat Play!10 and a customized one. We will also delve into details about most frequently encountered protection bits as well as bypass method for each.
+
+
+
+Anyway, I hope you have a good time reading.
+
+WhiteHat Play!10 - pwn01
+
+Goal: Trigger the buffer overflow and call covid19.
+
+This is an original pwn challenge from WhiteHat Play10! Warga...
+    </summary>
+  
+
+  </entry>
+
+  
+  <entry>
+    <title>PWN Journey: Part 1</title>
+    <link href="http://localhost:4000/blog/en/posts/pwns-1/" rel="alternate" type="text/html" title="PWN Journey: Part 1" />
     <published>2021-12-08T00:00:00+08:00</published>
   
     <updated>2021-12-16T00:00:00+08:00</updated>
   
-    <id>https://legiahuyy.github.io/blog/en/posts/pwns-1/</id>
-    <content src="https://legiahuyy.github.io/blog/en/posts/pwns-1/" />
+    <id>http://localhost:4000/blog/en/posts/pwns-1/</id>
+    <content src="http://localhost:4000/blog/en/posts/pwns-1/" />
     <author>
       <name>The Archivist</name>
     </author>
@@ -56,14 +100,14 @@ Greetings, this series of posts delves into a collection of pwnie solutions that
 
   
   <entry>
-    <title>HackTheBox - BountyHunter</title>
-    <link href="https://legiahuyy.github.io/blog/en/posts/HTB-BountyHunter/" rel="alternate" type="text/html" title="HackTheBox - BountyHunter" />
+    <title>HackTheBox: BountyHunter</title>
+    <link href="http://localhost:4000/blog/en/posts/HTB-BountyHunter/" rel="alternate" type="text/html" title="HackTheBox: BountyHunter" />
     <published>2021-10-03T00:00:00+08:00</published>
   
     <updated>2021-10-03T00:00:00+08:00</updated>
   
-    <id>https://legiahuyy.github.io/blog/en/posts/HTB-BountyHunter/</id>
-    <content src="https://legiahuyy.github.io/blog/en/posts/HTB-BountyHunter/" />
+    <id>http://localhost:4000/blog/en/posts/HTB-BountyHunter/</id>
+    <content src="http://localhost:4000/blog/en/posts/HTB-BountyHunter/" />
     <author>
       <name>The Archivist</name>
     </author>
@@ -100,14 +144,14 @@ Nmap output
 
   
   <entry>
-    <title>HackTheBox - Cap</title>
-    <link href="https://legiahuyy.github.io/blog/en/posts/HTB-Cap/" rel="alternate" type="text/html" title="HackTheBox - Cap" />
+    <title>HackTheBox: Cap</title>
+    <link href="http://localhost:4000/blog/en/posts/HTB-Cap/" rel="alternate" type="text/html" title="HackTheBox: Cap" />
     <published>2021-10-01T00:00:00+08:00</published>
   
     <updated>2021-10-01T00:00:00+08:00</updated>
   
-    <id>https://legiahuyy.github.io/blog/en/posts/HTB-Cap/</id>
-    <content src="https://legiahuyy.github.io/blog/en/posts/HTB-Cap/" />
+    <id>http://localhost:4000/blog/en/posts/HTB-Cap/</id>
+    <content src="http://localhost:4000/blog/en/posts/HTB-Cap/" />
     <author>
       <name>The Archivist</name>
     </author>
@@ -146,13 +190,13 @@ As usual, we wanted to start our enumeration step with nmap.
   
   <entry>
     <title>PRE Solutions Series: First Chapter</title>
-    <link href="https://legiahuyy.github.io/blog/en/posts/PRE-C1-E1/" rel="alternate" type="text/html" title="PRE Solutions Series: First Chapter" />
+    <link href="http://localhost:4000/blog/en/posts/PRE-C1-E1/" rel="alternate" type="text/html" title="PRE Solutions Series: First Chapter" />
     <published>2021-07-05T00:00:00+08:00</published>
   
     <updated>2021-07-05T00:00:00+08:00</updated>
   
-    <id>https://legiahuyy.github.io/blog/en/posts/PRE-C1-E1/</id>
-    <content src="https://legiahuyy.github.io/blog/en/posts/PRE-C1-E1/" />
+    <id>http://localhost:4000/blog/en/posts/PRE-C1-E1/</id>
+    <content src="http://localhost:4000/blog/en/posts/PRE-C1-E1/" />
     <author>
       <name>The Archivist</name>
     </author>
@@ -181,44 +225,6 @@ The target audiences are believed to:
   Be familiar with basic mid-level programming language
   Have at least a fundamental understanding of computer architecture (CPU, RAM, etc.)
   Be dete...
-    </summary>
-  
-
-  </entry>
-
-  
-  <entry>
-    <title>Update.txt</title>
-    <link href="https://legiahuyy.github.io/blog/en/posts/Update-Note/" rel="alternate" type="text/html" title="Update.txt" />
-    <published>2021-07-01T00:00:00+08:00</published>
-  
-    <updated>2021-07-04T00:00:00+08:00</updated>
-  
-    <id>https://legiahuyy.github.io/blog/en/posts/Update-Note/</id>
-    <content src="https://legiahuyy.github.io/blog/en/posts/Update-Note/" />
-    <author>
-      <name>The Archivist</name>
-    </author>
-
-  
-    
-    <category term="Thoughts" />
-    
-  
-
-  
-    <summary>
-      
-
-
-
-
-
-      Greetings everyone, it has been a few weeks since our last posts. You may (or may not) have already noticed, I changed the theme of our blog as this one looks more professional and less boring than the old Chirpy theme I had used. But the new theme switch is not the sole reason for this update.
-
-
-
-We all know that learning advanced English is an arduous journey, so recently I have read my colle...
     </summary>
   
 

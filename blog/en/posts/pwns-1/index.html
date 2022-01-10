@@ -34,27 +34,27 @@
 
   <!-- Begin Jekyll SEO tag v2.7.1 -->
 <meta name="generator" content="Jekyll v4.2.1" />
-<meta property="og:title" content="PWN Journey - Part 1" />
+<meta property="og:title" content="PWN Journey: Part 1" />
 <meta name="author" content="The Archivist" />
 <meta property="og:locale" content="en" />
 <meta name="description" content="Foreword Greetings, this series of posts delves into a collection of pwnie solutions that I have been poking around for a while and finally have the time to publish it so that I could practice my writing and attempt to share some knowledge in such a way that could be helpful to others. Not to mention that I am also a rookie in this field, so take my words with a grain of salt and all critics/suggestions are welcome." />
 <meta property="og:description" content="Foreword Greetings, this series of posts delves into a collection of pwnie solutions that I have been poking around for a while and finally have the time to publish it so that I could practice my writing and attempt to share some knowledge in such a way that could be helpful to others. Not to mention that I am also a rookie in this field, so take my words with a grain of salt and all critics/suggestions are welcome." />
-<link rel="canonical" href="https://legiahuyy.github.io/blog/en/posts/pwns-1/" />
-<meta property="og:url" content="https://legiahuyy.github.io/blog/en/posts/pwns-1/" />
+<link rel="canonical" href="http://localhost:4000/blog/en/posts/pwns-1/" />
+<meta property="og:url" content="http://localhost:4000/blog/en/posts/pwns-1/" />
 <meta property="og:site_name" content="Another infosec blog" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2021-12-08T00:00:00+08:00" />
 <meta name="twitter:card" content="summary" />
-<meta property="twitter:title" content="PWN Journey - Part 1" />
+<meta property="twitter:title" content="PWN Journey: Part 1" />
 <meta name="twitter:site" content="@0x7c00" />
 <meta name="twitter:creator" content="@The Archivist" />
 <meta name="google-site-verification" content="google_meta_tag_verification" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","headline":"PWN Journey - Part 1","url":"https://legiahuyy.github.io/blog/en/posts/pwns-1/","dateModified":"2021-12-16T00:00:00+08:00","datePublished":"2021-12-08T00:00:00+08:00","author":{"@type":"Person","name":"The Archivist"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://legiahuyy.github.io/blog/en/posts/pwns-1/"},"description":"Foreword Greetings, this series of posts delves into a collection of pwnie solutions that I have been poking around for a while and finally have the time to publish it so that I could practice my writing and attempt to share some knowledge in such a way that could be helpful to others. Not to mention that I am also a rookie in this field, so take my words with a grain of salt and all critics/suggestions are welcome.","@context":"https://schema.org"}</script>
+{"@type":"BlogPosting","headline":"PWN Journey: Part 1","url":"http://localhost:4000/blog/en/posts/pwns-1/","dateModified":"2021-12-16T00:00:00+08:00","datePublished":"2021-12-08T00:00:00+08:00","author":{"@type":"Person","name":"The Archivist"},"mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/blog/en/posts/pwns-1/"},"description":"Foreword Greetings, this series of posts delves into a collection of pwnie solutions that I have been poking around for a while and finally have the time to publish it so that I could practice my writing and attempt to share some knowledge in such a way that could be helpful to others. Not to mention that I am also a rookie in this field, so take my words with a grain of salt and all critics/suggestions are welcome.","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
 
-  <title>PWN Journey - Part 1 | Another infosec blog
+  <title>PWN Journey: Part 1 | Another infosec blog
   </title>
 
   <!--
@@ -415,7 +415,7 @@
         
 
           
-            <span>PWN Journey - Part 1</span>
+            <span>PWN Journey: Part 1</span>
           
 
         
@@ -2025,7 +2025,7 @@
 
 
 
-<h1 data-toc-skip>PWN Journey - Part 1</h1>
+<h1 data-toc-skip>PWN Journey: Part 1</h1>
 
 <div class="post-meta text-muted">
 
@@ -2064,7 +2064,7 @@
       data-toggle="tooltip"
       data-placement="bottom"
       title="Wed, Dec  8, 2021, 12:00 AM +0800"
-    >Dec  8</em>
+    >Dec  8, 2021</em>
 
       </span>
 
@@ -2087,7 +2087,7 @@
       data-toggle="tooltip"
       data-placement="bottom"
       title="Thu, Dec 16, 2021, 12:00 AM +0000"
-    >Dec 16</em>
+    >Dec 16, 2021</em>
 
       </span>
       
@@ -2112,7 +2112,7 @@
 
 <!-- return element -->
 <span class="readtime" data-toggle="tooltip" data-placement="bottom"
-  title="2721 words">
+  title="2723 words">
   <em>15 min</em> read</span>
 
 
@@ -2725,7 +2725,7 @@ Running at : nc pwnable.kr 9000
 </pre></td><td class="rouge-code"><pre>40 3c27ed48 61879738
 </pre></td></tr></tbody></table></code></div></div>
 
-<p>Not meet the expected amount of arguments, <code class="language-plaintext highlighter-rouge">printf</code> simply continues printing the next values on the stack, <em>thus leaking</em> them. Hence, latter <code class="language-plaintext highlighter-rouge">3c27ed48</code> and <code class="language-plaintext highlighter-rouge">61879738</code> are probably not our <code class="language-plaintext highlighter-rouge">int a = 64</code> but <em>random</em> junk value on the stack.</p>
+<p>Not meet the expected amount of arguments, <code class="language-plaintext highlighter-rouge">printf</code> simply continues printing the next values on the stack, <em>thus leaking</em> them. Hence, the latter two, <code class="language-plaintext highlighter-rouge">3c27ed48</code> and <code class="language-plaintext highlighter-rouge">61879738</code>, are probably not our <code class="language-plaintext highlighter-rouge">int a = 64</code> but <em>random</em> junk value on the stack.</p>
 
 <p>Let us have a glance at the vulnerable source again.</p>
 
@@ -2969,19 +2969,19 @@ Running at : nc pwnable.kr 9000
 
     
       
-        <a href="https://twitter.com/intent/tweet?text=PWN Journey - Part 1 - Another infosec blog&url=https://legiahuyy.github.io/blog/en/posts/pwns-1/" data-toggle="tooltip" data-placement="top"
+        <a href="https://twitter.com/intent/tweet?text=PWN Journey: Part 1 - Another infosec blog&url=http://localhost:4000/blog/en/posts/pwns-1/" data-toggle="tooltip" data-placement="top"
           title="Twitter" target="_blank" rel="noopener" aria-label="Twitter">
           <i class="fa-fw fab fa-twitter"></i>
         </a>
     
       
-        <a href="https://www.facebook.com/sharer/sharer.php?title=PWN Journey - Part 1 - Another infosec blog&u=https://legiahuyy.github.io/blog/en/posts/pwns-1/" data-toggle="tooltip" data-placement="top"
+        <a href="https://www.facebook.com/sharer/sharer.php?title=PWN Journey: Part 1 - Another infosec blog&u=http://localhost:4000/blog/en/posts/pwns-1/" data-toggle="tooltip" data-placement="top"
           title="Facebook" target="_blank" rel="noopener" aria-label="Facebook">
           <i class="fa-fw fab fa-facebook-square"></i>
         </a>
     
       
-        <a href="https://telegram.me/share?text=PWN Journey - Part 1 - Another infosec blog&url=https://legiahuyy.github.io/blog/en/posts/pwns-1/" data-toggle="tooltip" data-placement="top"
+        <a href="https://telegram.me/share?text=PWN Journey: Part 1 - Another infosec blog&url=http://localhost:4000/blog/en/posts/pwns-1/" data-toggle="tooltip" data-placement="top"
           title="Telegram" target="_blank" rel="noopener" aria-label="Telegram">
           <i class="fa-fw fab fa-telegram"></i>
         </a>
@@ -3034,27 +3034,27 @@ Running at : nc pwnable.kr 9000
         
         
         
-      <li><a href="/blog/en/posts/pwns-1/">PWN Journey - Part 1</a></li>
+      <li><a href="/blog/en/posts/pwns-2/">PWN Journey: Part 2</a></li>
       
         
         
         
-      <li><a href="/blog/en/posts/HTB-BountyHunter/">HackTheBox - BountyHunter</a></li>
+      <li><a href="/blog/en/posts/ez-bof/">KCSC: A simple BOF</a></li>
       
         
         
         
-      <li><a href="/blog/en/posts/HTB-Cap/">HackTheBox - Cap</a></li>
+      <li><a href="/blog/en/posts/HTB-Sharp/">HackTheBox: Sharp</a></li>
       
         
         
         
-      <li><a href="/blog/en/posts/PRE-C1-E1/">PRE Solutions Series: First Chapter</a></li>
+      <li><a href="/blog/en/posts/HTB-Armageddon/">HackTheBox: Armageddon</a></li>
       
         
         
         
-      <li><a href="/blog/en/posts/Update-Note/">Update.txt</a></li>
+      <li><a href="/blog/en/posts/HTB-TheNotebook/">HackTheBox: The Notebook</a></li>
       
     </ul>
   </div> <!-- #access-lastmod -->
@@ -3112,165 +3112,6 @@ Running at : nc pwnable.kr 9000
     
     
     
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
       
         
         
@@ -3320,8 +3161,104 @@ Running at : nc pwnable.kr 9000
     
     
     
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
       
     
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
   
     
     
@@ -3363,6 +3300,33 @@ Running at : nc pwnable.kr 9000
     
     
     
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
       
     
   
@@ -3380,12 +3344,48 @@ Running at : nc pwnable.kr 9000
     
     
     
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
   
     
     
     
     
       
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
     
   
     
@@ -3434,16 +3434,16 @@ Running at : nc pwnable.kr 9000
       <a class="post-tag" href="/blog/en/tags/machine/">machine</a>
     
       
-      <a class="post-tag" href="/blog/en/tags/content/">content</a>
-    
-      
       <a class="post-tag" href="/blog/en/tags/miscs/">miscs</a>
     
       
       <a class="post-tag" href="/blog/en/tags/on-going/">On-going</a>
     
       
-      <a class="post-tag" href="/blog/en/tags/practical-reverse-engineering/">Practical Reverse Engineering</a>
+      <a class="post-tag" href="/blog/en/tags/thoughts/">thoughts</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/web-pentest/">web-pentest</a>
     
 
     </div>
@@ -3497,6 +3497,19 @@ Running at : nc pwnable.kr 9000
 
 
 
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
 
 
   
@@ -3667,9 +3680,9 @@ Running at : nc pwnable.kr 9000
 
 <em class="timeago small"
     date="2021-02-24 03:45:00 +0800"
-    >Feb 24</em>
+    >Feb 24, 2021</em>
 
-            <h3 class="pt-0 mt-1 mb-3" data-toc-skip>KCSC - A simple BOF</h3>
+            <h3 class="pt-0 mt-1 mb-3" data-toc-skip>KCSC: A simple BOF</h3>
             <div class="text-muted small">
               <p>
                 
@@ -3704,6 +3717,40 @@ Running at : nc pwnable.kr 9000
       
       
       <div class="card">
+        <a href="/blog/en/posts/pwns-2/">
+          <div class="card-body">
+            <!--
+  Date format snippet
+  See: ${JS_ROOT}/utils/timeago.js
+-->
+
+
+
+
+
+<em class="timeago small"
+    date="2021-12-20 00:00:00 +0800"
+    >Dec 20, 2021</em>
+
+            <h3 class="pt-0 mt-1 mb-3" data-toc-skip>PWN Journey: Part 2</h3>
+            <div class="text-muted small">
+              <p>
+                
+
+
+
+
+
+                In this post, we will solve two pwn challenges from WhiteHat Play!10 and a customized one. We will also delve into details about most frequently encountered protection bits as well as bypass method...
+              </p>
+            </div>
+          </div>
+        </a>
+      </div>
+    
+      
+      
+      <div class="card">
         <a href="/blog/en/posts/HTB-Sharp/">
           <div class="card-body">
             <!--
@@ -3717,9 +3764,9 @@ Running at : nc pwnable.kr 9000
 
 <em class="timeago small"
     date="2021-05-16 03:45:00 +0800"
-    >May 16</em>
+    >May 16, 2021</em>
 
-            <h3 class="pt-0 mt-1 mb-3" data-toc-skip>HackTheBox - Sharp</h3>
+            <h3 class="pt-0 mt-1 mb-3" data-toc-skip>HackTheBox: Sharp</h3>
             <div class="text-muted small">
               <p>
                 
@@ -3729,48 +3776,6 @@ Running at : nc pwnable.kr 9000
 
 
                 Hi, after a long time not posting anything on this blog because of my university workload. Let’s get back to our normal routine of pwning. Today, I will do a writeup of retired HackTheBox (HTB) mac...
-              </p>
-            </div>
-          </div>
-        </a>
-      </div>
-    
-      
-      
-      <div class="card">
-        <a href="/blog/en/posts/HTB-Armageddon/">
-          <div class="card-body">
-            <!--
-  Date format snippet
-  See: ${JS_ROOT}/utils/timeago.js
--->
-
-
-
-
-
-<em class="timeago small"
-    date="2021-05-28 03:45:00 +0800"
-    >May 28</em>
-
-            <h3 class="pt-0 mt-1 mb-3" data-toc-skip>HackTheBox - Armageddon</h3>
-            <div class="text-muted small">
-              <p>
-                
-
-
-
-
-
-                This is another challenge on HackTheBox - Armageddon. Let’s get started.
-
-Enumeration
-
-Nmap
-
-We start by enumerating open ports and services on the target machine using nmap:
-
-┌──(root💀kali)-[/home...
               </p>
             </div>
           </div>
@@ -3791,15 +3796,15 @@ We start by enumerating open ports and services on the target machine using nmap
   
   <a href="/blog/en/posts/HTB-BountyHunter/" class="btn btn-outline-primary"
     prompt="Older">
-    <p>HackTheBox - BountyHunter</p>
+    <p>HackTheBox: BountyHunter</p>
   </a>
   
 
   
-  <span class="btn btn-outline-primary disabled"
+  <a href="/blog/en/posts/pwns-2/" class="btn btn-outline-primary"
     prompt="Newer">
-    <p>-</p>
-  </span>
+    <p>PWN Journey: Part 2</p>
+  </a>
   
 
 </div>
@@ -3827,7 +3832,7 @@ We start by enumerating open ports and services on the target machine using nmap
   <div class="d-flex justify-content-between align-items-center text-muted">
     <div class="footer-left">
       <p class="mb-0">
-        © 2021
+        © 2022
         <a href="https://twitter.com/0x7c00">The Archivist</a>.
         
         <span data-toggle="tooltip" data-placement="top"
@@ -3910,165 +3915,6 @@ We start by enumerating open ports and services on the target machine using nmap
     
     
     
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-        
-        
-
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-  
-    
-    
-    
-    
-      
-    
-  
-    
-    
-    
-    
       
         
         
@@ -4118,8 +3964,104 @@ We start by enumerating open ports and services on the target machine using nmap
     
     
     
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
       
     
+  
+    
+    
+    
+    
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+        
+        
+
   
     
     
@@ -4161,6 +4103,33 @@ We start by enumerating open ports and services on the target machine using nmap
     
     
     
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
       
     
   
@@ -4178,12 +4147,48 @@ We start by enumerating open ports and services on the target machine using nmap
     
     
     
+      
+        
+        
+
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
   
     
     
     
     
       
+    
+  
+    
+    
+    
+    
+  
+    
+    
+    
+    
+      
+    
+  
+    
+    
+    
     
   
     
@@ -4232,16 +4237,16 @@ We start by enumerating open ports and services on the target machine using nmap
       <a class="post-tag" href="/blog/en/tags/machine/">machine</a>
     
       
-      <a class="post-tag" href="/blog/en/tags/content/">content</a>
-    
-      
       <a class="post-tag" href="/blog/en/tags/miscs/">miscs</a>
     
       
       <a class="post-tag" href="/blog/en/tags/on-going/">On-going</a>
     
       
-      <a class="post-tag" href="/blog/en/tags/practical-reverse-engineering/">Practical Reverse Engineering</a>
+      <a class="post-tag" href="/blog/en/tags/thoughts/">thoughts</a>
+    
+      
+      <a class="post-tag" href="/blog/en/tags/web-pentest/">web-pentest</a>
     
 
     </div>
