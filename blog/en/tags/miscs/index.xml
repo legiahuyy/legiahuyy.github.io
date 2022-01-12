@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>miscs on Yet, another infosec blog</title>
+    <link>/tags/miscs/</link>
+    <description>Recent content in miscs on Yet, another infosec blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 04 Jul 2021 09:30:00 +1345</lastBuildDate><atom:link href="/tags/miscs/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Update.txt</title>
+      <link>/posts/update-note/</link>
+      <pubDate>Sun, 04 Jul 2021 09:30:00 +1345</pubDate>
+      
+      <guid>/posts/update-note/</guid>
+      <description>Greetings everyone, it has been a few weeks since our last posts. You may (or may not) have already noticed, I changed the theme of our blog as this one looks more professional and less boring than the old Chirpy theme I had used. But the new theme switch is not the sole reason for this update.
+We all know that learning advanced English is an arduous journey, so recently I have read my colleagues&#39; writing tasks and, specifically, secret.</description>
+      <content>&lt;p&gt;Greetings everyone, it has been a few weeks since our last posts. You may (or may not) have already noticed, I changed the theme of our blog as this one looks more professional and less boring than the old Chirpy theme I had used. But the new theme switch is not the sole reason for this update.&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;We all know that learning advanced English is an arduous journey, so recently I have read my colleagues&#39; writing tasks and, specifically, &lt;a href=&#34;https://secret.club/&#34;&gt;secret.club&lt;/a&gt; whose novel style has followed an intriguingly clinical tone. All of their posts are explicit, logical and consistent, which really inspires me to reevaluate and improve my English writing, or professional progress in particular. On that account, I decided to spend more time learning and practicing their style of writing. Perhaps, you can learn something from it too.&lt;/p&gt;
+&lt;p&gt;In future releases, I am planning on doing some exercises in the &lt;em&gt;Practical Reverse Engineering&lt;/em&gt; book of &lt;a href=&#34;https://twitter.com/brucedang&#34;&gt;Bruce Dang&lt;/a&gt; in order to dig deeper into Windows kernel-level as well as understand its complex functionalities. It is undoubtedly time-consuming and interesting at the same time since I love reversing and being able to see my endeavors payoff.&lt;/p&gt;
+&lt;p&gt;That&amp;rsquo;s all I wanted to say for now. Thanks for reading and see you in other posts.&lt;/p&gt;
+</content>
+    </item>
+    
+  </channel>
+</rss>

