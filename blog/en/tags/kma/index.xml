@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>kma on Yet, another infosec blog</title>
-    <link>/tags/kma/</link>
+    <link>https://legiahuyy.github.io/blog/en/tags/kma/</link>
     <description>Recent content in kma on Yet, another infosec blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 28 Mar 2021 09:30:00 +1345</lastBuildDate><atom:link href="/tags/kma/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 28 Mar 2021 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/tags/kma/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>KCSC: A simple BOF</title>
-      <link>/posts/ez-bof/</link>
+      <link>https://legiahuyy.github.io/blog/en/posts/ez-bof/</link>
       <pubDate>Sun, 28 Mar 2021 09:30:00 +1345</pubDate>
       
-      <guid>/posts/ez-bof/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/posts/ez-bof/</guid>
       <description>&lt;p&gt;Today we are going to test out Ghidra with one of my university pwnie challenge.&lt;/p&gt;</description>
       <content>&lt;p&gt;Today we are going to test out Ghidra with one of my university pwnie challenge.&lt;/p&gt;
 &lt;table&gt;
@@ -94,10 +94,10 @@ KCSC&lt;span style=&#34;color:#f92672&#34;&gt;{[&lt;/span&gt;REDACTED&lt;span st
     
     <item>
       <title>KCSC: LFI/RFI Wrapper</title>
-      <link>/posts/rfi-wrapper/</link>
+      <link>https://legiahuyy.github.io/blog/en/posts/rfi-wrapper/</link>
       <pubDate>Wed, 24 Feb 2021 09:30:00 +1345</pubDate>
       
-      <guid>/posts/rfi-wrapper/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/posts/rfi-wrapper/</guid>
       <description>This is the first iteration of my CTF write-up series for the new year. Today we will be solving one of my university&amp;rsquo;s initial challenges. The task is simple itself but I want to show you the mindset of how I play the game.
 Fingerprinting Manual testing The absolute first thing I do when encountering any web challenge, is to actually visit the webpage and click on everything, fill out every text boxes.</description>
       <content>&lt;p&gt;This is the first iteration of my CTF write-up series for the new year. Today we will be solving one of my university&amp;rsquo;s initial challenges. The task is simple itself but I want to show you the mindset of how I play the game.&lt;/p&gt;

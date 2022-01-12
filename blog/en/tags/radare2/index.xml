@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>radare2 on Yet, another infosec blog</title>
-    <link>/tags/radare2/</link>
+    <link>https://legiahuyy.github.io/blog/en/tags/radare2/</link>
     <description>Recent content in radare2 on Yet, another infosec blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 10 Jan 2022 09:30:00 +1345</lastBuildDate><atom:link href="/tags/radare2/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 10 Jan 2022 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/tags/radare2/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>PWN Journey: Part 2</title>
-      <link>/posts/pwns-2/</link>
+      <link>https://legiahuyy.github.io/blog/en/posts/pwns-2/</link>
       <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
       
-      <guid>/posts/pwns-2/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/posts/pwns-2/</guid>
       <description>&lt;p&gt;In this post, we will solve two pwn challenges from WhiteHat Play!10 and a customized one. We will also delve into details about most frequently encountered protection bits as well as bypass method for each.&lt;/p&gt;</description>
       <content>&lt;p&gt;In this post, we will solve two pwn challenges from WhiteHat Play!10 and a customized one. We will also delve into details about most frequently encountered protection bits as well as bypass method for each.&lt;/p&gt;
 &lt;p&gt;Anyway, I hope you have a good time reading.&lt;/p&gt;
@@ -630,10 +630,10 @@ print(p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;clean())
     
     <item>
       <title>PWN Journey: Part 1</title>
-      <link>/posts/pwns-1/</link>
+      <link>https://legiahuyy.github.io/blog/en/posts/pwns-1/</link>
       <pubDate>Wed, 29 Dec 2021 09:30:00 +1345</pubDate>
       
-      <guid>/posts/pwns-1/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/posts/pwns-1/</guid>
       <description>Foreword Greetings, this series of posts delves into a collection of pwnie solutions that I have been poking around for a while and finally have the time to publish it so that I could practice my writing and attempt to share some knowledge in such a way that could be helpful to others. Not to mention that I am also a rookie in this field, so take my words with a grain of salt and all critics/suggestions are welcome.</description>
       <content>&lt;h2 id=&#34;foreword&#34;&gt;Foreword&lt;/h2&gt;
 &lt;p&gt;Greetings, this series of posts delves into a collection of &lt;em&gt;pwnie&lt;/em&gt; solutions that I have been poking around for a while and finally have the time to publish it so that I could practice my writing and attempt to share some knowledge in such a way that could be helpful to others. Not to mention that I am also a rookie in this field, so take my words with a grain of salt and all critics/suggestions are welcome.&lt;/p&gt;

@@ -2,28 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>machine on Yet, another infosec blog</title>
-    <link>/tags/machine/</link>
+    <link>https://legiahuyy.github.io/blog/en/tags/machine/</link>
     <description>Recent content in machine on Yet, another infosec blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 10 Jan 2022 09:30:00 +1345</lastBuildDate><atom:link href="/tags/machine/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>HackTheBox: Secret</title>
-      <link>/posts/htb-secret/</link>
-      <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
-      
-      <guid>/posts/htb-secret/</guid>
-      <description>Enumeration </description>
-      <content>&lt;h2 id=&#34;enumeration&#34;&gt;Enumeration&lt;/h2&gt;
-</content>
-    </item>
-    
+    <lastBuildDate>Sun, 03 Oct 2021 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/tags/machine/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>HackTheBox: BountyHunter</title>
-      <link>/posts/htb-bountyhunter/</link>
+      <link>https://legiahuyy.github.io/blog/en/posts/htb-bountyhunter/</link>
       <pubDate>Sun, 03 Oct 2021 09:30:00 +1345</pubDate>
       
-      <guid>/posts/htb-bountyhunter/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/posts/htb-bountyhunter/</guid>
       <description>Today, we are delving into BountyHunter as another HackTheBox machine in our sidetrack series.
 I hope you have a nice weekend and without further ado, let us jump right in!
 Enumeration Nmap output ┌──(kali㉿kali)-[~/Desktop/HTB/Boxes/BountyHunter] └─$ cat nmap/BountyHunter.nmap # Nmap 7.91 scan initiated Sat Oct 2 22:12:07 2021 as: nmap -sS -sV -sC -p- -v -oA nmap/BountyHunter 10.10.11.100 Nmap scan report for 10.10.11.100 Host is up (0.048s latency). Not shown: 65533 closed ports PORT STATE SERVICE VERSION 22/tcp open ssh OpenSSH 8.</description>
@@ -205,10 +194,10 @@ __Ticket Code:__
     
     <item>
       <title>HackTheBox: Cap</title>
-      <link>/posts/htb-cap/</link>
+      <link>https://legiahuyy.github.io/blog/en/posts/htb-cap/</link>
       <pubDate>Fri, 01 Oct 2021 09:30:00 +1345</pubDate>
       
-      <guid>/posts/htb-cap/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/posts/htb-cap/</guid>
       <description>Hello everyone, while preparing chapters of the book Practical Reverse Engineering, I occasionally got bored and wanted to do something else to have my mind a reboot. That is the reason why we are here solving Cap - another HackTheBox easy machine.
 So yeah, hope you enjoy.
 Enumeration As usual, we wanted to start our enumeration step with nmap.

@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>miscs on Yet, another infosec blog</title>
-    <link>/tags/miscs/</link>
+    <link>https://legiahuyy.github.io/blog/en/tags/miscs/</link>
     <description>Recent content in miscs on Yet, another infosec blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 04 Jul 2021 09:30:00 +1345</lastBuildDate><atom:link href="/tags/miscs/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 04 Jul 2021 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/tags/miscs/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Update.txt</title>
-      <link>/posts/update-note/</link>
+      <link>https://legiahuyy.github.io/blog/en/posts/update-note/</link>
       <pubDate>Sun, 04 Jul 2021 09:30:00 +1345</pubDate>
       
-      <guid>/posts/update-note/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/posts/update-note/</guid>
       <description>Greetings everyone, it has been a few weeks since our last posts. You may (or may not) have already noticed, I changed the theme of our blog as this one looks more professional and less boring than the old Chirpy theme I had used. But the new theme switch is not the sole reason for this update.
 We all know that learning advanced English is an arduous journey, so recently I have read my colleagues&#39; writing tasks and, specifically, secret.</description>
       <content>&lt;p&gt;Greetings everyone, it has been a few weeks since our last posts. You may (or may not) have already noticed, I changed the theme of our blog as this one looks more professional and less boring than the old Chirpy theme I had used. But the new theme switch is not the sole reason for this update.&lt;/p&gt;

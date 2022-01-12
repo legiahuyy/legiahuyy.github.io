@@ -2,127 +2,127 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tags on Yet, another infosec blog</title>
-    <link>/tags/</link>
+    <link>https://legiahuyy.github.io/blog/en/tags/</link>
     <description>Recent content in Tags on Yet, another infosec blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 10 Jan 2022 09:30:00 +1345</lastBuildDate><atom:link href="/tags/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>hackthebox</title>
-      <link>/tags/hackthebox/</link>
-      <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
-      
-      <guid>/tags/hackthebox/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
-      <title>machine</title>
-      <link>/tags/machine/</link>
-      <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
-      
-      <guid>/tags/machine/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
-      <title>network</title>
-      <link>/tags/network/</link>
-      <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
-      
-      <guid>/tags/network/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
+    <lastBuildDate>Mon, 10 Jan 2022 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>pwn</title>
-      <link>/tags/pwn/</link>
+      <link>https://legiahuyy.github.io/blog/en/tags/pwn/</link>
       <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
       
-      <guid>/tags/pwn/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/tags/pwn/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>radare2</title>
-      <link>/tags/radare2/</link>
+      <link>https://legiahuyy.github.io/blog/en/tags/radare2/</link>
       <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
       
-      <guid>/tags/radare2/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/tags/radare2/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>write-up</title>
-      <link>/tags/write-up/</link>
+      <link>https://legiahuyy.github.io/blog/en/tags/write-up/</link>
       <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
       
-      <guid>/tags/write-up/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/tags/write-up/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>hackthebox</title>
+      <link>https://legiahuyy.github.io/blog/en/tags/hackthebox/</link>
+      <pubDate>Sun, 03 Oct 2021 09:30:00 +1345</pubDate>
+      
+      <guid>https://legiahuyy.github.io/blog/en/tags/hackthebox/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>machine</title>
+      <link>https://legiahuyy.github.io/blog/en/tags/machine/</link>
+      <pubDate>Sun, 03 Oct 2021 09:30:00 +1345</pubDate>
+      
+      <guid>https://legiahuyy.github.io/blog/en/tags/machine/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>network</title>
+      <link>https://legiahuyy.github.io/blog/en/tags/network/</link>
+      <pubDate>Sun, 03 Oct 2021 09:30:00 +1345</pubDate>
+      
+      <guid>https://legiahuyy.github.io/blog/en/tags/network/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>On-going</title>
-      <link>/tags/on-going/</link>
+      <link>https://legiahuyy.github.io/blog/en/tags/on-going/</link>
       <pubDate>Mon, 05 Jul 2021 09:30:00 +1345</pubDate>
       
-      <guid>/tags/on-going/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/tags/on-going/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>reverse engineer</title>
-      <link>/tags/reverse-engineer/</link>
+      <link>https://legiahuyy.github.io/blog/en/tags/reverse-engineer/</link>
       <pubDate>Mon, 05 Jul 2021 09:30:00 +1345</pubDate>
       
-      <guid>/tags/reverse-engineer/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/tags/reverse-engineer/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>miscs</title>
-      <link>/tags/miscs/</link>
+      <link>https://legiahuyy.github.io/blog/en/tags/miscs/</link>
       <pubDate>Sun, 04 Jul 2021 09:30:00 +1345</pubDate>
       
-      <guid>/tags/miscs/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/tags/miscs/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>kma</title>
-      <link>/tags/kma/</link>
+      <link>https://legiahuyy.github.io/blog/en/tags/kma/</link>
       <pubDate>Sun, 28 Mar 2021 09:30:00 +1345</pubDate>
       
-      <guid>/tags/kma/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/tags/kma/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>web-pentest</title>
-      <link>/tags/web-pentest/</link>
+      <link>https://legiahuyy.github.io/blog/en/tags/web-pentest/</link>
       <pubDate>Wed, 24 Feb 2021 09:30:00 +1345</pubDate>
       
-      <guid>/tags/web-pentest/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/tags/web-pentest/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>thoughts</title>
-      <link>/tags/thoughts/</link>
+      <link>https://legiahuyy.github.io/blog/en/tags/thoughts/</link>
       <pubDate>Tue, 24 Nov 2020 10:36:22 +1345</pubDate>
       
-      <guid>/tags/thoughts/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/tags/thoughts/</guid>
       <description></description>
       <content></content>
     </item>

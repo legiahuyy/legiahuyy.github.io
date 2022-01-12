@@ -2,105 +2,102 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>/about/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/about/</loc>
     <lastmod>2022-01-11T10:36:22+13:45</lastmod>
   </url><url>
-    <loc>/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/</loc>
     <lastmod>2022-01-10T09:30:00+13:45</lastmod>
     <priority>0</priority>
   </url><url>
-    <loc>/categories/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/categories/</loc>
     <lastmod>2022-01-10T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/tags/hackthebox/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/posts/</loc>
     <lastmod>2022-01-10T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/categories/hackthebox/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/tags/pwn/</loc>
     <lastmod>2022-01-10T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/posts/htb-secret/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/categories/pwn-journey/</loc>
     <lastmod>2022-01-10T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/tags/machine/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/posts/pwns-2/</loc>
     <lastmod>2022-01-10T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/tags/network/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/tags/radare2/</loc>
     <lastmod>2022-01-10T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/posts/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/tags/</loc>
     <lastmod>2022-01-10T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/tags/pwn/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/tags/write-up/</loc>
     <lastmod>2022-01-10T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/categories/pwn-journey/</loc>
-    <lastmod>2022-01-10T09:30:00+13:45</lastmod>
-  </url><url>
-    <loc>/posts/pwns-2/</loc>
-    <lastmod>2022-01-10T09:30:00+13:45</lastmod>
-  </url><url>
-    <loc>/tags/radare2/</loc>
-    <lastmod>2022-01-10T09:30:00+13:45</lastmod>
-  </url><url>
-    <loc>/tags/</loc>
-    <lastmod>2022-01-10T09:30:00+13:45</lastmod>
-  </url><url>
-    <loc>/tags/write-up/</loc>
-    <lastmod>2022-01-10T09:30:00+13:45</lastmod>
-  </url><url>
-    <loc>/posts/pwns-1/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/posts/pwns-1/</loc>
     <lastmod>2021-12-29T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/posts/htb-bountyhunter/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/tags/hackthebox/</loc>
     <lastmod>2021-10-03T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/posts/htb-cap/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/categories/hackthebox/</loc>
+    <lastmod>2021-10-03T09:30:00+13:45</lastmod>
+  </url><url>
+    <loc>https://legiahuyy.github.io/blog/en/posts/htb-bountyhunter/</loc>
+    <lastmod>2021-10-03T09:30:00+13:45</lastmod>
+  </url><url>
+    <loc>https://legiahuyy.github.io/blog/en/tags/machine/</loc>
+    <lastmod>2021-10-03T09:30:00+13:45</lastmod>
+  </url><url>
+    <loc>https://legiahuyy.github.io/blog/en/tags/network/</loc>
+    <lastmod>2021-10-03T09:30:00+13:45</lastmod>
+  </url><url>
+    <loc>https://legiahuyy.github.io/blog/en/posts/htb-cap/</loc>
     <lastmod>2021-10-01T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/tags/on-going/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/tags/on-going/</loc>
     <lastmod>2021-07-05T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/categories/practical-reverse-engineering/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/categories/practical-reverse-engineering/</loc>
     <lastmod>2021-07-05T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/posts/pre-c1-e1/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/posts/pre-c1-e1/</loc>
     <lastmod>2021-07-05T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/tags/reverse-engineer/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/tags/reverse-engineer/</loc>
     <lastmod>2021-07-05T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/tags/miscs/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/tags/miscs/</loc>
     <lastmod>2021-07-04T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/categories/thoughts/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/categories/thoughts/</loc>
     <lastmod>2021-07-04T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/posts/update-note/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/posts/update-note/</loc>
     <lastmod>2021-07-04T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/posts/htb-armageddon/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/posts/htb-armageddon/</loc>
     <lastmod>2021-05-28T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/posts/ez-bof/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/posts/ez-bof/</loc>
     <lastmod>2021-03-28T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/tags/kma/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/tags/kma/</loc>
     <lastmod>2021-03-28T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/posts/rfi-wrapper/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/posts/rfi-wrapper/</loc>
     <lastmod>2021-02-24T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/tags/web-pentest/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/tags/web-pentest/</loc>
     <lastmod>2021-02-24T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/posts/readme/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/posts/readme/</loc>
     <lastmod>2020-11-24T10:36:22+13:45</lastmod>
   </url><url>
-    <loc>/tags/thoughts/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/tags/thoughts/</loc>
     <lastmod>2020-11-24T10:36:22+13:45</lastmod>
   </url><url>
-    <loc>/posts/htb-sharp/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/posts/htb-sharp/</loc>
   </url><url>
-    <loc>/posts/htb-thenotebook/</loc>
+    <loc>https://legiahuyy.github.io/blog/en/posts/htb-thenotebook/</loc>
   </url>
 </urlset>

@@ -2,28 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>network on Yet, another infosec blog</title>
-    <link>/tags/network/</link>
+    <link>https://legiahuyy.github.io/blog/en/tags/network/</link>
     <description>Recent content in network on Yet, another infosec blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 10 Jan 2022 09:30:00 +1345</lastBuildDate><atom:link href="/tags/network/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>HackTheBox: Secret</title>
-      <link>/posts/htb-secret/</link>
-      <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
-      
-      <guid>/posts/htb-secret/</guid>
-      <description>Enumeration </description>
-      <content>&lt;h2 id=&#34;enumeration&#34;&gt;Enumeration&lt;/h2&gt;
-</content>
-    </item>
-    
+    <lastBuildDate>Sun, 03 Oct 2021 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/tags/network/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>HackTheBox: BountyHunter</title>
-      <link>/posts/htb-bountyhunter/</link>
+      <link>https://legiahuyy.github.io/blog/en/posts/htb-bountyhunter/</link>
       <pubDate>Sun, 03 Oct 2021 09:30:00 +1345</pubDate>
       
-      <guid>/posts/htb-bountyhunter/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/posts/htb-bountyhunter/</guid>
       <description>Today, we are delving into BountyHunter as another HackTheBox machine in our sidetrack series.
 I hope you have a nice weekend and without further ado, let us jump right in!
 Enumeration Nmap output ┌──(kali㉿kali)-[~/Desktop/HTB/Boxes/BountyHunter] └─$ cat nmap/BountyHunter.nmap # Nmap 7.91 scan initiated Sat Oct 2 22:12:07 2021 as: nmap -sS -sV -sC -p- -v -oA nmap/BountyHunter 10.10.11.100 Nmap scan report for 10.10.11.100 Host is up (0.048s latency). Not shown: 65533 closed ports PORT STATE SERVICE VERSION 22/tcp open ssh OpenSSH 8.</description>
@@ -205,10 +194,10 @@ __Ticket Code:__
     
     <item>
       <title>HackTheBox: Cap</title>
-      <link>/posts/htb-cap/</link>
+      <link>https://legiahuyy.github.io/blog/en/posts/htb-cap/</link>
       <pubDate>Fri, 01 Oct 2021 09:30:00 +1345</pubDate>
       
-      <guid>/posts/htb-cap/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/posts/htb-cap/</guid>
       <description>Hello everyone, while preparing chapters of the book Practical Reverse Engineering, I occasionally got bored and wanted to do something else to have my mind a reboot. That is the reason why we are here solving Cap - another HackTheBox easy machine.
 So yeah, hope you enjoy.
 Enumeration As usual, we wanted to start our enumeration step with nmap.
@@ -278,10 +267,10 @@ Service detection performed. Please report any incorrect results at https://nmap
     
     <item>
       <title>HackTheBox: Armageddon</title>
-      <link>/posts/htb-armageddon/</link>
+      <link>https://legiahuyy.github.io/blog/en/posts/htb-armageddon/</link>
       <pubDate>Fri, 28 May 2021 09:30:00 +1345</pubDate>
       
-      <guid>/posts/htb-armageddon/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/posts/htb-armageddon/</guid>
       <description>This is another challenge on HackTheBox - Armageddon. Let&amp;rsquo;s get started.
 Enumeration Nmap We start by enumerating open ports and services on the target machine using nmap:
 ┌──(root💀kali)-[/home/kali/HackTheBox/Armageddon] └─# cat nmap/armageddon.nmap # Nmap 7.91 scan initiated Thu May 27 00:25:58 2021 as: nmap -sS -sC -sV -p- -oA nmap/armageddon -v 10.10.10.233 Nmap scan report for 10.10.10.233 Host is up (0.23s latency). Not shown: 65219 closed ports, 314 filtered ports PORT STATE SERVICE VERSION 22/tcp open ssh OpenSSH 7.</description>
@@ -452,10 +441,10 @@ $ sudo snap install poc.snap
     
     <item>
       <title>HackTheBox: Sharp</title>
-      <link>/posts/htb-sharp/</link>
+      <link>https://legiahuyy.github.io/blog/en/posts/htb-sharp/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>/posts/htb-sharp/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/posts/htb-sharp/</guid>
       <description>Hi, after a long time not posting anything on this blog because of my university workload. Let&amp;rsquo;s get back to our normal routine of pwning. Today, I will do a writeup of retired HackTheBox (HTB) machine - Sharp, which is rated 4.8 pts.
 For anyone who doesn&amp;rsquo;t know about HTB, it&amp;rsquo;s an infosec playground with a bunch of virtual machines which are vulnerable to exploit. HTB, in my point of view, is the most practical cyber security competition as many certificate authorities require completion of HTB-like target machines.</description>
       <content>&lt;p&gt;Hi, after a long time not posting anything on this blog because of my university workload. Let&amp;rsquo;s get back to our normal routine of pwning. Today, I will do a writeup of retired &lt;a href=&#34;https://www.hackthebox.eu/&#34;&gt;HackTheBox&lt;/a&gt; (HTB) machine - Sharp, which is rated 4.8 pts.&lt;/p&gt;
@@ -957,10 +946,10 @@ PS C:\Users\Administrator\Desktop&amp;gt;
     
     <item>
       <title>HackTheBox: The Notebook</title>
-      <link>/posts/htb-thenotebook/</link>
+      <link>https://legiahuyy.github.io/blog/en/posts/htb-thenotebook/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>/posts/htb-thenotebook/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/posts/htb-thenotebook/</guid>
       <description>Welcome back to our usual HackTheBox journey, for today medium rated target - The Notebook. In this blog post, we&amp;rsquo;ve managed to alter client-side JWT cookie, spawn our reverse shell then proceeded to achieve user&amp;rsquo;s SSH credentials and, subsequently, be able to privesc via a docker PoC.
 Enumeration The very initial step is to do a network scan using everyone&amp;rsquo;s favorite utility - nmap.
 ┌──(kali㉿kali)-[~/HackTheBox/Boxes/TheNotebook] └─$ sudo nmap -sV -sC -sS 10.</description>

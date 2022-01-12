@@ -2,47 +2,47 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Categories on Yet, another infosec blog</title>
-    <link>/categories/</link>
+    <link>https://legiahuyy.github.io/blog/en/categories/</link>
     <description>Recent content in Categories on Yet, another infosec blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 10 Jan 2022 09:30:00 +1345</lastBuildDate><atom:link href="/categories/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 10 Jan 2022 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/categories/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>hackthebox</title>
-      <link>/categories/hackthebox/</link>
+      <title>PWN Journey</title>
+      <link>https://legiahuyy.github.io/blog/en/categories/pwn-journey/</link>
       <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
       
-      <guid>/categories/hackthebox/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/categories/pwn-journey/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
-      <title>PWN Journey</title>
-      <link>/categories/pwn-journey/</link>
-      <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
+      <title>hackthebox</title>
+      <link>https://legiahuyy.github.io/blog/en/categories/hackthebox/</link>
+      <pubDate>Sun, 03 Oct 2021 09:30:00 +1345</pubDate>
       
-      <guid>/categories/pwn-journey/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/categories/hackthebox/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Practical Reverse Engineering</title>
-      <link>/categories/practical-reverse-engineering/</link>
+      <link>https://legiahuyy.github.io/blog/en/categories/practical-reverse-engineering/</link>
       <pubDate>Mon, 05 Jul 2021 09:30:00 +1345</pubDate>
       
-      <guid>/categories/practical-reverse-engineering/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/categories/practical-reverse-engineering/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
       <title>Thoughts</title>
-      <link>/categories/thoughts/</link>
+      <link>https://legiahuyy.github.io/blog/en/categories/thoughts/</link>
       <pubDate>Sun, 04 Jul 2021 09:30:00 +1345</pubDate>
       
-      <guid>/categories/thoughts/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/categories/thoughts/</guid>
       <description></description>
       <content></content>
     </item>
