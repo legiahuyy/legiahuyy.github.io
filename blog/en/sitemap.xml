@@ -12,6 +12,21 @@
     <loc>/categories/</loc>
     <lastmod>2022-01-10T09:30:00+13:45</lastmod>
   </url><url>
+    <loc>/tags/hackthebox/</loc>
+    <lastmod>2022-01-10T09:30:00+13:45</lastmod>
+  </url><url>
+    <loc>/categories/hackthebox/</loc>
+    <lastmod>2022-01-10T09:30:00+13:45</lastmod>
+  </url><url>
+    <loc>/posts/htb-secret/</loc>
+    <lastmod>2022-01-10T09:30:00+13:45</lastmod>
+  </url><url>
+    <loc>/tags/machine/</loc>
+    <lastmod>2022-01-10T09:30:00+13:45</lastmod>
+  </url><url>
+    <loc>/tags/network/</loc>
+    <lastmod>2022-01-10T09:30:00+13:45</lastmod>
+  </url><url>
     <loc>/posts/</loc>
     <lastmod>2022-01-10T09:30:00+13:45</lastmod>
   </url><url>
@@ -36,19 +51,7 @@
     <loc>/posts/pwns-1/</loc>
     <lastmod>2021-12-29T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>/tags/hackthebox/</loc>
-    <lastmod>2021-10-03T09:30:00+13:45</lastmod>
-  </url><url>
-    <loc>/categories/hackthebox/</loc>
-    <lastmod>2021-10-03T09:30:00+13:45</lastmod>
-  </url><url>
     <loc>/posts/htb-bountyhunter/</loc>
-    <lastmod>2021-10-03T09:30:00+13:45</lastmod>
-  </url><url>
-    <loc>/tags/machine/</loc>
-    <lastmod>2021-10-03T09:30:00+13:45</lastmod>
-  </url><url>
-    <loc>/tags/network/</loc>
     <lastmod>2021-10-03T09:30:00+13:45</lastmod>
   </url><url>
     <loc>/posts/htb-cap/</loc>

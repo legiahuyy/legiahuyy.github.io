@@ -6,7 +6,18 @@
     <description>Recent content in machine on Yet, another infosec blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 03 Oct 2021 09:30:00 +1345</lastBuildDate><atom:link href="/tags/machine/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 10 Jan 2022 09:30:00 +1345</lastBuildDate><atom:link href="/tags/machine/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>HackTheBox: Secret</title>
+      <link>/posts/htb-secret/</link>
+      <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
+      
+      <guid>/posts/htb-secret/</guid>
+      <description>Enumeration </description>
+      <content>&lt;h2 id=&#34;enumeration&#34;&gt;Enumeration&lt;/h2&gt;
+</content>
+    </item>
+    
     <item>
       <title>HackTheBox: BountyHunter</title>
       <link>/posts/htb-bountyhunter/</link>

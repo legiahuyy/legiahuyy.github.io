@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
   
-    <title>hackthebox :: Yet, another infosec blog</title>
+    <title>HackTheBox: Secret :: Yet, another infosec blog</title>
   
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="" />
+<meta name="description" content="Enumeration " />
 <meta name="keywords" content="infosec, pwn, ctf, challenges, hackthebox, reverse" />
 <meta name="robots" content="noodp" />
-<link rel="canonical" href="/tags/hackthebox/" />
+<link rel="canonical" href="/posts/htb-secret/" />
 
 
 
@@ -34,15 +34,15 @@
   
     <meta name="twitter:site" content="" />
   
-    <meta name="twitter:creator" content="" />
+    <meta name="twitter:creator" content="The Archivist" />
 
 
 
 <meta property="og:locale" content="en" />
-<meta property="og:type" content="website" />
-<meta property="og:title" content="hackthebox">
-<meta property="og:description" content="" />
-<meta property="og:url" content="/tags/hackthebox/" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="HackTheBox: Secret">
+<meta property="og:description" content="Enumeration " />
+<meta property="og:url" content="/posts/htb-secret/" />
 <meta property="og:site_name" content="Yet, another infosec blog" />
 
   
@@ -52,11 +52,13 @@
 <meta property="og:image:width" content="2048">
 <meta property="og:image:height" content="1024">
 
+  <meta property="article:section" content="hackthebox" />
+
+
+  <meta property="article:published_time" content="2022-01-10 09:30:00 &#43;1345 &#43;1345" />
 
 
 
-
-  <link href="/tags/hackthebox/index.xml" rel="alternate" type="application/rss+xml" title="Yet, another infosec blog" />
 
 
 
@@ -185,117 +187,68 @@
 
   <div class="content">
     
-  
-  <div class="posts">
+<div class="post">
+  <h1 class="post-title">
+    <a href="/posts/htb-secret/">HackTheBox: Secret</a></h1>
+  <div class="post-meta">
     
-      <div class="post on-list">
-        <h1 class="post-title">
-          <a href="/posts/htb-sharp/">HackTheBox: Sharp</a>
-        </h1>
-        <div class="post-meta">
-          <span class="post-date">
-            0001-01-01
-          </span>
-          
-            <span class="post-author">:: The Archivist</span>
-          
-        </div>
-
+      <span class="post-date">
+        2022-01-10
         
-          <span class="post-tags">
-            
-            #<a href="/tags/hackthebox/">hackthebox</a>&nbsp;
-            
-            #<a href="/tags/network/">network</a>&nbsp;
-            
-            #<a href="/tags/pwn/">pwn</a>&nbsp;
-            
-          </span>
-        
-
-        
-
-
-      
-        <div class="post-content">
-          
-          
-          Hi, after a long time not posting anything on this blog because of my university workload. Let&rsquo;s get back to our normal routine of pwning. Today, I will do a writeup of retired HackTheBox (HTB) machine - Sharp, which is rated 4.8 pts.
-For anyone who doesn&rsquo;t know about HTB, it&rsquo;s an infosec playground with a bunch of virtual machines which are vulnerable to exploit. HTB, in my point of view, is the most practical cyber security competition as many certificate authorities require completion of HTB-like target machines.
-          
-          
-        </div>
-
-        
-        <div>
-          <a class="read-more button"
-            href="/posts/htb-sharp/">Continue reading →</a>
-        </div>
-        
-      </div>
-    
-      <div class="post on-list">
-        <h1 class="post-title">
-          <a href="/posts/htb-thenotebook/">HackTheBox: The Notebook</a>
-        </h1>
-        <div class="post-meta">
-          <span class="post-date">
-            0001-01-01
-          </span>
-          
-            <span class="post-author">:: The Archivist</span>
-          
-        </div>
-
-        
-          <span class="post-tags">
-            
-            #<a href="/tags/hackthebox/">hackthebox</a>&nbsp;
-            
-            #<a href="/tags/network/">network</a>&nbsp;
-            
-            #<a href="/tags/pwn/">pwn</a>&nbsp;
-            
-          </span>
-        
-
-        
-
-
-      
-        <div class="post-content">
-          
-          
-          Welcome back to our usual HackTheBox journey, for today medium rated target - The Notebook. In this blog post, we&rsquo;ve managed to alter client-side JWT cookie, spawn our reverse shell then proceeded to achieve user&rsquo;s SSH credentials and, subsequently, be able to privesc via a docker PoC.
-Enumeration The very initial step is to do a network scan using everyone&rsquo;s favorite utility - nmap.
-┌──(kali㉿kali)-[~/HackTheBox/Boxes/TheNotebook] └─$ sudo nmap -sV -sC -sS 10.
-          
-          
-        </div>
-
-        
-        <div>
-          <a class="read-more button"
-            href="/posts/htb-thenotebook/">Continue reading →</a>
-        </div>
-        
-      </div>
-    
-    <div class="pagination">
-  <div class="pagination__buttons">
-    
-      <span class="button previous">
-        <a href="/tags/hackthebox/">
-          <span class="button__icon">←</span>
-          <span class="button__text">Newer posts</span>
-        </a>
       </span>
     
     
+      <span class="post-author">:: The Archivist</span>
+    
+    
   </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="/tags/hackthebox/">hackthebox</a>&nbsp;
+    
+    #<a href="/tags/network/">network</a>&nbsp;
+    
+    #<a href="/tags/machine/">machine</a>&nbsp;
+    
+  </span>
+  
+  
+
+
+  
+
+  <div class="post-content"><div>
+        <h2 id="enumeration">Enumeration<a href="#enumeration" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        
+        <span class="button next">
+            <a href="/posts/pwns-2/">
+                <span class="button__text">PWN Journey: Part 2</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
 </div>
 
-  </div>
+  
+
+  
+
+</div>
 
   </div>
 

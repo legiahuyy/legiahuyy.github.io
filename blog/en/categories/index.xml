@@ -8,21 +8,21 @@
     <language>en-us</language>
     <lastBuildDate>Mon, 10 Jan 2022 09:30:00 +1345</lastBuildDate><atom:link href="/categories/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>PWN Journey</title>
-      <link>/categories/pwn-journey/</link>
+      <title>hackthebox</title>
+      <link>/categories/hackthebox/</link>
       <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
       
-      <guid>/categories/pwn-journey/</guid>
+      <guid>/categories/hackthebox/</guid>
       <description></description>
       <content></content>
     </item>
     
     <item>
-      <title>hackthebox</title>
-      <link>/categories/hackthebox/</link>
-      <pubDate>Sun, 03 Oct 2021 09:30:00 +1345</pubDate>
+      <title>PWN Journey</title>
+      <link>/categories/pwn-journey/</link>
+      <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
       
-      <guid>/categories/hackthebox/</guid>
+      <guid>/categories/pwn-journey/</guid>
       <description></description>
       <content></content>
     </item>
