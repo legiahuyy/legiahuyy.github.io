@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>PRE Solutions Series: First Chapter :: Yet, another infosec blog</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="As promised, this is the beginning of our solutions for the book Practical Reverse Engineering I had mentioned earlier. The utmost objective is to solve and provide concrete explanations for each topic.
+The target audiences are believed to:
+ Be familiar with basic mid-level programming language Have at least a fundamental understanding of computer architecture (CPU, RAM, etc.) Be determined to learn and do exercises in the book  And please be noticed that all of these solutions here are explained in my own comprehension and experience as there may have been some miscalculations and inaccuracies therein; hence, readers are recommended to review and reproduce these solutions if possible." />
+<meta name="keywords" content="infosec, pwn, ctf, challenges, hackthebox, reverse" />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://legiahuyy.github.io/blog/en/posts/pre-c1-e1/" />
+
+
+
+
+<link rel="stylesheet" href="https://legiahuyy.github.io/blog/en/assets/style.css">
+
+  <link rel="stylesheet" href="https://legiahuyy.github.io/blog/en/assets/green.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://legiahuyy.github.io/blog/en/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://legiahuyy.github.io/blog/en/img/favicon/green.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="The Archivist" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="PRE Solutions Series: First Chapter">
+<meta property="og:description" content="As promised, this is the beginning of our solutions for the book Practical Reverse Engineering I had mentioned earlier. The utmost objective is to solve and provide concrete explanations for each topic.
+The target audiences are believed to:
+ Be familiar with basic mid-level programming language Have at least a fundamental understanding of computer architecture (CPU, RAM, etc.) Be determined to learn and do exercises in the book  And please be noticed that all of these solutions here are explained in my own comprehension and experience as there may have been some miscalculations and inaccuracies therein; hence, readers are recommended to review and reproduce these solutions if possible." />
+<meta property="og:url" content="https://legiahuyy.github.io/blog/en/posts/pre-c1-e1/" />
+<meta property="og:site_name" content="Yet, another infosec blog" />
+
+  
+    <meta property="og:image" content="https://legiahuyy.github.io/blog/en/img/favicon/green.png">
+  
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+  <meta property="article:section" content="Practical Reverse Engineering" />
+
+
+  <meta property="article:published_time" content="2021-07-05 09:30:00 &#43;1345 &#43;1345" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="green">
+
+
+<div class="container center headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/blog/en/">
+  <div class="logo">
+    <style>
+      .blink {
+        animation: blinker 1s linear infinite;
+        color: red!important;
+}
+.logo_anchor
+{
+  color: blue!important;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+    </style>
+    <div class="logo_anchor">
+      ./&ThinSpace; 
+    </div>
+      Archivist
+    <div class="blink"> # </div> 
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/blog/en/posts">1.Posts</a></li>
+        
+      
+        
+          <li><a href="/blog/en/categories">2.Categories</a></li>
+        
+      
+        
+          <li><a href="/blog/en/tags">3.Tags</a></li>
+        
+      
+        
+          <li><a href="/blog/en/about">4.About</a></li>
+        
+      
+      
+        <ul class="menu__sub-inner">
+          <li class="menu__sub-inner-more-trigger">More ▾</li>
+
+          <ul class="menu__sub-inner-more hidden">
+            
+              
+                <li><a href="/blog/en/sitemap.xml">RSS</a></li>
+              
+            
+              
+                <li><a href="https://buymeacoffee.com/7Bkc3SH">Support</a></li>
+              
+            
+          </ul>
+        </ul>
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/blog/en/posts">1.Posts</a></li>
+      
+    
+      
+        <li><a href="/blog/en/categories">2.Categories</a></li>
+      
+    
+      
+        <li><a href="/blog/en/tags">3.Tags</a></li>
+      
+    
+      
+        <li><a href="/blog/en/about">4.About</a></li>
+      
+    
+      
+        <li><a href="/blog/en/sitemap.xml">RSS</a></li>
+      
+    
+      
+        <li><a href="https://buymeacoffee.com/7Bkc3SH">Support</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://legiahuyy.github.io/blog/en/posts/pre-c1-e1/">PRE Solutions Series: First Chapter</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2021-07-05
+        
+      </span>
+    
+    
+      <span class="post-author">:: The Archivist</span>
+    
+    
+      <span class="post-reading-time">:: 5 min read (1057 words)</span>
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://legiahuyy.github.io/blog/en/tags/reverse-engineer/">reverse engineer</a>&nbsp;
+    
+    #<a href="https://legiahuyy.github.io/blog/en/tags/on-going/">On-going</a>&nbsp;
+    
+  </span>
+  
+  
+
+
+  
+    <div class="table-of-contents">
+      <h2>
+        
+          Table of Contents
+        
+      </h2>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#basic-concepts">Basic concepts</a>
+      <ul>
+        <li><a href="#general-purpose-registers">General Purpose Registers</a></li>
+        <li><a href="#data-types">Data types</a></li>
+        <li><a href="#calling-conventions">Calling conventions</a></li>
+      </ul>
+    </li>
+    <li><a href="#exercise-1---page-11">Exercise 1 - Page 11</a>
+      <ul>
+        <li><a href="#snippet-walkthrough">Snippet walkthrough</a></li>
+        <li><a href="#pseudo-c-code">Pseudo-C code</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+    </div>
+  
+
+  <div class="post-content"><div>
+        <p>As promised, this is the beginning of our solutions for the book <em>Practical Reverse Engineering</em> I had mentioned earlier. The utmost objective is to solve and provide concrete explanations for each topic.</p>
+<p>The target audiences are believed to:</p>
+<ul>
+<li>Be familiar with basic mid-level programming language</li>
+<li>Have at least a fundamental understanding of computer architecture (CPU, RAM, etc.)</li>
+<li>Be determined to learn and do exercises in the book</li>
+</ul>
+<p>And please be noticed that all of these solutions here are explained in <em>my own comprehension and experience</em> as there may have been some miscalculations and inaccuracies therein; hence, readers are recommended to review and reproduce these solutions if possible.</p>
+<p>Without further ado, I hope you enjoy the post.</p>
+<h2 id="basic-concepts">Basic concepts<a href="#basic-concepts" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Before going any deeper, we have to understand initial concepts about registers, data types, and calling conventions. The book has already covered these definitions in a much more detailed version; it is nonetheless worth going through the vital parts again.</p>
+<p>The explanations will be provided in x86 flavor first, then in x64 or ARM to make it easier for beginners.</p>
+<h3 id="general-purpose-registers">General Purpose Registers<a href="#general-purpose-registers" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>In protected mode, where virtual memory and paging are supported, the x86 architecture has eight 32-bit general-purpose-registers (GPRs): <code>EAX, EBX, EDX, ECX, EDI, ESI, EBP, ESP</code>. And some can be further divided into 8- and 16-bit registers such as <code>AX, AL, SI, DI,...</code>.</p>
+<p>The following table presents common GPRs and their general usages:</p>
+<table>
+<thead>
+<tr>
+<th>Register</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ECX</td>
+<td>Loop counter</td>
+</tr>
+<tr>
+<td>EDI</td>
+<td>String-destination operations</td>
+</tr>
+<tr>
+<td>ESI</td>
+<td>String-source operations</td>
+</tr>
+<tr>
+<td>EBP</td>
+<td>Base frame pointer</td>
+</tr>
+<tr>
+<td>ESP</td>
+<td>Stack pointer</td>
+</tr>
+<tr>
+<td>EAX, EBX, EDX</td>
+<td>Computing operations or storing data</td>
+</tr>
+</tbody>
+</table>
+<h3 id="data-types">Data types<a href="#data-types" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>As you may already know,  there are common data types such as <code>int</code>, <code>unsigned char</code>, <code>long</code>, or variable classifications in general. Each of them has a specific size in the memory, which we can evaluate using the <code>sizeof</code> operator (ex. <code>sizeof(int) results in 4</code>). This is also applied to our assembly registers without any significant difference.</p>
+<table>
+<thead>
+<tr>
+<th>Data-type</th>
+<th>Size</th>
+<th>Register</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Byte</td>
+<td>8 bits</td>
+<td>AL, CL, BL</td>
+</tr>
+<tr>
+<td>Word</td>
+<td>16 bits</td>
+<td>AX, BX, CX</td>
+</tr>
+<tr>
+<td>Double Word</td>
+<td>32 bits</td>
+<td>EAX, EBX, ECX</td>
+</tr>
+<tr>
+<td>Quad Word</td>
+<td>64 bits</td>
+<td>EDX:EAX</td>
+</tr>
+</tbody>
+</table>
+<p>Speaking in x86, <code>Qword</code> is not available on this architecture but it can combine two 32-bit registers, usually <code>EDX:EAX</code>, to contain a 64-bit value in some scenarios.</p>
+<h3 id="calling-conventions">Calling conventions<a href="#calling-conventions" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>In C/C++, we have seen some common calling conventions: <code>__cdecl</code>, <code>__stdcall</code> or <code>__fastcall</code>. These so-called conventions are multiple sets of rules dictating how function calls work at the machine level. For example, should parameters be passed through the stack or registers? And should they be passed in left-to-right or right-to-left order?</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>CDECL</th>
+<th>STDCALL</th>
+<th>FASTCALL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Parameters</td>
+<td>right-to-left</td>
+<td>right-to-left</td>
+<td>right-to-left</td>
+</tr>
+<tr>
+<td>Stack</td>
+<td>Caller must clean up the stack after call</td>
+<td>Callee must clean up the stack after call</td>
+<td>Besides the first two parameters, all are on the stack.</td>
+</tr>
+<tr>
+<td>Return</td>
+<td>Stored in EAX</td>
+<td>Stored in EAX</td>
+<td>Stored in EAX</td>
+</tr>
+</tbody>
+</table>
+<h2 id="exercise-1---page-11">Exercise 1 - Page 11<a href="#exercise-1---page-11" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Below is our assignment.</p>
+<blockquote>
+<p>This function uses a combination SCAS and STOS to do its work. First, explain what is the type of <code>[EBP+8]</code> and <code>[EBP+C]</code> in line 1 and 8, respectively. Next explain what this snippet does.</p>
+</blockquote>
+<pre tabindex="0"><code>01: 8B 7D 08    mov edi, [ebp+8]
+02: 8B D7       mov edx, edi
+03: 33 C0       xor eax, eax
+04: 83 C9 FF    or ecx, 0FFFFFFFFh
+05: F2 AE       repne scasb
+06: 83 C1 02    add ecx, 2
+07: F7 D9       neg ecx
+08: 8A 45 0C    mov al, [ebp+0Ch]
+09: 8B AA       mov edi, edx
+10: F3 AA       rep stosb
+11: 8B C2       mov eax, edx
+</code></pre><p><code>[ebp+8]</code> and <code>[ebp+0C]</code> are the first and second parameters in the code snippet, respectively. It is assured because the convention will put our parameters on the stack before the <code>CALL</code> instruction is executed.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-07-05-PRE-C1/stack.png" alt="Function stack"></p>
+<p>The types of <code>[ebp+8]</code> and <code>[ebp+C]</code> are most likely to be determined by the destination registers. In line 1, it is shown that the first parameter <code>[ebp+8]</code> is stored in <code>EDI</code>, which is commonly used in string operations and yet in line 8, the 8-bit register <code>AL</code> stores our second parameter<code>[ebp+C]</code> as a single byte value, ergo:</p>
+<ul>
+<li><code>[ebp+8]</code> is of type <code>char*</code> or null-terminated string</li>
+<li><code>[ebp+C]</code> is of type <code>char</code> or a single byte letter</li>
+</ul>
+<h3 id="snippet-walkthrough">Snippet walkthrough<a href="#snippet-walkthrough" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p><code>01: 8B 7D 08    mov edi, [ebp+8]</code></p>
+<p>Simply copy the first parameter into <code>EDI</code> from the stack.</p>
+<p><code>02: 8B D7       mov edx, edi</code></p>
+<p>Make a copy of <code>EDI</code> into <code>EDX</code>.</p>
+<p><code>03: 33 C0       xor eax, eax</code></p>
+<p>This operation sets <code>EAX</code> to zero.</p>
+<p><code>04: 83 C9 FF    or ecx, 0FFFFFFFFh</code></p>
+<p>Sets <code>ECX</code> to <code>0xFFFFFFFF</code> or, basically, <code>-1</code> in decimal.</p>
+<p><code>05: F2 AE       repne scasb</code></p>
+<p><code>REPNE SCASB</code> instruction repeatedly scans and compares the byte of the accumulator (i.e. <code>EAX</code>) against the present value pointed at by <code>EDI</code>. It also decreases the counter <code>ECX</code> and increases <code>EDI</code> by one each in comparison.</p>
+<p>In simple terms, the mentioned instruction searches for the <code>NUL</code> character in our string buffer. Please do remember that <code>ECX</code> contains the length of our string plus two (incl. the <code>NUL</code> byte and an uninitialized/unknown element after it) in negative form. For instance, if our string was 100 characters in length, <code>ECX</code> would be <code>-102</code>.</p>
+<p><code>06: 83 C1 02    add ecx, 2</code></p>
+<p>Add 2 to <code>ECX</code> and thus equal to the length of our string in the negative (incl. the <code>NUL</code> character).</p>
+<p><code>07: F7 D9       neg ecx</code></p>
+<p>Negates the value of <code>ECX</code>, so it is two&rsquo;s complement negation. <code>ECX = -(-100) = 100</code>.</p>
+<p><code>08: 8A 45 0C    mov al, [ebp+0Ch]</code></p>
+<p>Copy the second parameter to <code>AL</code> register.</p>
+<p><code>09: 8B AA       mov edi, edx</code></p>
+<p>As <code>EDI</code> was modified (increased in line 5), thereafter the register no longer points at the string buffer. Thus, this resets <code>EDI</code> with the copied version of itself, <code>EDX</code>, in line 2 so that it can be used again in the following line.</p>
+<p><code>10: F3 AA       rep stosb</code></p>
+<p><code>STOSB</code> is mostly the same as <code>SCASB</code> except that it writes the value of the accumulator (i.e. <code>AL</code>), repeatedly <code>ECX</code> times, to <code>EDI</code>. On that account, line 10 instruction replaces our entire buffer with the value of the second parameter.</p>
+<p><code>11: 8B C2       mov eax, edx</code></p>
+<p><code>EAX</code> is now holding the address of our modified string buffer.</p>
+<h3 id="pseudo-c-code">Pseudo-C code<a href="#pseudo-c-code" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>The following snippet demonstrates the function.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++"><span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">exercise1_page11</span>(<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span> param1, <span style="color:#66d9ef">char</span> param2) 
+{
+  <span style="color:#75715e">// get the length of param1
+</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">int</span> len <span style="color:#f92672">=</span> strlen(param1);
+  <span style="color:#75715e">// replace each character in the buffer with param2
+</span><span style="color:#75715e"></span>  memset(param1, param2, len);
+  <span style="color:#66d9ef">return</span> param1;
+}
+</code></pre></div>
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        <span class="button previous">
+            <a href="https://legiahuyy.github.io/blog/en/posts/htb-cap/">
+                <span class="button__icon">←</span>
+                <span class="button__text">HackTheBox: Cap</span>
+            </a>
+        </span>
+        
+        
+        <span class="button next">
+            <a href="https://legiahuyy.github.io/blog/en/posts/update-note/">
+                <span class="button__text">Update.txt</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright copyright--user">
+        <span>© 2022 The Archivist</a>.</span>
+    
+        <span>All posts are licensed under <a href="https://creativecommons.org/licenses/by/4.0/legalcode">CC BY 4.0</a>.</span>
+      </div>
+  </div>
+</footer>
+
+<script src="https://legiahuyy.github.io/blog/en/assets/main.js"></script>
+<script src="https://legiahuyy.github.io/blog/en/assets/prism.js"></script>
+
+
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.0.6/medium-zoom.min.js" integrity="sha512-N9IJRoc3LaP3NDoiGkcPa4gG94kapGpaA5Zq9/Dr04uf5TbLFU5q0o8AbRhLKUUlp8QFS2u7S+Yti0U7QtuZvQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script>
+const images = Array.from(document.querySelectorAll(".post-content img"));
+images.forEach(img => {
+  mediumZoom(img, {
+    margin: 0,  
+    background: '#222129',
+    scrollOffset: 40,  
+    container: null,  
+    template: null  
+  });
+});
+</script>
+
+
+  
+</div>
+
+</body>
+</html>

