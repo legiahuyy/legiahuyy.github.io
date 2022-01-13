@@ -6,26 +6,28 @@
   
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Enumeration " />
+<meta name="description" content="It has been a long time since our last HackTheBox write-up, so today we will get into a two and a half months old machine - Secret
+Enumeration Network scan As usual, nmap should provide us an elaborated report on the target&amp;rsquo;s network.
+┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret] └─$ nmap -sV -sC 10.10.11.120 -v -oA ./nmap/Secret ┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret] └─$ cat ./nmap/Secret.nmap # Nmap 7.92 scan initiated Wed Jan 12 21:44:12 2022 as: nmap -sV -sC -v -oA ." />
 <meta name="keywords" content="infosec, pwn, ctf, challenges, hackthebox, reverse" />
 <meta name="robots" content="noodp" />
-<link rel="canonical" href="/posts/htb-secret/" />
+<link rel="canonical" href="https://legiahuyy.github.io/blog/en/posts/htb-secret/" />
 
 
 
 
-<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="https://legiahuyy.github.io/blog/en/assets/style.css">
 
-  <link rel="stylesheet" href="/assets/green.css">
-
-
+  <link rel="stylesheet" href="https://legiahuyy.github.io/blog/en/assets/green.css">
 
 
 
 
-<link rel="apple-touch-icon" href="/img/apple-touch-icon-192x192.png">
 
-  <link rel="shortcut icon" href="/img/favicon/green.png">
+
+<link rel="apple-touch-icon" href="https://legiahuyy.github.io/blog/en/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://legiahuyy.github.io/blog/en/img/favicon/green.png">
 
 
 
@@ -41,13 +43,13 @@
 <meta property="og:locale" content="en" />
 <meta property="og:type" content="article" />
 <meta property="og:title" content="HackTheBox: Secret">
-<meta property="og:description" content="Enumeration " />
-<meta property="og:url" content="/posts/htb-secret/" />
+<meta property="og:description" content="It has been a long time since our last HackTheBox write-up, so today we will get into a two and a half months old machine - Secret
+Enumeration Network scan As usual, nmap should provide us an elaborated report on the target&amp;rsquo;s network.
+┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret] └─$ nmap -sV -sC 10.10.11.120 -v -oA ./nmap/Secret ┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret] └─$ cat ./nmap/Secret.nmap # Nmap 7.92 scan initiated Wed Jan 12 21:44:12 2022 as: nmap -sV -sC -v -oA ." />
+<meta property="og:url" content="https://legiahuyy.github.io/blog/en/posts/htb-secret/" />
 <meta property="og:site_name" content="Yet, another infosec blog" />
 
-  
-    <meta property="og:image" content="/img/favicon/green.png">
-  
+  <meta property="og:image" content="D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-13_09-38.png">
 
 <meta property="og:image:width" content="2048">
 <meta property="og:image:height" content="1024">
@@ -55,7 +57,7 @@
   <meta property="article:section" content="hackthebox" />
 
 
-  <meta property="article:published_time" content="2022-01-10 09:30:00 &#43;1345 &#43;1345" />
+  <meta property="article:published_time" content="2022-01-13 09:30:00 &#43;1345 &#43;1345" />
 
 
 
@@ -77,7 +79,7 @@
   <header class="header">
   <div class="header__inner">
     <div class="header__logo">
-      <a href="/">
+      <a href="/blog/en/">
   <div class="logo">
     <style>
       .blink {
@@ -114,19 +116,19 @@
     
       
         
-          <li><a href="/posts">1.Posts</a></li>
+          <li><a href="/blog/en/posts">1.Posts</a></li>
         
       
         
-          <li><a href="/categories">2.Categories</a></li>
+          <li><a href="/blog/en/categories">2.Categories</a></li>
         
       
         
-          <li><a href="/tags">3.Tags</a></li>
+          <li><a href="/blog/en/tags">3.Tags</a></li>
         
       
         
-          <li><a href="/about">4.About</a></li>
+          <li><a href="/blog/en/about">4.About</a></li>
         
       
       
@@ -136,7 +138,7 @@
           <ul class="menu__sub-inner-more hidden">
             
               
-                <li><a href="/index.xml">RSS</a></li>
+                <li><a href="/blog/en/sitemap.xml">RSS</a></li>
               
             
               
@@ -154,23 +156,23 @@
   <ul class="menu__inner menu__inner--mobile">
     
       
-        <li><a href="/posts">1.Posts</a></li>
+        <li><a href="/blog/en/posts">1.Posts</a></li>
       
     
       
-        <li><a href="/categories">2.Categories</a></li>
+        <li><a href="/blog/en/categories">2.Categories</a></li>
       
     
       
-        <li><a href="/tags">3.Tags</a></li>
+        <li><a href="/blog/en/tags">3.Tags</a></li>
       
     
       
-        <li><a href="/about">4.About</a></li>
+        <li><a href="/blog/en/about">4.About</a></li>
       
     
       
-        <li><a href="/index.xml">RSS</a></li>
+        <li><a href="/blog/en/sitemap.xml">RSS</a></li>
       
     
       
@@ -189,11 +191,11 @@
     
 <div class="post">
   <h1 class="post-title">
-    <a href="/posts/htb-secret/">HackTheBox: Secret</a></h1>
+    <a href="https://legiahuyy.github.io/blog/en/posts/htb-secret/">HackTheBox: Secret</a></h1>
   <div class="post-meta">
     
       <span class="post-date">
-        2022-01-10
+        2022-01-13
         
       </span>
     
@@ -201,26 +203,88 @@
       <span class="post-author">:: The Archivist</span>
     
     
+      <span class="post-reading-time">:: 2 min read (297 words)</span>
+    
   </div>
 
   
   <span class="post-tags">
     
-    #<a href="/tags/hackthebox/">hackthebox</a>&nbsp;
+    #<a href="https://legiahuyy.github.io/blog/en/tags/hackthebox/">hackthebox</a>&nbsp;
     
-    #<a href="/tags/network/">network</a>&nbsp;
+    #<a href="https://legiahuyy.github.io/blog/en/tags/network/">network</a>&nbsp;
     
-    #<a href="/tags/machine/">machine</a>&nbsp;
+    #<a href="https://legiahuyy.github.io/blog/en/tags/machine/">machine</a>&nbsp;
     
   </span>
   
   
+  <img src="#ZgotmplZ"
+    class="post-cover"
+    alt="HackTheBox: Secret"
+    title="Cover Image" />
 
 
   
+    <div class="table-of-contents">
+      <h2>
+        
+          Table of Contents
+        
+      </h2>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#enumeration">Enumeration</a>
+      <ul>
+        <li><a href="#network-scan">Network scan</a></li>
+        <li><a href="#web-server">Web-server</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+    </div>
+  
 
   <div class="post-content"><div>
-        <h2 id="enumeration">Enumeration<a href="#enumeration" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+        <p>It has been a long time since our last HackTheBox write-up, so today we will get into a two and a half months old machine - Secret</p>
+<h2 id="enumeration">Enumeration<a href="#enumeration" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<h3 id="network-scan">Network scan<a href="#network-scan" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>As usual, <code>nmap</code> should provide us an elaborated report on the target&rsquo;s network.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌──<span style="color:#f92672">(</span>legiahuyy㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/HTB/Boxes/Secret<span style="color:#f92672">]</span>
+└─$ nmap -sV -sC 10.10.11.120 -v -oA ./nmap/Secret
+
+┌──<span style="color:#f92672">(</span>legiahuyy㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/HTB/Boxes/Secret<span style="color:#f92672">]</span>
+└─$ cat ./nmap/Secret.nmap         
+<span style="color:#75715e"># Nmap 7.92 scan initiated Wed Jan 12 21:44:12 2022 as: nmap -sV -sC -v -oA ./nmap/Secret 10.10.11.120</span>
+Nmap scan report <span style="color:#66d9ef">for</span> 10.10.11.120
+Host is up <span style="color:#f92672">(</span>0.026s latency<span style="color:#f92672">)</span>.
+Not shown: <span style="color:#ae81ff">997</span> closed tcp ports <span style="color:#f92672">(</span>conn-refused<span style="color:#f92672">)</span>
+PORT     STATE SERVICE VERSION
+22/tcp   open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.3 <span style="color:#f92672">(</span>Ubuntu Linux; protocol 2.0<span style="color:#f92672">)</span>
+| ssh-hostkey: 
+|   <span style="color:#ae81ff">3072</span> 97:af:61:44:10:89:b9:53:f0:80:3f:d7:19:b1:e2:9c <span style="color:#f92672">(</span>RSA<span style="color:#f92672">)</span>
+|   <span style="color:#ae81ff">256</span> 95:ed:65:8d:cd:08:2b:55:dd:17:51:31:1e:3e:18:12 <span style="color:#f92672">(</span>ECDSA<span style="color:#f92672">)</span>
+|_  <span style="color:#ae81ff">256</span> 33:7b:c1:71:d3:33:0f:92:4e:83:5a:1f:52:02:93:5e <span style="color:#f92672">(</span>ED25519<span style="color:#f92672">)</span>
+80/tcp   open  http    nginx 1.18.0 <span style="color:#f92672">(</span>Ubuntu<span style="color:#f92672">)</span>
+|_http-title: DUMB Docs
+| http-methods: 
+|_  Supported Methods: GET HEAD POST OPTIONS
+|_http-server-header: nginx/1.18.0 <span style="color:#f92672">(</span>Ubuntu<span style="color:#f92672">)</span>
+3000/tcp open  http    Node.js <span style="color:#f92672">(</span>Express middleware<span style="color:#f92672">)</span>
+|_http-title: DUMB Docs
+| http-methods: 
+|_  Supported Methods: GET HEAD POST OPTIONS
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Read data files from: /usr/bin/../share/nmap
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+<span style="color:#75715e"># Nmap done at Wed Jan 12 21:44:38 2022 -- 1 IP address (1 host up) scanned in 26.16 seconds</span>
+
+</code></pre></div><p>Based on the output from NMAP, the web-server and a NodeJS service is running on port <code>80</code> and <code>3000</code>, respectively. There is also a SSH listening on port <code>22</code>, however, it is not exploitable even in these easy-rated machines, at least from my own experience. So, let us pay our attention to the former two.</p>
+<h3 id="web-server">Web-server<a href="#web-server" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p><img src="D:%5CDevelopment%5Cgithub%5Crepos%5Cimage-host%5C2022-01-13-HTB-Secret%5Csecret1.gif" alt=""></p>
+<p>You can see why this box is rated easy since it presumably enables us to download its source code. Beside that and the <strong>Live Demo</strong> feature, there are no other feasible or potential vectors around but some protracted documentation.</p>
+<p>g</p>
 
       </div></div>
 
@@ -235,7 +299,7 @@
         
         
         <span class="button next">
-            <a href="/posts/pwns-2/">
+            <a href="https://legiahuyy.github.io/blog/en/posts/pwns-2/">
                 <span class="button__text">PWN Journey: Part 2</span>
                 <span class="button__icon">→</span>
             </a>
@@ -264,8 +328,8 @@
   </div>
 </footer>
 
-<script src="/assets/main.js"></script>
-<script src="/assets/prism.js"></script>
+<script src="https://legiahuyy.github.io/blog/en/assets/main.js"></script>
+<script src="https://legiahuyy.github.io/blog/en/assets/prism.js"></script>
 
 
 

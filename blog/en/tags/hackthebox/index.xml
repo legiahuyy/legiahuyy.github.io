@@ -6,7 +6,58 @@
     <description>Recent content in hackthebox on Yet, another infosec blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 03 Oct 2021 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/tags/hackthebox/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 13 Jan 2022 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/tags/hackthebox/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>HackTheBox: Secret</title>
+      <link>https://legiahuyy.github.io/blog/en/posts/htb-secret/</link>
+      <pubDate>Thu, 13 Jan 2022 09:30:00 +1345</pubDate>
+      
+      <guid>https://legiahuyy.github.io/blog/en/posts/htb-secret/</guid>
+      <description>It has been a long time since our last HackTheBox write-up, so today we will get into a two and a half months old machine - Secret
+Enumeration Network scan As usual, nmap should provide us an elaborated report on the target&amp;rsquo;s network.
+┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret] └─$ nmap -sV -sC 10.10.11.120 -v -oA ./nmap/Secret ┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret] └─$ cat ./nmap/Secret.nmap # Nmap 7.92 scan initiated Wed Jan 12 21:44:12 2022 as: nmap -sV -sC -v -oA .</description>
+      <content>&lt;p&gt;It has been a long time since our last HackTheBox write-up, so today we will get into a two and a half months old machine - Secret&lt;/p&gt;
+&lt;h2 id=&#34;enumeration&#34;&gt;Enumeration&lt;/h2&gt;
+&lt;h3 id=&#34;network-scan&#34;&gt;Network scan&lt;/h3&gt;
+&lt;p&gt;As usual, &lt;code&gt;nmap&lt;/code&gt; should provide us an elaborated report on the target&amp;rsquo;s network.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;legiahuyy㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/Secret&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ nmap -sV -sC 10.10.11.120 -v -oA ./nmap/Secret
+
+┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;legiahuyy㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/Secret&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ cat ./nmap/Secret.nmap         
+&lt;span style=&#34;color:#75715e&#34;&gt;# Nmap 7.92 scan initiated Wed Jan 12 21:44:12 2022 as: nmap -sV -sC -v -oA ./nmap/Secret 10.10.11.120&lt;/span&gt;
+Nmap scan report &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; 10.10.11.120
+Host is up &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;0.026s latency&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;.
+Not shown: &lt;span style=&#34;color:#ae81ff&#34;&gt;997&lt;/span&gt; closed tcp ports &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;conn-refused&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+PORT     STATE SERVICE VERSION
+22/tcp   open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.3 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Ubuntu Linux; protocol 2.0&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+| ssh-hostkey: 
+|   &lt;span style=&#34;color:#ae81ff&#34;&gt;3072&lt;/span&gt; 97:af:61:44:10:89:b9:53:f0:80:3f:d7:19:b1:e2:9c &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;RSA&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|   &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt; 95:ed:65:8d:cd:08:2b:55:dd:17:51:31:1e:3e:18:12 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ECDSA&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|_  &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt; 33:7b:c1:71:d3:33:0f:92:4e:83:5a:1f:52:02:93:5e &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;ED25519&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+80/tcp   open  http    nginx 1.18.0 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Ubuntu&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|_http-title: DUMB Docs
+| http-methods: 
+|_  Supported Methods: GET HEAD POST OPTIONS
+|_http-server-header: nginx/1.18.0 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Ubuntu&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+3000/tcp open  http    Node.js &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Express middleware&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+|_http-title: DUMB Docs
+| http-methods: 
+|_  Supported Methods: GET HEAD POST OPTIONS
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Read data files from: /usr/bin/../share/nmap
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+&lt;span style=&#34;color:#75715e&#34;&gt;# Nmap done at Wed Jan 12 21:44:38 2022 -- 1 IP address (1 host up) scanned in 26.16 seconds&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Based on the output from NMAP, the web-server and a NodeJS service is running on port &lt;code&gt;80&lt;/code&gt; and &lt;code&gt;3000&lt;/code&gt;, respectively. There is also a SSH listening on port &lt;code&gt;22&lt;/code&gt;, however, it is not exploitable even in these easy-rated machines, at least from my own experience. So, let us pay our attention to the former two.&lt;/p&gt;
+&lt;h3 id=&#34;web-server&#34;&gt;Web-server&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&#34;D:%5CDevelopment%5Cgithub%5Crepos%5Cimage-host%5C2022-01-13-HTB-Secret%5Csecret1.gif&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;You can see why this box is rated easy since it presumably enables us to download its source code. Beside that and the &lt;strong&gt;Live Demo&lt;/strong&gt; feature, there are no other feasible or potential vectors around but some protracted documentation.&lt;/p&gt;
+&lt;p&gt;g&lt;/p&gt;
+</content>
+    </item>
+    
     <item>
       <title>HackTheBox: BountyHunter</title>
       <link>https://legiahuyy.github.io/blog/en/posts/htb-bountyhunter/</link>

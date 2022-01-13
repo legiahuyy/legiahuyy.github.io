@@ -2,17 +2,35 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://legiahuyy.github.io/blog/en/about/</loc>
-    <lastmod>2022-01-11T10:36:22+13:45</lastmod>
-  </url><url>
     <loc>https://legiahuyy.github.io/blog/en/</loc>
-    <lastmod>2022-01-10T09:30:00+13:45</lastmod>
+    <lastmod>2022-01-13T09:30:00+13:45</lastmod>
   </url><url>
     <loc>https://legiahuyy.github.io/blog/en/categories/</loc>
-    <lastmod>2022-01-10T09:30:00+13:45</lastmod>
+    <lastmod>2022-01-13T09:30:00+13:45</lastmod>
+  </url><url>
+    <loc>https://legiahuyy.github.io/blog/en/tags/hackthebox/</loc>
+    <lastmod>2022-01-13T09:30:00+13:45</lastmod>
+  </url><url>
+    <loc>https://legiahuyy.github.io/blog/en/categories/hackthebox/</loc>
+    <lastmod>2022-01-13T09:30:00+13:45</lastmod>
+  </url><url>
+    <loc>https://legiahuyy.github.io/blog/en/posts/htb-secret/</loc>
+    <lastmod>2022-01-13T09:30:00+13:45</lastmod>
+  </url><url>
+    <loc>https://legiahuyy.github.io/blog/en/tags/machine/</loc>
+    <lastmod>2022-01-13T09:30:00+13:45</lastmod>
+  </url><url>
+    <loc>https://legiahuyy.github.io/blog/en/tags/network/</loc>
+    <lastmod>2022-01-13T09:30:00+13:45</lastmod>
   </url><url>
     <loc>https://legiahuyy.github.io/blog/en/posts/</loc>
-    <lastmod>2022-01-10T09:30:00+13:45</lastmod>
+    <lastmod>2022-01-13T09:30:00+13:45</lastmod>
+  </url><url>
+    <loc>https://legiahuyy.github.io/blog/en/tags/</loc>
+    <lastmod>2022-01-13T09:30:00+13:45</lastmod>
+  </url><url>
+    <loc>https://legiahuyy.github.io/blog/en/about/</loc>
+    <lastmod>2022-01-11T10:36:22+13:45</lastmod>
   </url><url>
     <loc>https://legiahuyy.github.io/blog/en/tags/pwn/</loc>
     <lastmod>2022-01-10T09:30:00+13:45</lastmod>
@@ -26,28 +44,13 @@
     <loc>https://legiahuyy.github.io/blog/en/tags/radare2/</loc>
     <lastmod>2022-01-10T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>https://legiahuyy.github.io/blog/en/tags/</loc>
-    <lastmod>2022-01-10T09:30:00+13:45</lastmod>
-  </url><url>
     <loc>https://legiahuyy.github.io/blog/en/tags/write-up/</loc>
     <lastmod>2022-01-10T09:30:00+13:45</lastmod>
   </url><url>
     <loc>https://legiahuyy.github.io/blog/en/posts/pwns-1/</loc>
     <lastmod>2021-12-29T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>https://legiahuyy.github.io/blog/en/tags/hackthebox/</loc>
-    <lastmod>2021-10-03T09:30:00+13:45</lastmod>
-  </url><url>
-    <loc>https://legiahuyy.github.io/blog/en/categories/hackthebox/</loc>
-    <lastmod>2021-10-03T09:30:00+13:45</lastmod>
-  </url><url>
     <loc>https://legiahuyy.github.io/blog/en/posts/htb-bountyhunter/</loc>
-    <lastmod>2021-10-03T09:30:00+13:45</lastmod>
-  </url><url>
-    <loc>https://legiahuyy.github.io/blog/en/tags/machine/</loc>
-    <lastmod>2021-10-03T09:30:00+13:45</lastmod>
-  </url><url>
-    <loc>https://legiahuyy.github.io/blog/en/tags/network/</loc>
     <lastmod>2021-10-03T09:30:00+13:45</lastmod>
   </url><url>
     <loc>https://legiahuyy.github.io/blog/en/posts/htb-cap/</loc>
