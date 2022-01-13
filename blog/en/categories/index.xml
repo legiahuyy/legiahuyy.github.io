@@ -6,23 +6,23 @@
     <description>Recent content in Categories on Yet, another infosec blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 13 Jan 2022 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/categories/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>hackthebox</title>
-      <link>https://legiahuyy.github.io/blog/en/categories/hackthebox/</link>
-      <pubDate>Thu, 13 Jan 2022 09:30:00 +1345</pubDate>
-      
-      <guid>https://legiahuyy.github.io/blog/en/categories/hackthebox/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
+    <lastBuildDate>Mon, 10 Jan 2022 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/categories/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>PWN Journey</title>
       <link>https://legiahuyy.github.io/blog/en/categories/pwn-journey/</link>
       <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
       
       <guid>https://legiahuyy.github.io/blog/en/categories/pwn-journey/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>hackthebox</title>
+      <link>https://legiahuyy.github.io/blog/en/categories/hackthebox/</link>
+      <pubDate>Sun, 03 Oct 2021 09:30:00 +1345</pubDate>
+      
+      <guid>https://legiahuyy.github.io/blog/en/categories/hackthebox/</guid>
       <description></description>
       <content></content>
     </item>
