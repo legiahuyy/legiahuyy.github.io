@@ -249,18 +249,18 @@
 <p>You can download the challenge <a href="https://github.com/legiahuyy/dropper/blob/main/kcsc-ctf-2022/re/secret.zip">here</a>.</p>
 <h2 id="footprinting">Footprinting<a href="#footprinting" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
 <p>The target&rsquo;s directory contains two following files, <code>capture.pcapng</code> and <code>secret.exe</code>.</p>
-<p><img src="D:/Development/github/repos/image-host/2022-04-30-kcscctf2022-secret/2022-04-30_20-29.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-04-30-kcscctf2022-secret/2022-04-30_20-29.png" alt=""></p>
 <h3 id="secretexe">secret.exe<a href="#secretexe" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
 <p>Fortunately, the result provided from ExeinfoPE shows that the binary file is not packed and, presumably, obfuscated by any third-parties. Yet, keep in mind that almost every reversing challenge usually has its own implementation of code obfuscation or data encryption, which we need to solve later.</p>
-<p><img src="D:/Development/github/repos/image-host/2022-04-30-kcscctf2022-secret/2022-04-30_20-39.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-04-30-kcscctf2022-secret/2022-04-30_20-39.png" alt=""></p>
 <p>Based on the result, we can tell there is also no hidden executable in the original one so it is not necessary to scan and dump <code>secret.exe</code>&rsquo;s resource.</p>
-<p><img src="D:/Development/github/repos/image-host/2022-04-30-kcscctf2022-secret/2022-04-30_20-54.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-04-30-kcscctf2022-secret/2022-04-30_20-54.png" alt=""></p>
 <h3 id="capturepcapng">capture.pcapng<a href="#capturepcapng" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
 <p>The pcapng file has no unusual characteristics or properties, it shows us the conversation between <code>192.168.123.111</code> and <code>192.168.123.123</code> and based on the context, the host with the fourth octet <code>111</code> is sending assumingly encrypted data to the other one.</p>
-<p><img src="D:/Development/github/repos/image-host/2022-04-30-kcscctf2022-secret/2022-04-30_21-02.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-04-30-kcscctf2022-secret/2022-04-30_21-02.png" alt=""></p>
 <h2 id="reversing">Reversing<a href="#reversing" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
 <p>Examine the binary with IDA, pseudo code of its <code>main</code> function as follows:</p>
-<p><img src="D:/Development/github/repos/image-host/2022-04-30-kcscctf2022-secret/2022-04-30_21-53.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-04-30-kcscctf2022-secret/2022-04-30_21-53.png" alt=""></p>
 <p>As demonstrated, this is apparently an initialization for a WinSock connection using those familiar API calls like <code>WSAStartup</code>, <code>htons</code>, <code>inet_addr</code>, &hellip; straight from the book.</p>
 <p>The function does:</p>
 <ul>
@@ -282,7 +282,7 @@ sockaddr_in.sin_port <span style="color:#f92672">=</span> htons(<span style="col
 </li>
 </ul>
 <p>Nothing much of an interest until we jump into <code>sub_401983</code> which actually does something less mundane:</p>
-<p><img src="D:/Development/github/repos/image-host/2022-04-30-kcscctf2022-secret/2022-04-30_22-34.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-04-30-kcscctf2022-secret/2022-04-30_22-34.png" alt=""></p>
 <p>In detail, <code>sub_401983</code> does:</p>
 <ul>
 <li>
