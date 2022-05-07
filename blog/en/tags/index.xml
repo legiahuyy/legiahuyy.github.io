@@ -6,7 +6,37 @@
     <description>Recent content in Tags on Yet, another infosec blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 10 Jan 2022 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 13 Jan 2022 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>hackthebox</title>
+      <link>https://legiahuyy.github.io/blog/en/tags/hackthebox/</link>
+      <pubDate>Thu, 13 Jan 2022 09:30:00 +1345</pubDate>
+      
+      <guid>https://legiahuyy.github.io/blog/en/tags/hackthebox/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>machine</title>
+      <link>https://legiahuyy.github.io/blog/en/tags/machine/</link>
+      <pubDate>Thu, 13 Jan 2022 09:30:00 +1345</pubDate>
+      
+      <guid>https://legiahuyy.github.io/blog/en/tags/machine/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>network</title>
+      <link>https://legiahuyy.github.io/blog/en/tags/network/</link>
+      <pubDate>Thu, 13 Jan 2022 09:30:00 +1345</pubDate>
+      
+      <guid>https://legiahuyy.github.io/blog/en/tags/network/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
     <item>
       <title>pwn</title>
       <link>https://legiahuyy.github.io/blog/en/tags/pwn/</link>
@@ -33,36 +63,6 @@
       <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
       
       <guid>https://legiahuyy.github.io/blog/en/tags/write-up/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
-      <title>hackthebox</title>
-      <link>https://legiahuyy.github.io/blog/en/tags/hackthebox/</link>
-      <pubDate>Sun, 03 Oct 2021 09:30:00 +1345</pubDate>
-      
-      <guid>https://legiahuyy.github.io/blog/en/tags/hackthebox/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
-      <title>machine</title>
-      <link>https://legiahuyy.github.io/blog/en/tags/machine/</link>
-      <pubDate>Sun, 03 Oct 2021 09:30:00 +1345</pubDate>
-      
-      <guid>https://legiahuyy.github.io/blog/en/tags/machine/</guid>
-      <description></description>
-      <content></content>
-    </item>
-    
-    <item>
-      <title>network</title>
-      <link>https://legiahuyy.github.io/blog/en/tags/network/</link>
-      <pubDate>Sun, 03 Oct 2021 09:30:00 +1345</pubDate>
-      
-      <guid>https://legiahuyy.github.io/blog/en/tags/network/</guid>
       <description></description>
       <content></content>
     </item>
