@@ -699,7 +699,7 @@ relro    partial
 <p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-31_10-11.png" alt=""></p>
 <p>and <code>win</code>:</p>
 <p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-31_10-16.png" alt=""></p>
-<p>You might be wondering why there is no canary check in either the prologue or epilogue of these two <code>main</code> and <code>win</code> functions. This happens since the two simply do not inquire about the stack or have any particularly tasks that need the sentinel values.</p>
+<p>You might be wondering why there is no canary check in either the prologue or epilogue of these two <code>main</code> and <code>win</code> functions. This happens since the two simply do not inquire about the stack or have any particular tasks that need the sentinel values.</p>
 <p><code>login</code>, however, is different as it is plain to see the canary is being stored at <code>rbp-0x8</code>:</p>
 <pre tabindex="0"><code>[0x7f492b935050]&gt; pdf @ sym.login
             ; CALL XREF from main @ 0x56279e188182
@@ -886,9 +886,9 @@ print(p<span style="color:#f92672">.</span>clean())
     <div class="pagination__buttons">
         
         <span class="button previous">
-            <a href="https://legiahuyy.github.io/blog/en/posts/htb-secret/">
+            <a href="https://legiahuyy.github.io/blog/en/posts/pwns-3/">
                 <span class="button__icon">←</span>
-                <span class="button__text">HackTheBox: Secret</span>
+                <span class="button__text">PWN Journey 3: More format string and ret2dlresolve</span>
             </a>
         </span>
         

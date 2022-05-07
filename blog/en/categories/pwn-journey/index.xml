@@ -8,6 +8,16 @@
     <language>en-us</language>
     <lastBuildDate>Mon, 10 Jan 2022 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/categories/pwn-journey/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>PWN Journey 3: More format string and ret2dlresolve</title>
+      <link>https://legiahuyy.github.io/blog/en/posts/pwns-3/</link>
+      <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
+      
+      <guid>https://legiahuyy.github.io/blog/en/posts/pwns-3/</guid>
+      <description>&lt;p&gt;This post will demonstrate how we can abuse more of the format string vulnerability in different ways, or by a set of special format specifiers, precisely. Likewise, we will contemplate a new technique called &lt;strong&gt;ret2dlresolve&lt;/strong&gt; and have some exercise regarding.&lt;/p&gt;</description>
+      <content>&lt;p&gt;This post will demonstrate how we can abuse more of the format string vulnerability in different ways, or by a set of special format specifiers, precisely. Likewise, we will contemplate a new technique called &lt;strong&gt;ret2dlresolve&lt;/strong&gt; and have some exercise regarding.&lt;/p&gt;</content>
+    </item>
+    
+    <item>
       <title>PWN Journey: Part 2</title>
       <link>https://legiahuyy.github.io/blog/en/posts/pwns-2/</link>
       <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
@@ -451,7 +461,7 @@ relro    partial
 &lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-31_10-11.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;and &lt;code&gt;win&lt;/code&gt;:&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-20-pwns-2/2021-12-31_10-16.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;p&gt;You might be wondering why there is no canary check in either the prologue or epilogue of these two &lt;code&gt;main&lt;/code&gt; and &lt;code&gt;win&lt;/code&gt; functions. This happens since the two simply do not inquire about the stack or have any particularly tasks that need the sentinel values.&lt;/p&gt;
+&lt;p&gt;You might be wondering why there is no canary check in either the prologue or epilogue of these two &lt;code&gt;main&lt;/code&gt; and &lt;code&gt;win&lt;/code&gt; functions. This happens since the two simply do not inquire about the stack or have any particular tasks that need the sentinel values.&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;login&lt;/code&gt;, however, is different as it is plain to see the canary is being stored at &lt;code&gt;rbp-0x8&lt;/code&gt;:&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;[0x7f492b935050]&amp;gt; pdf @ sym.login
             ; CALL XREF from main @ 0x56279e188182
@@ -732,11 +742,11 @@ print(p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;clean())
 &lt;p&gt;Let me introduce you to the &lt;strong&gt;De Bruijn Sequence&lt;/strong&gt;, which contains no string of &lt;code&gt;n&lt;/code&gt; character repeated. The sequence can either be created by yourself or any available auxiliaries (e.g., &lt;code&gt;ragg2&lt;/code&gt;, &lt;code&gt;cyclic&lt;/code&gt;, &lt;code&gt;pattern_create (gdb)&lt;/code&gt;).&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-11.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;The reason why a &lt;em&gt;random&lt;/em&gt; gibberish string is able to help us to find the padding is that while you are filling the stack with the sequence, &lt;code&gt;RIP&lt;/code&gt; (and even others) could already be overwritten, thereby leading to a SIGSEGV and crashing the execution. With that, the particular position of these so-called &lt;em&gt;random bytes&lt;/em&gt; in &lt;code&gt;RIP&lt;/code&gt; now is that of our padding length in the sequence pattern.&lt;/p&gt;
-&lt;p&gt;Next, we want to load the binary in our debugger and find the padding length.&lt;/p&gt;
+&lt;p&gt;Next, we want to load the binary in our debugger and find the padding length&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-40.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;p&gt;and our registers table:&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-50.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-&lt;p&gt;The &lt;code&gt;wopO `dr rip` &lt;/code&gt; command simply finds the given value in &lt;code&gt;RIP&lt;/code&gt; into a De Bruijn sequence at a current offset or you can just type &lt;code&gt;wopO 0x41415441&lt;/code&gt; instead and it shows us our padding size, 56.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;wopO `dr rip` &lt;/code&gt; command simply finds the given value in &lt;code&gt;RIP&lt;/code&gt; into a De Bruijn sequence at a current offset or you can just type &lt;code&gt;wopO 0x41415441&lt;/code&gt; instead and it will show us our same padding size, 56.&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;payload = PADDING (56 bytes) + FLAG_ADDR (RIP)
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;We have one last factor, the address of &lt;code&gt;flag()&lt;/code&gt; which is &lt;code&gt;0x0040116b&lt;/code&gt;. To get it, simply type &lt;code&gt;afl&lt;/code&gt; for a list of functions and their addresses.&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;[0x41415441]&amp;gt; afl

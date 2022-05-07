@@ -6,7 +6,37 @@
     <description>Recent content in Categories on Yet, another infosec blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 13 Jan 2022 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/categories/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 07 May 2022 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/categories/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>pwnable.tw</title>
+      <link>https://legiahuyy.github.io/blog/en/categories/pwnable.tw/</link>
+      <pubDate>Sat, 07 May 2022 09:30:00 +1345</pubDate>
+      
+      <guid>https://legiahuyy.github.io/blog/en/categories/pwnable.tw/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>CTF Writeup</title>
+      <link>https://legiahuyy.github.io/blog/en/categories/ctf-writeup/</link>
+      <pubDate>Fri, 29 Apr 2022 09:30:00 +1345</pubDate>
+      
+      <guid>https://legiahuyy.github.io/blog/en/categories/ctf-writeup/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
+    <item>
+      <title>Reverse Engineering</title>
+      <link>https://legiahuyy.github.io/blog/en/categories/reverse-engineering/</link>
+      <pubDate>Fri, 29 Apr 2022 09:30:00 +1345</pubDate>
+      
+      <guid>https://legiahuyy.github.io/blog/en/categories/reverse-engineering/</guid>
+      <description></description>
+      <content></content>
+    </item>
+    
     <item>
       <title>hackthebox</title>
       <link>https://legiahuyy.github.io/blog/en/categories/hackthebox/</link>

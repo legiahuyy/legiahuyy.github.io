@@ -201,7 +201,7 @@
       <span class="post-author">:: The Archivist</span>
     
     
-      <span class="post-reading-time">:: 12 min read (2504 words)</span>
+      <span class="post-reading-time">:: 12 min read (2506 words)</span>
     
   </div>
 
@@ -359,11 +359,11 @@
 <p>Let me introduce you to the <strong>De Bruijn Sequence</strong>, which contains no string of <code>n</code> character repeated. The sequence can either be created by yourself or any available auxiliaries (e.g., <code>ragg2</code>, <code>cyclic</code>, <code>pattern_create (gdb)</code>).</p>
 <p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-11.png" alt=""></p>
 <p>The reason why a <em>random</em> gibberish string is able to help us to find the padding is that while you are filling the stack with the sequence, <code>RIP</code> (and even others) could already be overwritten, thereby leading to a SIGSEGV and crashing the execution. With that, the particular position of these so-called <em>random bytes</em> in <code>RIP</code> now is that of our padding length in the sequence pattern.</p>
-<p>Next, we want to load the binary in our debugger and find the padding length.</p>
+<p>Next, we want to load the binary in our debugger and find the padding length</p>
 <p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-40.png" alt=""></p>
 <p>and our registers table:</p>
 <p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-50.png" alt=""></p>
-<p>The <code>wopO `dr rip` </code> command simply finds the given value in <code>RIP</code> into a De Bruijn sequence at a current offset or you can just type <code>wopO 0x41415441</code> instead and it shows us our padding size, 56.</p>
+<p>The <code>wopO `dr rip` </code> command simply finds the given value in <code>RIP</code> into a De Bruijn sequence at a current offset or you can just type <code>wopO 0x41415441</code> instead and it will show us our same padding size, 56.</p>
 <pre tabindex="0"><code>payload = PADDING (56 bytes) + FLAG_ADDR (RIP)
 </code></pre><p>We have one last factor, the address of <code>flag()</code> which is <code>0x0040116b</code>. To get it, simply type <code>afl</code> for a list of functions and their addresses.</p>
 <pre tabindex="0"><code>[0x41415441]&gt; afl

