@@ -7,9 +7,7 @@
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="This is a write-up for the challenge start at pwnable.tw.
-Footprinting At the very beginning, we shall check the file for any enabled protection bit as well as its characteristics.
-As shown, this is a Linux 32-bit executable with fortuitously no stack guard, PIE, NX and RELRO. Running the program allows us to feed a buffer and thereupon terminates itself, or it does at least in a blind test.
-Solution Let us load the binary into radare2 and have a glance at its disassembly view." />
+" />
 <meta name="keywords" content="infosec, pwn, ctf, challenges, hackthebox, reverse" />
 <meta name="robots" content="noodp" />
 <link rel="canonical" href="https://legiahuyy.github.io/blog/en/posts/kcsc-pwnabletw-start/" />
@@ -45,13 +43,11 @@ Solution Let us load the binary into radare2 and have a glance at its disassembl
 <meta property="og:type" content="article" />
 <meta property="og:title" content="Pwnable.tw - start [KCSC]">
 <meta property="og:description" content="This is a write-up for the challenge start at pwnable.tw.
-Footprinting At the very beginning, we shall check the file for any enabled protection bit as well as its characteristics.
-As shown, this is a Linux 32-bit executable with fortuitously no stack guard, PIE, NX and RELRO. Running the program allows us to feed a buffer and thereupon terminates itself, or it does at least in a blind test.
-Solution Let us load the binary into radare2 and have a glance at its disassembly view." />
+" />
 <meta property="og:url" content="https://legiahuyy.github.io/blog/en/posts/kcsc-pwnabletw-start/" />
 <meta property="og:site_name" content="Yet, another infosec blog" />
 
-  <meta property="og:image" content="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_20-07.png">
+  <meta property="og:image" content="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-10_20-22.png">
 
 <meta property="og:image:width" content="2048">
 <meta property="og:image:height" content="1024">
@@ -221,7 +217,7 @@ Solution Let us load the binary into radare2 and have a glance at its disassembl
   </span>
   
   
-  <img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_20-07.png"
+  <img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-10_20-22.png"
     class="post-cover"
     alt="Pwnable.tw - start [KCSC]"
     title="Cover Image" />
@@ -368,7 +364,6 @@ p<span style="color:#f92672">.</span>interactive()
 p<span style="color:#f92672">.</span>close()
 </code></pre></div><p>Remember to use <code>send</code> and <code>sendafter</code> but not <code>sendlineafter</code> as <code>SYS_read</code> takes <code>\n</code> then replaces it with <code>\x00</code> which could interrupt our shellcode. One other note is at <code>0x08048086</code>, the program will not print the string &ldquo;<em>Let&rsquo;s start the CTF:</em>&rdquo; so we just need to use <code>send</code>.</p>
 <p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_11-59.png" alt=""></p>
-
       </div></div>
 
   

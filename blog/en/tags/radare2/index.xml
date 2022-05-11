@@ -13,10 +13,7 @@
       <pubDate>Mon, 09 May 2022 09:30:00 +1345</pubDate>
       
       <guid>https://legiahuyy.github.io/blog/en/posts/kcsc-pwnabletw-start/</guid>
-      <description>This is a write-up for the challenge start at pwnable.tw.
-Footprinting At the very beginning, we shall check the file for any enabled protection bit as well as its characteristics.
-As shown, this is a Linux 32-bit executable with fortuitously no stack guard, PIE, NX and RELRO. Running the program allows us to feed a buffer and thereupon terminates itself, or it does at least in a blind test.
-Solution Let us load the binary into radare2 and have a glance at its disassembly view.</description>
+      <description>&lt;p&gt;This is a write-up for the challenge &lt;code&gt;start&lt;/code&gt; at &lt;a href=&#34;&#34;&gt;pwnable.tw&lt;/a&gt;.&lt;/p&gt;</description>
       <content>&lt;p&gt;This is a write-up for the challenge &lt;code&gt;start&lt;/code&gt; at &lt;a href=&#34;&#34;&gt;pwnable.tw&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-10_20-22.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
 &lt;h2 id=&#34;footprinting&#34;&gt;Footprinting&lt;/h2&gt;
@@ -133,8 +130,7 @@ p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;send(spawn_shell)
 p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;interactive()
 p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;close()
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Remember to use &lt;code&gt;send&lt;/code&gt; and &lt;code&gt;sendafter&lt;/code&gt; but not &lt;code&gt;sendlineafter&lt;/code&gt; as &lt;code&gt;SYS_read&lt;/code&gt; takes &lt;code&gt;\n&lt;/code&gt; then replaces it with &lt;code&gt;\x00&lt;/code&gt; which could interrupt our shellcode. One other note is at &lt;code&gt;0x08048086&lt;/code&gt;, the program will not print the string &amp;ldquo;&lt;em&gt;Let&amp;rsquo;s start the CTF:&lt;/em&gt;&amp;rdquo; so we just need to use &lt;code&gt;send&lt;/code&gt;.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_11-59.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
-</content>
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_11-59.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;</content>
     </item>
     
     <item>
