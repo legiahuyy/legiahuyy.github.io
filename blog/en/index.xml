@@ -6,15 +6,8 @@
     <description>Recent content on archivist&#39;s blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Sat, 23 Mar 2024 09:30:00 +1345</lastBuildDate>
+    <lastBuildDate>Sat, 07 May 2022 09:30:00 +1345</lastBuildDate>
     <atom:link href="https://legiahuyy.github.io/blog/en/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Burnt out</title>
-      <link>https://legiahuyy.github.io/blog/en/posts/2024-03-23-burnt-out/</link>
-      <pubDate>Sat, 23 Mar 2024 09:30:00 +1345</pubDate>
-      <guid>https://legiahuyy.github.io/blog/en/posts/2024-03-23-burnt-out/</guid>
-      <description>It must have been more than a year and a half since my last post on this site. A lot of things have changed during my absence: I got a job, and it has been pretty good so far, at least. It&amp;rsquo;s not like there is something wrong with my life at the moment; you just get a little burnt out, but sooner or later, things will get back on track again&amp;hellip; or that&amp;rsquo;s just what other people, and even I, thought.</description>
-    </item>
     <item>
       <title>Pwnable.tw: orw</title>
       <link>https://legiahuyy.github.io/blog/en/posts/2022-05-07/</link>
@@ -98,6 +91,13 @@
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       <guid>https://legiahuyy.github.io/blog/en/about/</guid>
       <description>Entry: #0001-01-01 The blog was originally created for the purpose of learning English during high school years, yet only a few months after enrolling into university did it become a place to share one&amp;rsquo;s knowledge about computer-related topics, mostly about low-level learning and exploitations. Besides focusing on the aforementioned subjects, the blog itself also gradually evolves into a diary, allowing for the occasional posting of rants; nevertheless, the ultimate goal is for both the author and the readers to learn something new.</description>
+    </item>
+    <item>
+      <title>Burnt out</title>
+      <link>https://legiahuyy.github.io/blog/en/posts/0001-01-01-burnt-out/</link>
+      <pubDate>Mon, 01 Jan 0001 09:30:00 +1345</pubDate>
+      <guid>https://legiahuyy.github.io/blog/en/posts/0001-01-01-burnt-out/</guid>
+      <description>It must have been more than a year and a half since my last post on this site. A lot of things have changed during my absence: I got a job, and it has been pretty good so far, at least. It&amp;rsquo;s not like there is something wrong with my life at the moment; you just get a little burnt out, but sooner or later, things will get back on track again&amp;hellip; or that&amp;rsquo;s just what other people, and even I, thought.</description>
     </item>
   </channel>
 </rss>
