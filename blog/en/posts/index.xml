@@ -2,94 +2,94 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on </title>
-    <link>//localhost:1313/posts/</link>
+    <link>/posts/</link>
     <description>Recent content in Posts on </description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Sat, 23 Mar 2024 09:30:00 +1345</lastBuildDate>
-    <atom:link href="//localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Burnt out</title>
-      <link>//localhost:1313/posts/2024-03-23-burnt-out/</link>
+      <link>/posts/2024-03-23-burnt-out/</link>
       <pubDate>Sat, 23 Mar 2024 09:30:00 +1345</pubDate>
-      <guid>//localhost:1313/posts/2024-03-23-burnt-out/</guid>
+      <guid>/posts/2024-03-23-burnt-out/</guid>
       <description>It must have been more than a year and a half since my last post on this site. A lot of things have changed during my absence: I got a job, and it has been pretty good so far, at least. It&amp;rsquo;s not like there is something wrong with my life at the moment; you just get a little burnt out, but sooner or later, things will get back on track again&amp;hellip; or that&amp;rsquo;s just what other people, and even I, thought.</description>
     </item>
     <item>
       <title>Pwnable.tw: orw</title>
-      <link>//localhost:1313/posts/2022-05-07/</link>
+      <link>/posts/2022-05-07/</link>
       <pubDate>Sat, 07 May 2022 09:30:00 +1345</pubDate>
-      <guid>//localhost:1313/posts/2022-05-07/</guid>
+      <guid>/posts/2022-05-07/</guid>
       <description>Let&amp;rsquo;s have a quick and succinct write-up for orw - a challenge at pwnable.tw.&#xA;Footprinting Initially, we want to check the file for any notable properties (PIE, Canary, RELRO, etc.).&#xA;Based on the output above, there are no protection bits enabled within the binary (except for canary but it does not interfere with our payload afterwards) and therefore it is presumably believed to be quite simple as expected for a 100pts challenge.</description>
     </item>
     <item>
       <title>HackTheBox: Secret</title>
-      <link>//localhost:1313/posts/2022-01-13/</link>
+      <link>/posts/2022-01-13/</link>
       <pubDate>Thu, 13 Jan 2022 09:30:00 +1345</pubDate>
-      <guid>//localhost:1313/posts/2022-01-13/</guid>
+      <guid>/posts/2022-01-13/</guid>
       <description>It has been a long time since our last HackTheBox write-up, so today we will get into a two and a half months old machine - Secret.&#xA;Enumeration Network scan As usual, nmap should provide us an elaborated report on the target&amp;rsquo;s network.&#xA;┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret] └─$ nmap -sV -sC 10.10.11.120 -v -oA ./nmap/Secret ┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret] └─$ cat ./nmap/Secret.nmap # Nmap 7.92 scan initiated Wed Jan 12 21:44:12 2022 as: nmap -sV -sC -v -oA .</description>
     </item>
     <item>
       <title>PWN Journey: Part 2</title>
-      <link>//localhost:1313/posts/2022-01-10-pwn-journey-2/</link>
+      <link>/posts/2022-01-10-pwn-journey-2/</link>
       <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
-      <guid>//localhost:1313/posts/2022-01-10-pwn-journey-2/</guid>
+      <guid>/posts/2022-01-10-pwn-journey-2/</guid>
       <description>In this post, we will solve two pwn challenges from WhiteHat Play!10 and a customized one. We will also delve into details about most frequently encountered protection bits as well as bypass method for each.&#xA;Anyway, I hope you have a good time reading.&#xA;WhiteHat Play!10 - pwn01 Goal: Trigger the buffer overflow and call covid19.&#xA;This is an original pwn challenge from WhiteHat Play10! Wargame and you can download it here or use this mirror link.</description>
     </item>
     <item>
       <title>PWN Journey: Part 1</title>
-      <link>//localhost:1313/posts/2021-12-29-pwn-journey-1/</link>
+      <link>/posts/2021-12-29-pwn-journey-1/</link>
       <pubDate>Wed, 29 Dec 2021 09:30:00 +1345</pubDate>
-      <guid>//localhost:1313/posts/2021-12-29-pwn-journey-1/</guid>
+      <guid>/posts/2021-12-29-pwn-journey-1/</guid>
       <description>Foreword Greetings, this series of posts delves into a collection of pwnie solutions that I have been poking around for a while and finally have the time to publish it so that I could practice my writing and attempt to share some knowledge in such a way that could be helpful to others. Not to mention that I am also a rookie in this field, so take my words with a grain of salt and all critics/suggestions are welcome.</description>
     </item>
     <item>
       <title>HackTheBox: BountyHunter</title>
-      <link>//localhost:1313/posts/2021-10-03/</link>
+      <link>/posts/2021-10-03/</link>
       <pubDate>Sun, 03 Oct 2021 09:30:00 +1345</pubDate>
-      <guid>//localhost:1313/posts/2021-10-03/</guid>
+      <guid>/posts/2021-10-03/</guid>
       <description>Today, we are delving into BountyHunter as another HackTheBox machine in our sidetrack series.&#xA;I hope you have a nice weekend and without further ado, let us jump right in!&#xA;Enumeration Nmap output ┌──(kali㉿kali)-[~/Desktop/HTB/Boxes/BountyHunter] └─$ cat nmap/BountyHunter.nmap # Nmap 7.91 scan initiated Sat Oct 2 22:12:07 2021 as: nmap -sS -sV -sC -p- -v -oA nmap/BountyHunter 10.10.11.100 Nmap scan report for 10.10.11.100 Host is up (0.048s latency). Not shown: 65533 closed ports PORT STATE SERVICE VERSION 22/tcp open ssh OpenSSH 8.</description>
     </item>
     <item>
       <title>HackTheBox: Cap</title>
-      <link>//localhost:1313/posts/2021-10-01/</link>
+      <link>/posts/2021-10-01/</link>
       <pubDate>Fri, 01 Oct 2021 09:30:00 +1345</pubDate>
-      <guid>//localhost:1313/posts/2021-10-01/</guid>
+      <guid>/posts/2021-10-01/</guid>
       <description>Hello everyone, while preparing chapters of the book Practical Reverse Engineering, I occasionally got bored and wanted to do something else to have my mind a reboot. That is the reason why we are here solving Cap - another HackTheBox easy machine.&#xA;So yeah, hope you enjoy.&#xA;Enumeration As usual, we wanted to start our enumeration step with nmap.&#xA;┌──(kali㉿kali)-[~/Desktop/HTB/Boxes/Cap] └─$ cat nmap/Cap.nmap # Nmap 7.91 scan initiated Thu Sep 30 21:54:00 2021 as: nmap -sS -sV -sC -p- -oA nmap/Cap 10.</description>
     </item>
     <item>
       <title>HackTheBox: The Notebook</title>
-      <link>//localhost:1313/posts/2021-06-10/</link>
+      <link>/posts/2021-06-10/</link>
       <pubDate>Thu, 10 Jun 2021 09:30:00 +1345</pubDate>
-      <guid>//localhost:1313/posts/2021-06-10/</guid>
+      <guid>/posts/2021-06-10/</guid>
       <description>Welcome back to our usual HackTheBox journey, for today medium rated target - The Notebook. In this blog post, we&amp;rsquo;ve managed to alter client-side JWT cookie, spawn our reverse shell then proceeded to achieve user&amp;rsquo;s SSH credentials and, subsequently, be able to privesc via a docker PoC.&#xA;Enumeration The very initial step is to do a network scan using everyone&amp;rsquo;s favorite utility - nmap.&#xA;┌──(kali㉿kali)-[~/HackTheBox/Boxes/TheNotebook] └─$ sudo nmap -sV -sC -sS 10.</description>
     </item>
     <item>
       <title>HackTheBox: Armageddon</title>
-      <link>//localhost:1313/posts/2021-05-28/</link>
+      <link>/posts/2021-05-28/</link>
       <pubDate>Fri, 28 May 2021 09:30:00 +1345</pubDate>
-      <guid>//localhost:1313/posts/2021-05-28/</guid>
+      <guid>/posts/2021-05-28/</guid>
       <description>This is another challenge on HackTheBox - Armageddon. Let&amp;rsquo;s get started.&#xA;Enumeration Nmap We start by enumerating open ports and services on the target machine using nmap:&#xA;┌──(root💀kali)-[/home/kali/HackTheBox/Armageddon] └─# cat nmap/armageddon.nmap # Nmap 7.91 scan initiated Thu May 27 00:25:58 2021 as: nmap -sS -sC -sV -p- -oA nmap/armageddon -v 10.10.10.233 Nmap scan report for 10.10.10.233 Host is up (0.23s latency). Not shown: 65219 closed ports, 314 filtered ports PORT STATE SERVICE VERSION 22/tcp open ssh OpenSSH 7.</description>
     </item>
     <item>
       <title>HackTheBox: Sharp</title>
-      <link>//localhost:1313/posts/2021-05-16/</link>
+      <link>/posts/2021-05-16/</link>
       <pubDate>Sun, 16 May 2021 09:30:00 +1345</pubDate>
-      <guid>//localhost:1313/posts/2021-05-16/</guid>
+      <guid>/posts/2021-05-16/</guid>
       <description>Hi, after a long time not posting anything on this blog because of my university workload. Let&amp;rsquo;s get back to our normal routine of pwning. Today, I will do a writeup of retired HackTheBox (HTB) machine - Sharp, which is rated 4.8 pts.&#xA;For anyone who doesn&amp;rsquo;t know about HTB, it&amp;rsquo;s an infosec playground with a bunch of virtual machines which are vulnerable to exploit. HTB, in my point of view, is the most practical cyber security competition as many certificate authorities require completion of HTB-like target machines.</description>
     </item>
     <item>
       <title>KCSC: A simple BOF</title>
-      <link>//localhost:1313/posts/2021-03-28/</link>
+      <link>/posts/2021-03-28/</link>
       <pubDate>Sun, 28 Mar 2021 09:30:00 +1345</pubDate>
-      <guid>//localhost:1313/posts/2021-03-28/</guid>
+      <guid>/posts/2021-03-28/</guid>
       <description>Today we are going to test out Ghidra with one of my university pwnie challenge.&#xA;Info Value Name pwn1 Type ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, for GNU/Linux 3.2.0 Entropy 3.82492 (not packed) Analyzing Let&amp;rsquo;s load the binary into our disassembler Ghidra and analyze the main function. Take your time to spot the problem in the following code.&#xA;undefined4 main(void) { __uid_t __euid; __uid_t __ruid; char local_4c [40]; int local_24; undefined *local_14; local_14 = &amp;amp;stack0x00000004; local_24 = 0; setbuf(stdout,(char *)0x0); setbuf(stdin,(char *)0x0); setbuf(stderr,(char *)0x0); puts(&amp;#34;This should be an easy BOF!</description>
     </item>
     <item>
       <title>KCSC: LFI/RFI Wrapper</title>
-      <link>//localhost:1313/posts/2021-02-24/</link>
+      <link>/posts/2021-02-24/</link>
       <pubDate>Wed, 24 Feb 2021 09:30:00 +1345</pubDate>
-      <guid>//localhost:1313/posts/2021-02-24/</guid>
+      <guid>/posts/2021-02-24/</guid>
       <description>This is the first iteration of my CTF write-up series for the new year. Today we will be solving one of my university&amp;rsquo;s initial challenges. The task is simple itself but I want to show you the mindset of how I play the game.&#xA;Fingerprinting Manual testing The absolute first thing I do when encountering any web challenge, is to actually visit the webpage and click on everything, fill out every text boxes.</description>
     </item>
   </channel>

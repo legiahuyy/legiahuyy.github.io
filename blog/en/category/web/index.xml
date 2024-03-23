@@ -2,31 +2,31 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Web on </title>
-    <link>//localhost:1313/category/web/</link>
+    <link>/category/web/</link>
     <description>Recent content in Web on </description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Thu, 13 Jan 2022 09:30:00 +1345</lastBuildDate>
-    <atom:link href="//localhost:1313/category/web/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="/category/web/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>HackTheBox: Secret</title>
-      <link>//localhost:1313/posts/2022-01-13/</link>
+      <link>/posts/2022-01-13/</link>
       <pubDate>Thu, 13 Jan 2022 09:30:00 +1345</pubDate>
-      <guid>//localhost:1313/posts/2022-01-13/</guid>
+      <guid>/posts/2022-01-13/</guid>
       <description>It has been a long time since our last HackTheBox write-up, so today we will get into a two and a half months old machine - Secret.&#xA;Enumeration Network scan As usual, nmap should provide us an elaborated report on the target&amp;rsquo;s network.&#xA;┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret] └─$ nmap -sV -sC 10.10.11.120 -v -oA ./nmap/Secret ┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret] └─$ cat ./nmap/Secret.nmap # Nmap 7.92 scan initiated Wed Jan 12 21:44:12 2022 as: nmap -sV -sC -v -oA .</description>
     </item>
     <item>
       <title>KCSC: A simple BOF</title>
-      <link>//localhost:1313/posts/2021-03-28/</link>
+      <link>/posts/2021-03-28/</link>
       <pubDate>Sun, 28 Mar 2021 09:30:00 +1345</pubDate>
-      <guid>//localhost:1313/posts/2021-03-28/</guid>
+      <guid>/posts/2021-03-28/</guid>
       <description>Today we are going to test out Ghidra with one of my university pwnie challenge.&#xA;Info Value Name pwn1 Type ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, for GNU/Linux 3.2.0 Entropy 3.82492 (not packed) Analyzing Let&amp;rsquo;s load the binary into our disassembler Ghidra and analyze the main function. Take your time to spot the problem in the following code.&#xA;undefined4 main(void) { __uid_t __euid; __uid_t __ruid; char local_4c [40]; int local_24; undefined *local_14; local_14 = &amp;amp;stack0x00000004; local_24 = 0; setbuf(stdout,(char *)0x0); setbuf(stdin,(char *)0x0); setbuf(stderr,(char *)0x0); puts(&amp;#34;This should be an easy BOF!</description>
     </item>
     <item>
       <title>KCSC: LFI/RFI Wrapper</title>
-      <link>//localhost:1313/posts/2021-02-24/</link>
+      <link>/posts/2021-02-24/</link>
       <pubDate>Wed, 24 Feb 2021 09:30:00 +1345</pubDate>
-      <guid>//localhost:1313/posts/2021-02-24/</guid>
+      <guid>/posts/2021-02-24/</guid>
       <description>This is the first iteration of my CTF write-up series for the new year. Today we will be solving one of my university&amp;rsquo;s initial challenges. The task is simple itself but I want to show you the mindset of how I play the game.&#xA;Fingerprinting Manual testing The absolute first thing I do when encountering any web challenge, is to actually visit the webpage and click on everything, fill out every text boxes.</description>
     </item>
   </channel>

@@ -2,63 +2,63 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>//localhost:1313/</loc>
+    <loc>/</loc>
     <lastmod>2024-03-23T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>//localhost:1313/posts/2024-03-23-burnt-out/</loc>
+    <loc>/posts/2024-03-23-burnt-out/</loc>
     <lastmod>2024-03-23T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>//localhost:1313/posts/</loc>
+    <loc>/posts/</loc>
     <lastmod>2024-03-23T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>//localhost:1313/category/</loc>
+    <loc>/category/</loc>
     <lastmod>2022-05-07T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>//localhost:1313/category/pwn/</loc>
+    <loc>/category/pwn/</loc>
     <lastmod>2022-05-07T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>//localhost:1313/posts/2022-05-07/</loc>
+    <loc>/posts/2022-05-07/</loc>
     <lastmod>2022-05-07T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>//localhost:1313/category/hackthebox/</loc>
+    <loc>/category/hackthebox/</loc>
     <lastmod>2022-01-13T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>//localhost:1313/posts/2022-01-13/</loc>
+    <loc>/posts/2022-01-13/</loc>
     <lastmod>2022-01-13T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>//localhost:1313/category/web/</loc>
+    <loc>/category/web/</loc>
     <lastmod>2022-01-13T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>//localhost:1313/category/pwn-journey/</loc>
+    <loc>/category/pwn-journey/</loc>
     <lastmod>2022-01-10T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>//localhost:1313/posts/2022-01-10-pwn-journey-2/</loc>
+    <loc>/posts/2022-01-10-pwn-journey-2/</loc>
     <lastmod>2022-01-10T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>//localhost:1313/posts/2021-12-29-pwn-journey-1/</loc>
+    <loc>/posts/2021-12-29-pwn-journey-1/</loc>
     <lastmod>2021-12-29T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>//localhost:1313/posts/2021-10-03/</loc>
+    <loc>/posts/2021-10-03/</loc>
     <lastmod>2021-10-03T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>//localhost:1313/posts/2021-10-01/</loc>
+    <loc>/posts/2021-10-01/</loc>
     <lastmod>2021-10-01T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>//localhost:1313/posts/2021-06-10/</loc>
+    <loc>/posts/2021-06-10/</loc>
     <lastmod>2021-06-10T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>//localhost:1313/posts/2021-05-28/</loc>
+    <loc>/posts/2021-05-28/</loc>
     <lastmod>2021-05-28T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>//localhost:1313/posts/2021-05-16/</loc>
+    <loc>/posts/2021-05-16/</loc>
     <lastmod>2021-05-16T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>//localhost:1313/posts/2021-03-28/</loc>
+    <loc>/posts/2021-03-28/</loc>
     <lastmod>2021-03-28T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>//localhost:1313/posts/2021-02-24/</loc>
+    <loc>/posts/2021-02-24/</loc>
     <lastmod>2021-02-24T09:30:00+13:45</lastmod>
   </url><url>
-    <loc>//localhost:1313/about/</loc>
+    <loc>/about/</loc>
   </url>
 </urlset>
