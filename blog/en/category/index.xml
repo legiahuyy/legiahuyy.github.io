@@ -2,38 +2,38 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Category on </title>
-    <link>/category/</link>
+    <link>https://legiahuyy.github.io/blog/en/category/</link>
     <description>Recent content in Category on </description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Sat, 07 May 2022 09:30:00 +1345</lastBuildDate>
-    <atom:link href="/category/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://legiahuyy.github.io/blog/en/category/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Pwn</title>
-      <link>/category/pwn/</link>
+      <link>https://legiahuyy.github.io/blog/en/category/pwn/</link>
       <pubDate>Sat, 07 May 2022 09:30:00 +1345</pubDate>
-      <guid>/category/pwn/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/category/pwn/</guid>
       <description></description>
     </item>
     <item>
       <title>Hackthebox</title>
-      <link>/category/hackthebox/</link>
+      <link>https://legiahuyy.github.io/blog/en/category/hackthebox/</link>
       <pubDate>Thu, 13 Jan 2022 09:30:00 +1345</pubDate>
-      <guid>/category/hackthebox/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/category/hackthebox/</guid>
       <description></description>
     </item>
     <item>
       <title>Web</title>
-      <link>/category/web/</link>
+      <link>https://legiahuyy.github.io/blog/en/category/web/</link>
       <pubDate>Thu, 13 Jan 2022 09:30:00 +1345</pubDate>
-      <guid>/category/web/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/category/web/</guid>
       <description></description>
     </item>
     <item>
       <title>PWN Journey</title>
-      <link>/category/pwn-journey/</link>
+      <link>https://legiahuyy.github.io/blog/en/category/pwn-journey/</link>
       <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
-      <guid>/category/pwn-journey/</guid>
+      <guid>https://legiahuyy.github.io/blog/en/category/pwn-journey/</guid>
       <description></description>
     </item>
   </channel>
