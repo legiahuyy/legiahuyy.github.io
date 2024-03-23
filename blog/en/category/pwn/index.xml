@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Pwn on </title>
+    <link>//localhost:1313/category/pwn/</link>
+    <description>Recent content in Pwn on </description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Sat, 07 May 2022 09:30:00 +1345</lastBuildDate>
+    <atom:link href="//localhost:1313/category/pwn/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Pwnable.tw: orw</title>
+      <link>//localhost:1313/posts/2022-05-07/</link>
+      <pubDate>Sat, 07 May 2022 09:30:00 +1345</pubDate>
+      <guid>//localhost:1313/posts/2022-05-07/</guid>
+      <description>Let&amp;rsquo;s have a quick and succinct write-up for orw - a challenge at pwnable.tw.&#xA;Footprinting Initially, we want to check the file for any notable properties (PIE, Canary, RELRO, etc.).&#xA;Based on the output above, there are no protection bits enabled within the binary (except for canary but it does not interfere with our payload afterwards) and therefore it is presumably believed to be quite simple as expected for a 100pts challenge.</description>
+    </item>
+    <item>
+      <title>PWN Journey: Part 2</title>
+      <link>//localhost:1313/posts/2022-01-10-pwn-journey-2/</link>
+      <pubDate>Mon, 10 Jan 2022 09:30:00 +1345</pubDate>
+      <guid>//localhost:1313/posts/2022-01-10-pwn-journey-2/</guid>
+      <description>In this post, we will solve two pwn challenges from WhiteHat Play!10 and a customized one. We will also delve into details about most frequently encountered protection bits as well as bypass method for each.&#xA;Anyway, I hope you have a good time reading.&#xA;WhiteHat Play!10 - pwn01 Goal: Trigger the buffer overflow and call covid19.&#xA;This is an original pwn challenge from WhiteHat Play10! Wargame and you can download it here or use this mirror link.</description>
+    </item>
+    <item>
+      <title>PWN Journey: Part 1</title>
+      <link>//localhost:1313/posts/2021-12-29-pwn-journey-1/</link>
+      <pubDate>Wed, 29 Dec 2021 09:30:00 +1345</pubDate>
+      <guid>//localhost:1313/posts/2021-12-29-pwn-journey-1/</guid>
+      <description>Foreword Greetings, this series of posts delves into a collection of pwnie solutions that I have been poking around for a while and finally have the time to publish it so that I could practice my writing and attempt to share some knowledge in such a way that could be helpful to others. Not to mention that I am also a rookie in this field, so take my words with a grain of salt and all critics/suggestions are welcome.</description>
+    </item>
+  </channel>
+</rss>

