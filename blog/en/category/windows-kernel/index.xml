@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Windows Kernel on archivist&#39;s blog</title>
+    <link>https://legiahuyy.github.io/blog/en/category/windows-kernel/</link>
+    <description>Recent content in Windows Kernel on archivist&#39;s blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Fri, 22 Dec 2023 09:30:00 +1345</lastBuildDate>
+    <atom:link href="https://legiahuyy.github.io/blog/en/category/windows-kernel/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>RAII and locks in kernel</title>
+      <link>https://legiahuyy.github.io/blog/en/posts/2023-12-22-001/</link>
+      <pubDate>Fri, 22 Dec 2023 09:30:00 +1345</pubDate>
+      <guid>https://legiahuyy.github.io/blog/en/posts/2023-12-22-001/</guid>
+      <description>C was the only go-to programming language when you enter the kernel realm, see that I specifically used was and not has been? It is now the time to switch out that old, (t)rusty C11 to a newer, more futuristic C++17 standard and start playing with those sweet, sweet, juicy std::vector, std::string, std::tuple you all deserve like a good boy! Sorry I was just messing around, no way that can be happening this soon, not at least a few centuries decades to come and actually I know some people would even threaten you if they were to see those quirky lambdas in your driver code.</description>
+    </item>
+  </channel>
+</rss>

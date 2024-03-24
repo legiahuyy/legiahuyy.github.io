@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+   <meta name="description" content="C was the only go-to programming language when you enter the kernel realm, see that I specifically used was and not has been? It is now the time to switch out that old, (t)rusty C11 to a newer, more futuristic C&#43;&#43;17 standard and start playing with those sweet, sweet, juicy std::vector, std::string, std::tuple you all deserve like a good boy! Sorry I was just messing around, no way that can be happening this soon, not at least a few centuries decades to come and actually I know some people would even threaten you if they were to see those quirky lambdas in your driver code.">  
+
+  <title>
+    
+      RAII and locks in kernel
+    
+  </title>
+
+  <link rel="shortcut icon" type="image/x-icon" href="https://legiahuyy.github.io/blog/en/favicon/green.png" />
+
+  
+  
+  
+  <link rel="stylesheet" href="/blog/en/css/main.1ee9779e32d9ea404009d8d25f199c5f7a64f372e1d0b2cc872dd06eebde53e8f92e8f56e31bb9266e8c22277a1e35ae37ae9e9c43fb6e9752a49d59c559f3f1.css" integrity="sha512-Hul3njLZ6kBACdjSXxmcX3pk83Lh0LLMhy3QbuveU&#43;j5Lo9W4xu5Jm6MIid6HjWuN66enEP7bpdSpJ1ZxVnz8Q==" />
+  
+
+  
+  <script defer type="text/javascript" src="https://legiahuyy.github.io/blog/en/js/jquery_3.7.1.min.js"></script>
+  
+  
+  
+  <script defer type="text/javascript" src="https://legiahuyy.github.io/blog/en/js/typing_effect.min.js"></script>
+
+  
+  
+  <script defer type="text/javascript" src="https://legiahuyy.github.io/blog/en/js/img_relocs.min.js"></script>
+</head>
+<body a="dark">
+        <main class="page-content" aria-label="Content">
+            <div class="w">
+<a style="color: #ff5;" href="/blog/en/">[HOME]</a>
+
+<article>
+    <p class="post-meta">
+        
+        <time datetime="2023-12-22 09:30:00 &#43;1345 &#43;1345">
+            2023-12-22
+        </time>
+    </p>
+
+    <h1>RAII and locks in kernel</h1>
+
+    
+        <aside >
+            <nav id="TableOfContents">
+  <ul>
+    <li><a href="#the-problem">The problem</a></li>
+    <li><a href="#raii">RAII</a></li>
+  </ul>
+</nav>
+        </aside>
+    
+
+    <p>C was the only go-to programming language when you enter the kernel realm, see that I specifically used <em>was</em> and not <em>has been</em>? It is now the time to switch out that old, (t)rusty C11 to a newer, more futuristic C++17 standard and start playing with those sweet, sweet, juicy <code>std::vector</code>, <code>std::string</code>, <code>std::tuple</code> you all deserve like a good boy! Sorry I was just messing around, no way that can be happening this soon, not at least a few <del>centuries</del> decades to come and actually I know some people would even threaten you if they were to see those quirky lambdas in your driver code. But today I want to introduce you to a type of <em>technique</em> which most people called black magic, in kernel programming. Say black magic but it is nothing new at all, in fact there are a lot of folks at kernel developing communities have already implemented this in their production code, including myself.</p>
+<p>Disclaimer: Readers should take every word here with nothing more than a <em>grain of salt</em>, given the inexperience of the author.</p>
+<h2 id="the-problem"><a class="h-anchor" href="#the-problem">The problem</a></h2>
+<p>Locking is quite easy to understand, yet pretty hard to use it correctly given of how many types of locking mechanisms are on the market such as primitive/queue/executive spin locks, push lock, mutex, semaphore and so on. Each of these locking mechanisms, especially those that support shared lock, usually requires user to call a pair of respective lock/unlock functions; not to mention the IRQL, overhead, deadlocks. Let us take a look at a reader/writer push lock as an example:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span>EX_PUSH_LOCK gGlobalLock;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>VOID <span style="color:#ff0">Initializer</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#0f0">// ... works ...
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>NTSTATUS <span style="color:#ff0">SomeFunction</span>() {
+</span></span><span style="display:flex;"><span>    BOOLEAN critical = FALSE:
+</span></span><span style="display:flex;"><span>    ExInitializePushLock(&amp;gGLobalLock);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#0f0">// ... works ...
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>	ExAcquirePushLockShared(&amp;gGlobalLock);
+</span></span><span style="display:flex;"><span>    <span style="color:#0f0">// ... do something with resource ...
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    <span style="color:#f00">if</span> (critical)
+</span></span><span style="display:flex;"><span>        <span style="color:#f00">goto</span> Cleanup;  <span style="color:#0f0">// error prone code
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    ExReleasePushLockShared(&amp;gGlobalLock); <span style="color:#0f0">// what if the thread preemtively exited before we could call this?
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>
+</span></span><span style="display:flex;"><span>    Cleanup:
+</span></span><span style="display:flex;"><span>        <span style="color:#f00">return</span> status;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>If the handler code was messy enough, one could forget whether the lock was shared or exclusive; or even mistake for different kind of locking mechanism since they were using C complier which has a weak type checking and all of the locks are referenced by their pointers.</p>
+<p>And by chance did you forget anything? That is right, the IRQL. Did you call ExAcquireSpinLock<em>AtDpcLevel</em> to trade off for a little performance and facing a god-knows-why BSOD for hours because you previously called the wrong API ExReleaseSpinlock instead of ExReleaseSpinlock<em>AtDpcLevel</em>? Did you release all the push locks for those linked list traversal functions that not even your code to begin with? The list goes on and on, these errors are hard to be detected as compiler will not give you any warnings for these. Here is a table showcasing respective acquire/release routine for some locking mechanisms which I often encounter:</p>
+<table>
+<thead>
+<tr>
+<th><strong>Acquire</strong></th>
+<th><strong>Release</strong></th>
+<th><strong>IRQL</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KeAcquireSpinLockAtDpcLevel</td>
+<td>KeReleaseSpinLockFromDpcLevel</td>
+<td>IRQL &lt;= APC_LEVEL</td>
+</tr>
+<tr>
+<td>ExAcquireSpinLockShared</td>
+<td>ExReleaseSpinLockShared</td>
+<td>IRQL &lt;= DISPATCH_LEVEL</td>
+</tr>
+<tr>
+<td>ExAcquireSpinLockSharedAtDpcLevel</td>
+<td>ExReleaseSpinLockSharedFromDpcLevel</td>
+<td>IRQL &gt;= DISPATCH_LEVEL</td>
+</tr>
+<tr>
+<td>ExAcquirePushLockExclusive (must call KeEnterCriticalRegion preemptively)</td>
+<td>ExReleasePushLockExclusive (must call KeLeaveCriticalRegion subsequently)</td>
+<td>Any</td>
+</tr>
+<tr>
+<td>ExAcquirePushLockShared (must call KeEnterCriticalRegion preemptively)</td>
+<td>ExReleasePushLockShared (must call KeLeaveCriticalRegion subsequently)</td>
+<td>Any</td>
+</tr>
+<tr>
+<td>ExAcquireFastMutex</td>
+<td>ExReleaseFastMutex</td>
+<td>IRQL &lt;= APC_LEVEL</td>
+</tr>
+</tbody>
+</table>
+<p>The bigger your project is, the more likely you will make mistake. There is one of many solutions for this, including RAII which we are going to delve into shortly.</p>
+<h2 id="raii"><a class="h-anchor" href="#raii">RAII</a></h2>
+<p>Resource acquisition is initialization, or RAII, is basically a term to describe an object behavior to initialize and un-initialize its resources automatically by calling the constructor and destructor, respectively. If you do OOP in any programming language that supports, you are likely to be familiar to this already. So does this even matter to kernel space, when we do not have the luxury of OOP? You are right&hellip; and wrong at the same time if you were to think it that way. It is correct that kernel cannot handle OOP but to and extend.</p>
+<p>Believe it or not, I have frequently implemented RAII patterns for almost every kernel driver projects but mostly WDM and MiniFs; albeit I cannot share my entire source code here but to put it simply:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span><span style="color:#f00">typedef</span> <span style="color:#f00">union</span> _SMART_LOCK {
+</span></span><span style="display:flex;"><span>    ULONG_PTR Type;
+</span></span><span style="display:flex;"><span>    PEX_SPIN_LOCK Spin;
+</span></span><span style="display:flex;"><span>    PEX_PUSH_LOCK Push;
+</span></span><span style="display:flex;"><span>}SMART_LOCK, *PSMART_LOCK;
+</span></span><span style="display:flex;"><span><span style="color:#f00">class</span> SmartLock {
+</span></span><span style="display:flex;"><span><span style="color:#f00">public</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f00">explicit</span> SmartLock(PSMART_LOCK Lock);
+</span></span><span style="display:flex;"><span>    SmartLock() : m_Lock(<span style="color:#f00">nullptr</span>), m_IsLocked(false), m_Exclusive(false), m_OldIrql(<span style="color:#f60">0</span>);
+</span></span><span style="display:flex;"><span>    ~SmartLock() { Release(); };
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    BOOLEAN <span style="color:#ff0">Acquire</span>(PSMART_LOCK NewLock);
+</span></span><span style="display:flex;"><span>    VOID <span style="color:#ff0">LockForRead</span>();
+</span></span><span style="display:flex;"><span>    VOID <span style="color:#ff0">LockForWrite</span>();
+</span></span><span style="display:flex;"><span>    VOID <span style="color:#ff0">Release</span>();
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    SmartLock(<span style="color:#f00">const</span> SmartLock&amp;) = <span style="color:#f00">delete</span>;
+</span></span><span style="display:flex;"><span>	SmartLock(<span style="color:#f00">const</span> SmartLock&amp;&amp;) = <span style="color:#f00">delete</span>;
+</span></span><span style="display:flex;"><span>	SmartLock&amp; <span style="color:#f00">operator</span>=(<span style="color:#f00">const</span> SmartLock&amp;) = <span style="color:#f00">delete</span>;
+</span></span><span style="display:flex;"><span>	SmartLock&amp; <span style="color:#f00">operator</span>=(<span style="color:#f00">const</span> SmartLock&amp;&amp;) = <span style="color:#f00">delete</span>;
+</span></span><span style="display:flex;"><span><span style="color:#f00">private</span>:
+</span></span><span style="display:flex;"><span>   PSMART_LOCK m_Lock;
+</span></span><span style="display:flex;"><span>   	BOOLEAN m_IsLocked;
+</span></span><span style="display:flex;"><span>	BOOLEAN m_Exclusive;
+</span></span><span style="display:flex;"><span>	KIRQL m_OldIrql;
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>	BOOLEAN <span style="color:#ff0">lockable</span>() <span style="color:#f00">const</span>;
+</span></span><span style="display:flex;"><span>	BOOLEAN <span style="color:#ff0">SetLock</span>(BOOLEAN Mode);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>The <code>Acquire</code> method is kind of simple, check for the initialization bit whether it is set or not, and acquire the lock. Observe the following pseudo:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span>BOOLEAN SmartLock::Acquire(PSMART_LOCK_TYPE Lock)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#f00">if</span> (!BitTest((<span style="color:#f00">const</span> LONG*)&amp;m_IsLocked, <span style="color:#f60">0</span>)) {
+</span></span><span style="display:flex;"><span>		m_Lock = Lock-&gt;Type;
+</span></span><span style="display:flex;"><span>		<span style="color:#f00">return</span> TRUE;
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	m_Lock = <span style="color:#f00">nullptr</span>;
+</span></span><span style="display:flex;"><span>	<span style="color:#f00">return</span> FALSE;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Below is the snippet for <code>LockForRead</code>, and the same goes for <code>LockForWrite</code>, you just have to change the functions to <code>ExAcquireSpinLockExclusiveAtDpcLevel</code>, <code>ExAcquireSpinLockExclusive</code> or something like that. Inside these method, you can also implement a IRQL check to ensure which is the correct API  to call.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span>VOID SmartLock::LockForRead()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#f00">if</span> (lockable()) {
+</span></span><span style="display:flex;"><span>		SetLock(TRUE);
+</span></span><span style="display:flex;"><span>		m_Exclusive = FALSE;
+</span></span><span style="display:flex;"><span>		<span style="color:#f00">if</span> ((m_OldIrql = KeGetCurrentIrql()) &gt;= DISPATCH_LEVEL) {
+</span></span><span style="display:flex;"><span>			<span style="color:#0f0">// your favorite Dpc locking routine here
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#f00">else</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#0f0">// your favorite below Dpc locking routine here
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>VOID SmartLock::LockForWrite()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#f00">if</span> (lockable()) {
+</span></span><span style="display:flex;"><span>		SetLock(TRUE);
+</span></span><span style="display:flex;"><span>		m_Exclusive = TRUE;
+</span></span><span style="display:flex;"><span>		<span style="color:#f00">if</span> ((m_OldIrql = KeGetCurrentIrql()) &gt;= DISPATCH_LEVEL) {
+</span></span><span style="display:flex;"><span>			<span style="color:#0f0">// your favorite Dpc locking routine here
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#f00">else</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#0f0">// your favorite below Dpc locking routine here
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>And <code>Release</code>, we use spin lock as demonstration for the sake of brevity:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span>VOID SmartLock::Release() 
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#f00">if</span> (BitTest((<span style="color:#f00">const</span> LONG*)&amp;m_IsLocked, <span style="color:#f60">0</span>)) { <span style="color:#0f0">// prevents double-release
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>		<span style="color:#f00">if</span> (m_Exclusive) {
+</span></span><span style="display:flex;"><span>			<span style="color:#f00">if</span> (KeGetCurrentIrql() &gt;= DISPATCH_LEVEL) {
+</span></span><span style="display:flex;"><span>				ExReleaseSpinLockExclusiveFromDpcLevel(m_Lock);
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#f00">else</span> {
+</span></span><span style="display:flex;"><span>				ExReleaseSpinLockExclusive(m_Lock, m_OldIrql);
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#f00">else</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#f00">if</span> (KeGetCurrentIrql() &gt;= DISPATCH_LEVEL) {
+</span></span><span style="display:flex;"><span>				ExReleaseSpinLockSharedFromDpcLevel(m_Lock);
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>			<span style="color:#f00">else</span> {
+</span></span><span style="display:flex;"><span>				ExReleaseSpinLockShared(m_Lock, m_OldIrql);
+</span></span><span style="display:flex;"><span>			}
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		SetLock(FALSE);
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>When you want to acquire lock for your resource, it will be somewhat as:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c++" data-lang="c++"><span style="display:flex;"><span>EX_SMART_LOCK gMyLinkedListLock;
+</span></span><span style="display:flex;"><span>PLIST_ENTRY gMyLinkedListHead;
+</span></span><span style="display:flex;"><span><span style="color:#f00">typedef</span> <span style="color:#f00">struct</span> _MY_LINKED_LIST {
+</span></span><span style="display:flex;"><span>	<span style="color:#f00">union</span> {
+</span></span><span style="display:flex;"><span>		ULONG Flags;
+</span></span><span style="display:flex;"><span>		<span style="color:#f00">struct</span> {
+</span></span><span style="display:flex;"><span>			ULONG Reserved : <span style="color:#f60">32</span>;
+</span></span><span style="display:flex;"><span>		}u;
+</span></span><span style="display:flex;"><span>	};
+</span></span><span style="display:flex;"><span>	LIST_ENTRY InListLinks;
+</span></span><span style="display:flex;"><span>	ULONG SomeInfo;
+</span></span><span style="display:flex;"><span>}MY_LINKED_LIST
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>NTSTATUS <span style="color:#ff0">Handler</span>() 
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	SmartLock locker(&amp;gMyLinkedListLock);
+</span></span><span style="display:flex;"><span>	locker.LockForRead();
+</span></span><span style="display:flex;"><span>	<span style="color:#f00">for</span>(PLIST_ENTRY pEntry = gMyLinkedListHead-&gt;Flink;
+</span></span><span style="display:flex;"><span>		pEntry = &amp;gMyLinkedListHead;
+</span></span><span style="display:flex;"><span>		pEntry = pEntry-&gt;Flink) {
+</span></span><span style="display:flex;"><span>		MY_LINKED_LIST* entry = CONTAINING_RECORD(pEntry, MY_LINKED_LIST, InListLinks);
+</span></span><span style="display:flex;"><span>		<span style="color:#0f0">// do something
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>	}
+</span></span><span style="display:flex;"><span>    locker.Release();
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    locker.LockForWrite();
+</span></span><span style="display:flex;"><span>    <span style="color:#0f0">// ...
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>    
+</span></span><span style="display:flex;"><span>	
+</span></span><span style="display:flex;"><span>Cleanup:
+</span></span><span style="display:flex;"><span>	<span style="color:#f00">return</span> STATUS_SUCCESS; <span style="color:#0f0">// the lock would be released automatically
+</span></span></span><span style="display:flex;"><span><span style="color:#0f0"></span>}
+</span></span></code></pre></div><p>The code is not in its complete version but you can get the idea and it is also not that difficult to implement this into yourself if you already have some fundamental knowledge of OOP.</p>
+
+</article>
+
+            </div>
+        </main>
+    </body></html>

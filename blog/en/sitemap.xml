@@ -3,13 +3,22 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://legiahuyy.github.io/blog/en/</loc>
-    <lastmod>2022-05-07T09:30:00+13:45</lastmod>
+    <lastmod>2023-12-22T09:30:00+13:45</lastmod>
   </url><url>
     <loc>https://legiahuyy.github.io/blog/en/category/</loc>
-    <lastmod>2022-05-07T09:30:00+13:45</lastmod>
+    <lastmod>2023-12-22T09:30:00+13:45</lastmod>
   </url><url>
     <loc>https://legiahuyy.github.io/blog/en/posts/</loc>
-    <lastmod>2022-05-07T09:30:00+13:45</lastmod>
+    <lastmod>2023-12-22T09:30:00+13:45</lastmod>
+  </url><url>
+    <loc>https://legiahuyy.github.io/blog/en/posts/2023-12-22-001/</loc>
+    <lastmod>2023-12-22T09:30:00+13:45</lastmod>
+  </url><url>
+    <loc>https://legiahuyy.github.io/blog/en/category/windows-kernel/</loc>
+    <lastmod>2023-12-22T09:30:00+13:45</lastmod>
+  </url><url>
+    <loc>https://legiahuyy.github.io/blog/en/posts/2023-12-06-burnt-out/</loc>
+    <lastmod>2023-12-06T09:30:00+13:45</lastmod>
   </url><url>
     <loc>https://legiahuyy.github.io/blog/en/category/pwn/</loc>
     <lastmod>2022-05-07T09:30:00+13:45</lastmod>
@@ -57,8 +66,5 @@
     <lastmod>2021-02-24T09:30:00+13:45</lastmod>
   </url><url>
     <loc>https://legiahuyy.github.io/blog/en/about/</loc>
-  </url><url>
-    <loc>https://legiahuyy.github.io/blog/en/posts/0001-01-01-burnt-out/</loc>
-    <lastmod>0001-01-01T09:30:00+13:45</lastmod>
   </url>
 </urlset>
